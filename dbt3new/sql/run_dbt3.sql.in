@@ -1,0 +1,23 @@
+USE dbt3;
+
+--
+-- This table holds data on dbt3 runs
+--
+
+CREATE TABLE IF NOT EXISTS dbt3_runs (
+  idx      INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  batch    INT UNSIGNED,
+  query    TINYINT UNSIGNED,
+  pass     TINYINT UNSIGNED,
+  start_ts TIMESTAMP,
+  end_ts   TIMESTAMP,
+  UNIQUE (batch, query, pass)
+);
+
+--
+-- Find our batch number
+--
+
+SELECT @batch:=COALESCE(MAX(batch),0)+1 FROM dbt3_runs;
+
+
