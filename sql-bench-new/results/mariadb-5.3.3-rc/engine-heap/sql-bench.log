@@ -1,0 +1,71 @@
+Benchmark DBD suite: 2.15
+Date of test:        2012-01-26  4:52:27
+Running tests on:    Linux 3.1.0-1.2-desktop x86_64
+Arguments:           --socket=/tmp/mysql.sock.sqlbench --fast --fast-insert --create-options=ENGINE=HEAP --only-missing-tests
+Comments:            engine-heap
+Limits from:         mysql,pg
+Server version:      MySQL 5.3.3 MariaDB rc
+Optimization:        None
+Hardware:            
+
+alter-table: Total time: 56 wallclock secs ( 0.06 usr  0.02 sys +  0.00 cusr  0.00 csys =  0.08 CPU)
+ATIS: Total time: 339 wallclock secs (77.58 usr  2.79 sys +  0.00 cusr  0.00 csys = 80.37 CPU)
+big-tables: Warning: Can't execute big-tables.  Check the file '/home/axel/sqlbench/results/mariadb-5.3.3-rc-engine-heap/big-tables-mysql_fast-Linux_3.1.0_1.2_desktop_x86_64-cmp-mysql,pg'
+Failed (/home/axel/sqlbench/results/mariadb-5.3.3-rc-engine-heap/big-tables-mysql_fast-Linux_3.1.0_1.2_desktop_x86_64-cmp-mysql,pg)
+connect: Total time: 185 wallclock secs (55.40 usr 19.88 sys +  0.00 cusr  0.00 csys = 75.28 CPU)
+create: Total time: 1217 wallclock secs ( 1.47 usr  0.79 sys +  0.00 cusr  0.00 csys =  2.26 CPU)
+insert: Warning: Can't execute insert.  Check the file '/home/axel/sqlbench/results/mariadb-5.3.3-rc-engine-heap/insert-mysql_fast-Linux_3.1.0_1.2_desktop_x86_64-cmp-mysql,pg'
+Failed (/home/axel/sqlbench/results/mariadb-5.3.3-rc-engine-heap/insert-mysql_fast-Linux_3.1.0_1.2_desktop_x86_64-cmp-mysql,pg)
+select: Total time: 364 wallclock secs (31.50 usr  2.96 sys +  0.00 cusr  0.00 csys = 34.46 CPU)
+transactions: Test skipped because the database doesn't support transactions
+wisconsin: Total time: 227 wallclock secs (138.72 usr  5.22 sys +  0.00 cusr  0.00 csys = 143.94 CPU)
+
+Of 9 tests, 2 tests didn't work
+
+Totals per operation:
+Operation             seconds     usr     sys     cpu   tests
+alter_table_add                       55.00    0.05    0.02    0.07     992 
+book-keeping                           0.00    0.00    0.00    0.00       3 
+connect                               20.00    9.98    1.85   11.83   50000 
+connect+select_1_row                  24.00   10.87    2.70   13.57   50000 
+connect+select_simple                 22.00   10.70    2.37   13.07   50000 
+count_distinct                        12.00    0.59    0.10    0.69    7000 
+count_distinct_2                      30.00    0.66    0.12    0.78    7000 
+count_distinct_big                    12.00    9.70    0.07    9.77     700 
+count_distinct_group                  24.00    1.74    0.13    1.87    7000 
+count_distinct_group_on_key           28.00    0.57    0.10    0.67    7000 
+count_distinct_group_on_key_parts     23.00    1.68    0.05    1.73    7000 
+count_distinct_key_prefix              9.00    0.57    0.09    0.66    7000 
+count_group                           17.00    1.64    0.15    1.79    7000 
+count_group_on_key_parts              17.00    1.55    0.08    1.63    7000 
+count_group_with_order                17.00    1.65    0.20    1.85    7000 
+count_on_key                          44.00    3.36    0.63    3.99   50000 
+create+drop                          598.00    0.70    0.40    1.10   10000 
+create_MANY_tables                    20.00    0.02    0.01    0.03     400 
+create_index                           1.00    0.00    0.00    0.00       8 
+create_key+drop                      599.00    0.74    0.38    1.12   10000 
+create_table                           2.00    0.00    0.00    0.00      31 
+delete_big                             0.00    0.00    0.00    0.00       1 
+drop_index                             0.00    0.00    0.00    0.00       8 
+drop_table                             0.00    0.00    0.00    0.00      28 
+drop_table_when_MANY_tables            0.00    0.00    0.00    0.00     400 
+insert                                 0.00    0.10    0.05    0.15   50768 
+min_max_on_key                        72.00    4.47    0.89    5.36   70000 
+select_1_row                          23.00    4.45    2.08    6.53  500000 
+select_1_row_cache                    21.00    3.76    2.24    6.00  500000 
+select_2_rows                         24.00    4.43    2.16    6.59  500000 
+select_big                             0.00    0.02    0.00    0.02      70 
+select_cache                          18.00    0.74    0.12    0.86   10000 
+select_cache2                         18.00    0.78    0.13    0.91   10000 
+select_column+column                  25.00    3.62    2.38    6.00  500000 
+select_distinct                       50.00   16.21    0.56   16.77   40000 
+select_group                          59.00   14.75    1.33   16.08  130000 
+select_group_when_MANY_tables          0.00    0.01    0.00    0.01     400 
+select_join                            7.00    4.41    0.06    4.47    5000 
+select_key_prefix_join               212.00   36.40    0.52   36.92    5000 
+select_range                          22.00    1.68    0.05    1.73     410 
+select_simple                         13.00    3.96    2.09    6.05  500000 
+select_simple_cache                   13.00    3.63    2.01    5.64  500000 
+select_simple_join                     9.00    5.81    0.32    6.13   25000 
+wisc_benchmark                       227.00  138.72    5.22  143.94   50014 
+TOTALS                              2387.00  304.72   31.66  336.38 3682233 

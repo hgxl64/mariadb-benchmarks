@@ -1,0 +1,34 @@
+Testing server 'MySQL 5.2.10 MariaDB' at 2012-01-26  1:20:19
+
+Testing the speed of selecting on keys that consist of many parts
+The test-table has 10000 rows and the test is done with 500 ranges.
+
+Creating table
+Inserting 10000 rows
+Time to insert (10000):  1 wallclock secs ( 0.22 usr  0.09 sys +  0.00 cusr  0.00 csys =  0.31 CPU)
+
+Time for book-keeping (1):  0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+
+Test if the database has a query cache
+Time for select_cache (10000): 16 wallclock secs ( 0.59 usr  0.10 sys +  0.00 cusr  0.00 csys =  0.69 CPU)
+
+Time for select_cache2 (10000): 19 wallclock secs ( 0.75 usr  0.11 sys +  0.00 cusr  0.00 csys =  0.86 CPU)
+
+Testing big selects on the table
+Time for select_big (70:17207):  0 wallclock secs ( 0.03 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.03 CPU)
+Time for select_range (410:1057904): 20 wallclock secs ( 1.69 usr  0.05 sys +  0.00 cusr  0.00 csys =  1.74 CPU)
+Time for min_max_on_key (70000):  6 wallclock secs ( 3.09 usr  0.46 sys +  0.00 cusr  0.00 csys =  3.55 CPU)
+Time for count_on_key (50000): 34 wallclock secs ( 3.50 usr  0.57 sys +  0.00 cusr  0.00 csys =  4.07 CPU)
+
+Time for count_group_on_key_parts (7000:700000): 26 wallclock secs ( 1.63 usr  0.12 sys +  0.00 cusr  0.00 csys =  1.75 CPU)
+Time for count_group (7000:700000): 18 wallclock secs ( 1.61 usr  0.13 sys +  0.00 cusr  0.00 csys =  1.74 CPU)
+Time for count_group_with_order (7000:700000): 18 wallclock secs ( 1.65 usr  0.09 sys +  0.00 cusr  0.00 csys =  1.74 CPU)
+Testing count(distinct) on the table
+Time for count_distinct_key_prefix (7000:7000): 15 wallclock secs ( 0.53 usr  0.07 sys +  0.00 cusr  0.00 csys =  0.60 CPU)
+Time for count_distinct (7000:7000): 19 wallclock secs ( 0.51 usr  0.10 sys +  0.00 cusr  0.00 csys =  0.61 CPU)
+Time for count_distinct_2 (7000:7000): 28 wallclock secs ( 0.50 usr  0.12 sys +  0.00 cusr  0.00 csys =  0.62 CPU)
+Time for count_distinct_group_on_key (7000:42000): 26 wallclock secs ( 0.58 usr  0.08 sys +  0.00 cusr  0.00 csys =  0.66 CPU)
+Time for count_distinct_group_on_key_parts (7000:700000): 21 wallclock secs ( 1.89 usr  0.00 sys +  0.00 cusr  0.00 csys =  1.89 CPU)
+Time for count_distinct_group (7000:700000): 21 wallclock secs ( 1.71 usr  0.00 sys +  0.00 cusr  0.00 csys =  1.71 CPU)
+Time for count_distinct_big (700:7000000): 13 wallclock secs ( 9.68 usr  0.05 sys +  0.00 cusr  0.00 csys =  9.73 CPU)
+Total time: 301 wallclock secs (30.16 usr  2.14 sys +  0.00 cusr  0.00 csys = 32.30 CPU)

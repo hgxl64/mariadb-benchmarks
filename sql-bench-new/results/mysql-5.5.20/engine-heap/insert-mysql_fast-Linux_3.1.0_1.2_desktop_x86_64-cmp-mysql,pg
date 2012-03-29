@@ -1,0 +1,11 @@
+Testing server 'MySQL 5.5.20' at 2012-01-26 11:20:01
+
+Testing the speed of inserting data into 1 table and do some selects on it.
+The tests are done with a table that has 100000 rows.
+
+Generating random keys
+Creating tables
+Inserting 100000 multiple-value rows in order
+Inserting 100000 multiple-value rows in reverse order
+Inserting 100000 multiple-value rows in random order
+The table 'bench1' is full at ./test-insert line 190.

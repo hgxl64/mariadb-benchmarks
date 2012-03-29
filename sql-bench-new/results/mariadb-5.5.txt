@@ -1,0 +1,149 @@
+This is the result file of the different benchmark tests.
+
+The number in () after each tests shows how many SQL commands the particular
+test did.  As one test may have many different parameters this gives only
+a rough picture of what was done.  Check the source for more information :)
+
+Keep in mind that one can't compare benchmarks run with different --cmp
+options. The --cmp options sets the all limits according to the worst
+limit for all server in the benchmark.
+
+Numbers marked with '+' are estimated according to previous runs because
+the query took longer than a given time-limit to finish. The estimation
+shouldn't be far from the real result thought.
+
+Numbers marked with '?' contains results that gave wrong result. This can only
+be used as an indication of how long it took for the server to produce a wrong
+result :)
+
+Numbers marked with '*' are tests that was run a different number times
+than the test in the first column.  The reason for this is normally that the
+marked test was run with different options that affects the number of tests
+or that the test was from another version of the MySQL benchmarks.
+
+Hope this will give you some idea how each db is performing at what thing ....
+Hope you like it .... Luuk & Monty (1997)
+
+The test was run with limits from: mysql,pg
+
+The result logs which where found and the options:
+ 1 mysql-mariadb_5.5_ddefault              : MySQL 5.5.21 MariaDB --socket=/tmp/mysql.sock.sqlbench --fast --fast-insert --only-missing-tests
+  default
+ 2 mysql-mariadb_5.5_debug                 : MySQL 5.5.21 MariaDB debug --socket=/tmp/mysql.sock.sqlbench --fast --fast-insert --only-missing-tests
+  debug
+ 3 mysql-mariadb_5.5_engine_heap           : MySQL 5.5.21 MariaDB --socket=/tmp/mysql.sock.sqlbench --fast --fast-insert --create-options=ENGINE=HEAP --only-missing-tests
+  engine-heap
+ 4 mysql-mariadb_5.5_gcc_O2                : MySQL 5.5.21 MariaDB --socket=/tmp/mysql.sock.sqlbench --fast --fast-insert --only-missing-tests
+  gcc-O2
+ 5 mysql-mariadb_5.5_omit_frame_pointer    : MySQL 5.5.21 MariaDB --socket=/tmp/mysql.sock.sqlbench --fast --fast-insert --only-missing-tests
+  omit-frame-pointer
+ 6 mysql-mariadb_5.5_skip_grants           : MySQL 5.5.21 MariaDB --socket=/tmp/mysql.sock.sqlbench --fast --fast-insert --only-missing-tests
+  skip-grants
+
+==============================================================================
+Operation                    |      1|      2|      3|      4|      5|      6|
+                             |mysql-m|mysql-m|mysql-m|mysql-m|mysql-m|mysql-m|
+------------------------------------------------------------------------------
+Results per test in seconds:                                                 |
+------------------------------------------------------------------------------
+ATIS                         | 241.00| 854.00| 349.00| 240.00| 235.00| 243.00|
+alter-table                  |  15.00|  20.00|  12.00|  14.00|  14.00|  15.00|
+big-tables                   | 298.00| 850.00|       | 303.00| 288.00| 301.00|
+connect                      | 215.00| 523.00| 199.00| 217.00| 244.00| 216.00|
+create                       |   8.00|  20.00|   6.00|   8.00|   8.00|   8.00|
+insert                       | 310.00|1007.00|       | 310.00| 305.00| 308.00|
+select                       | 312.00|1887.00| 383.00| 314.00| 298.00| 315.00|
+wisconsin                    | 256.00| 591.00| 236.00| 261.00| 251.00| 260.00|
+------------------------------------------------------------------------------
+The results per operation:                                                   |
+------------------------------------------------------------------------------
+alter_table_add (992)        |  14.00|  19.00|  10.00|  14.00|  13.00|  14.00|
+book-keeping (11)            |   1.00|   2.00|  *0.00|   2.00|   0.00|   1.00|
+connect (50000)              |  19.00|  39.00|  21.00|  21.00|  20.00|  20.00|
+connect+select_1_row (50000) |  28.00|  51.00|  25.00|  27.00|  27.00|  26.00|
+connect+select_simple (50000)|  24.00|  47.00|  23.00|  24.00|  24.00|  24.00|
+count (100)                  |   3.00|  21.00|       |   3.00|   2.00|   2.00|
+count_distinct (7000)        |  20.00|  99.00|  13.00|  20.00|  19.00|  21.00|
+count_distinct_2 (7000)      |  33.00| 101.00|  31.00|  30.00|  30.00|  30.00|
+count_distinct_big (720)     |  16.00| 467.00| *12.00|  17.00|  17.00|  17.00|
+count_distinct_group (7000)  |  22.00| 141.00|  24.00|  22.00|  21.00|  22.00|
+count_distinct_group_on_key (|  28.00| 110.00|  28.00|  28.00|  22.00|  27.00|
+count_distinct_group_on_key_p|  22.00| 141.00|  25.00|  21.00|  21.00|  22.00|
+count_distinct_key_prefix (70|   1.00|   2.00|   9.00|   1.00|   1.00|   1.00|
+count_group (7000)           |  20.00|  79.00|  18.00|  20.00|  20.00|  19.00|
+count_group_on_key_parts (700|  26.00| 120.00|  18.00|  26.00|  26.00|  27.00|
+count_group_with_order (7000)|  19.00|  80.00|  18.00|  19.00|  19.00|  19.00|
+count_on_key (50100)         |  40.00| 231.00| *46.00|  43.00|  40.00|  42.00|
+create+drop (10000)          |   3.00|   8.00|   2.00|   3.00|   3.00|   3.00|
+create_MANY_tables (400)     |   0.00|   0.00|   0.00|   0.00|   0.00|   0.00|
+create_index (8)             |   0.00|   0.00|   1.00|   0.00|   1.00|   1.00|
+create_key+drop (10000)      |   4.00|  12.00|   4.00|   5.00|   5.00|   5.00|
+create_table (31)            |   0.00|   0.00|   0.00|   0.00|   0.00|   0.00|
+delete_all_many_keys (1)     |   4.00|  27.00|       |   4.00|   4.00|   4.00|
+delete_big (1)               |   0.00|   1.00|   0.00|   0.00|   0.00|   0.00|
+delete_big_many_keys (128)   |   4.00|  27.00|       |   4.00|   4.00|   4.00|
+delete_key (10000)           |   1.00|   2.00|       |   1.00|   1.00|   1.00|
+delete_range (12)            |   1.00|   8.00|       |   1.00|   1.00|   1.00|
+drop_index (8)               |   1.00|   1.00|   0.00|   0.00|   0.00|   0.00|
+drop_table (28)              |   0.00|   0.00|   0.00|   0.00|   0.00|   0.00|
+drop_table_when_MANY_tables (|   0.00|   0.00|   0.00|   0.00|   0.00|   0.00|
+insert (350768)              |   2.00|  14.00|  *1.00|   3.00|   3.00|   2.00|
+insert_duplicates (100000)   |   4.00|   9.00|       |   4.00|   4.00|   4.00|
+insert_key (100000)          |   6.00|  29.00|       |   5.00|   6.00|   6.00|
+insert_many_fields (140000)  | 105.00| 356.00|       | 106.00| 101.00| 107.00|
+insert_select_1_key (1)      |   0.00|   5.00|       |   0.00|   1.00|   0.00|
+insert_select_2_keys (1)     |   1.00|   5.00|       |   1.00|   0.00|   1.00|
+min_max (60)                 |   2.00|  14.00|       |   2.00|   2.00|   2.00|
+min_max_on_key (85000)       |   8.00|  15.00| *78.00|   8.00|   8.00|   8.00|
+once_prepared_select (100000)|   9.00|  25.00|       |  10.00|   8.00|  10.00|
+order_by_big (10)            |   6.00|   8.00|       |   5.00|   5.00|   5.00|
+order_by_big_key (10)        |   5.00|   9.00|       |   5.00|   5.00|   5.00|
+order_by_big_key2 (10)       |   5.00|   8.00|       |   5.00|   4.00|   5.00|
+order_by_big_key_desc (10)   |   6.00|  10.00|       |   5.00|   6.00|   6.00|
+order_by_big_key_diff (10)   |   5.00|   8.00|       |   5.00|   6.00|   5.00|
+order_by_big_key_prefix (10) |   5.00|   9.00|       |   6.00|   5.00|   5.00|
+order_by_key2_diff (500)     |   0.00|   1.00|       |   1.00|   0.00|   1.00|
+order_by_key_prefix (500)    |   1.00|   1.00|       |   0.00|   1.00|   1.00|
+order_by_range (500)         |   0.00|   1.00|       |   1.00|   0.00|   0.00|
+outer_join (10)              |   7.00|  45.00|       |   6.00|   6.00|   6.00|
+outer_join_found (10)        |   5.00|  44.00|       |   5.00|   5.00|   5.00|
+outer_join_not_found (500)   |   5.00|  40.00|       |   5.00|   5.00|   5.00|
+outer_join_on_key (10)       |   5.00|  40.00|       |   6.00|   5.00|   5.00|
+prepared_select (100000)     |  12.00|  31.00|       |  12.00|  13.00|  12.00|
+select_1_row (500000)        |  26.00|  73.00|  26.00|  27.00|  26.00|  27.00|
+select_1_row_cache (500000)  |  26.00|  71.00|  23.00|  25.00|  32.00|  25.00|
+select_2_rows (500000)       |  29.00|  81.00|  27.00|  29.00|  39.00|  30.00|
+select_big (80)              |   5.00|   8.00|  *0.00|   5.00|   5.00|   5.00|
+select_big_str (50000)       |   8.00|  16.00|       |   8.00|  10.00|   8.00|
+select_cache (10000)         |  23.00| 126.00|  21.00|  23.00|  21.00|  24.00|
+select_cache2 (10000)        |  22.00| 135.00|  20.00|  23.00|  21.00|  25.00|
+select_column+column (500000)|  30.00|  94.00|  28.00|  31.00|  41.00|  30.00|
+select_diff_key (500)        |   0.00|   0.00|       |   0.00|   0.00|   0.00|
+select_distinct (40000)      |  60.00| 199.00|  47.00|  59.00|  59.00|  60.00|
+select_group (130111)        |  80.00| 261.00| *61.00|  79.00|  79.00|  82.00|
+select_group_when_MANY_tables|   1.00|   0.00|   0.00|   0.00|   0.00|   0.00|
+select_join (5000)           |  12.00|  47.00|   7.00|  13.00|  13.00|  12.00|
+select_key (200000)          |  22.00|  47.00|       |  20.00|  20.00|  20.00|
+select_key2 (200000)         |  25.00|  63.00|       |  26.00|  26.00|  25.00|
+select_key2_return_key (20000|  24.00|  57.00|       |  24.00|  24.00|  23.00|
+select_key2_return_prim (2000|  24.00|  61.00|       |  24.00|  24.00|  25.00|
+select_key_prefix (200000)   |  25.00|  63.00|       |  25.00|  26.00|  26.00|
+select_key_prefix_join (5000)|  79.00| 339.00| 224.00|  79.00|  75.00|  80.00|
+select_key_return_key (200000|  20.00|  46.00|       |  20.00|  19.00|  20.00|
+select_many_fields (140000)  | 192.00| 494.00|       | 197.00| 187.00| 194.00|
+select_range (410)           |  21.00|  74.00|  22.00|  21.00|  20.00|  20.00|
+select_range_key2 (25010)    |   4.00|  11.00|       |   4.00|   4.00|   2.00|
+select_range_prefix (25010)  |   4.00|  12.00|       |   4.00|   4.00|   4.00|
+select_simple (500000)       |  13.00|  26.00|  13.00|  13.00|  13.00|  13.00|
+select_simple_cache (500000) |  12.00|  25.00|  13.00|  12.00|  12.00|  13.00|
+select_simple_join (25000)   |  14.00|  35.00|  10.00|  14.00|  13.00|  14.00|
+update_big (10)              |   3.00|   9.00|       |   4.00|   3.00|   4.00|
+update_of_key (50000)        |   3.00|  13.00|       |   3.00|   4.00|   4.00|
+update_of_key_big (501)      |   2.00|  17.00|       |   2.00|   2.00|   2.00|
+update_of_primary_key_many_ke|   3.00|  15.00|       |   2.00|   3.00|   2.00|
+update_with_key (300000)     |  18.00|  49.00|       |  18.00|  18.00|  18.00|
+update_with_key_prefix (10000|   6.00|  18.00|       |   6.00|   6.00|   6.00|
+wisc_benchmark (50014)       | 256.00| 589.00| 235.00| 261.00| 251.00| 260.00|
+------------------------------------------------------------------------------
+TOTALS                       |1650.00|5737.00|1184.00|1663.00|1640.00|1662.00|
+==============================================================================

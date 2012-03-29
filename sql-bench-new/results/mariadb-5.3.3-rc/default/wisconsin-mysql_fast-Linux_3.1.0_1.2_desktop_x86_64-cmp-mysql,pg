@@ -1,0 +1,16 @@
+Testing server 'MySQL 5.3.3 MariaDB rc' at 2012-01-26  4:48:15
+
+Wisconsin benchmark test
+
+Time for create_table (3):  0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+
+Inserting data
+Time to insert (31000):  0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+Time for book-keeping (1):  0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+
+Time to delete_big (1):  0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+
+Running the actual benchmark
+Time for wisc_benchmark (50014): 250 wallclock secs (143.21 usr  4.77 sys +  0.00 cusr  0.00 csys = 147.98 CPU)
+
+Total time: 250 wallclock secs (143.21 usr  4.77 sys +  0.00 cusr  0.00 csys = 147.98 CPU)

@@ -1,0 +1,22 @@
+Testing server 'MySQL 5.2.10 MariaDB' at 2012-01-25 23:11:37
+
+ATIS table test
+
+Creating tables
+Time for create_table (28):  1 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+
+Inserting data
+Time to insert (9768):  0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+
+Time for book-keeping (1):  0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+
+Retrieving data
+Time for select_simple_join (25000): 13 wallclock secs ( 5.87 usr  0.28 sys +  0.00 cusr  0.00 csys =  6.15 CPU)
+Time for select_join (5000): 12 wallclock secs ( 4.41 usr  0.11 sys +  0.00 cusr  0.00 csys =  4.52 CPU)
+Time for select_key_prefix_join (5000): 76 wallclock secs (36.63 usr  0.49 sys +  0.00 cusr  0.00 csys = 37.12 CPU)
+Time for select_distinct (40000): 63 wallclock secs (16.40 usr  0.50 sys +  0.00 cusr  0.00 csys = 16.90 CPU)
+Time for select_group (130000): 70 wallclock secs (14.99 usr  1.45 sys +  0.00 cusr  0.00 csys = 16.44 CPU)
+
+Removing tables
+Time to drop_table (28):  0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+Total time: 235 wallclock secs (78.30 usr  2.83 sys +  0.00 cusr  0.00 csys = 81.13 CPU)

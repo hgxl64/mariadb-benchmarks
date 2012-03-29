@@ -1,0 +1,18 @@
+Testing server 'MySQL 5.5.21 MariaDB' at 2012-01-30 23:05:23
+
+Testing the speed of creating and dropping tables
+Testing with 400 tables and 10000 loop count
+
+Testing create of tables
+Time for create_MANY_tables (400):  0 wallclock secs ( 0.02 usr  0.01 sys +  0.00 cusr  0.00 csys =  0.03 CPU)
+
+Accessing tables
+Time to select_group_when_MANY_tables (400):  0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+
+Testing drop
+Time for drop_table_when_MANY_tables (400):  0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+
+Testing create+drop
+Time for create+drop (10000):  2 wallclock secs ( 0.37 usr  0.13 sys +  0.00 cusr  0.00 csys =  0.50 CPU)
+Time for create_key+drop (10000):  4 wallclock secs ( 0.46 usr  0.17 sys +  0.00 cusr  0.00 csys =  0.63 CPU)
+Total time:  6 wallclock secs ( 0.85 usr  0.31 sys +  0.00 cusr  0.00 csys =  1.16 CPU)

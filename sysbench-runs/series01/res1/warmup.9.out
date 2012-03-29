@@ -1,0 +1,7 @@
++ mysql -S /tmp/mysqld.sock.sysbench -e 'select avg(id) from sbtest9 FORCE KEY (PRIMARY); ' sbtest
+avg(id)
+1250000.5000
+
+real	0m1.845s
+user	0m0.006s
+sys	0m0.000s

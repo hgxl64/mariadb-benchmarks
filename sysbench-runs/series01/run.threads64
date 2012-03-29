@@ -1,0 +1,17 @@
+#!/bin/sh
+set -u
+set -x
+set -e
+
+#settings
+SOCKET=/tmp/mysqld.sock.sysbench
+SYSBENCH=sysbench-0.5
+RUNTIME=600
+ROWS=2500000
+
+for thread in 64 
+do
+
+  $SYSBENCH --test=tests/db/oltp.lua --oltp_tables_count=16 --oltp-table-size=$ROWS --rand-init=on --num-threads=$thread --oltp-read-only=off --report-interval=10 --rand-type=uniform --mysql-socket=$SOCKET --max-time=$RUNTIME --max-requests=0 --mysql-user=root --percentile=99 run
+
+done

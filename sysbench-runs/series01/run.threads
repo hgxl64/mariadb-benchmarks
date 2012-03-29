@@ -1,0 +1,58 @@
+#!/bin/sh
+set -u
+set -x
+set -e
+ulimit -n 60000
+
+#settings
+SOCKET=/tmp/mysqld.sock.sysbench
+SYSBENCH=sysbench-0.5
+RUNTIME=600
+ROWS=2500000
+
+# Determine run number for selecting an output directory
+RUN_NUMBER=-1
+
+if [ -f ".run_number" ]; then
+  read RUN_NUMBER < .run_number
+fi
+
+if [ $RUN_NUMBER -eq -1 ]; then
+        RUN_NUMBER=0
+fi
+
+OUTDIR=res$RUN_NUMBER
+mkdir -p $OUTDIR
+
+RUN_NUMBER=`expr $RUN_NUMBER + 1`
+echo $RUN_NUMBER > .run_number
+
+function test_stage()
+{
+  PIDLIST=""
+  for i in `seq 1 16` ; do
+    ( time mysql -S $SOCKET -e "select avg(id) from sbtest$i FORCE KEY (PRIMARY); " sbtest  ) > $OUTDIR/warmup.${i}.out 2>&1   &
+   PIDLIST="$PIDLIST $!"
+  done
+
+  wait $PIDLIST
+}
+
+mysql -S $SOCKET -e "create database if not exists sbtest"
+
+$SYSBENCH --test=tests/db/parallel_prepare.lua --oltp_tables_count=16 --num-threads=8 --oltp-table-size=$ROWS --rand-init=on --rand-type=uniform --mysql-socket=$SOCKET --mysql-user=root run
+
+sleep 10
+
+for thread in 1 2 4 8 16 32 64 128 256 
+do
+  for j in 1
+  do
+    echo "$j"
+    iostat -mx 10 $(($RUNTIME/10+1))  >> $OUTDIR/iostat.$thread.res &
+
+    $SYSBENCH --test=tests/db/oltp.lua --oltp_tables_count=16 --oltp-table-size=$ROWS --rand-init=on --num-threads=$thread --oltp-read-only=off --report-interval=10 --rand-type=uniform --mysql-socket=$SOCKET --max-time=$RUNTIME --max-requests=0 --mysql-user=root --percentile=99 run | tee -a $OUTDIR/sysbench.$thread.res
+
+    sleep 10
+  done
+done

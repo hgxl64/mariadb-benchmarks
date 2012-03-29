@@ -1,0 +1,6 @@
+02	MariaDB-5.3.5/XtraDB, ext4
+03	MariaDB-5.3.5/InnoDB
+04	MySQL-5.5.20 (aborted)
+06	MariaDB-5.3.5/XtraDB, xfs
+07	MariaDB-5.3.5/XtraDB, xfs, opt. settings
+

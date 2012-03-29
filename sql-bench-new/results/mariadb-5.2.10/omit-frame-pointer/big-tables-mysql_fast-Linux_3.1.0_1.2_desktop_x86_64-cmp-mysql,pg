@@ -1,0 +1,19 @@
+Testing server 'MySQL 5.2.10 MariaDB' at 2012-01-26  0:02:01
+
+Testing of some unusual tables
+All tests are done 70000 times with 1000 fields
+
+Testing table with 1000 fields
+Testing select * from table with 1 record
+Time to select_many_fields(70000): 66 wallclock secs (37.68 usr  4.38 sys +  0.00 cusr  0.00 csys = 42.06 CPU)
+
+Testing select all_fields from table with 1 record
+Time to select_many_fields(70000): 102 wallclock secs (38.52 usr  4.44 sys +  0.00 cusr  0.00 csys = 42.96 CPU)
+
+Testing insert VALUES()
+Time to insert_many_fields(70000): 28 wallclock secs ( 4.42 usr  0.87 sys +  0.00 cusr  0.00 csys =  5.29 CPU)
+
+Testing insert (all_fields) VALUES()
+Time to insert_many_fields(70000): 70 wallclock secs ( 0.64 usr  1.19 sys +  0.00 cusr  0.00 csys =  1.83 CPU)
+
+Total time: 267 wallclock secs (81.27 usr 10.88 sys +  0.00 cusr  0.00 csys = 92.15 CPU)

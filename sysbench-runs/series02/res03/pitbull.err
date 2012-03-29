@@ -1,0 +1,41 @@
+120312 09:43:11 mysqld_safe Starting mysqld daemon with databases from /bench_hdd/benchmark/sysbench/datadir
+120312 09:43:11 [Note] PrimeBase XT (PBXT) Engine 1.0.11-7 Pre-GA loaded...
+120312 09:43:11 [Note] Paul McCullagh, PrimeBase Technologies GmbH, http://www.primebase.org
+InnoDB: The InnoDB memory heap is disabled
+InnoDB: Mutexes and rw_locks use GCC atomic builtins
+InnoDB: Compressed tables use zlib 1.2.5
+120312  9:43:11  InnoDB: Initializing buffer pool, size = 20.0G
+120312  9:43:12  InnoDB: Completed initialization of buffer pool
+InnoDB: The first specified data file ./ibdata1 did not exist:
+InnoDB: a new database to be created!
+120312  9:43:12  InnoDB: Setting file ./ibdata1 size to 50 MB
+InnoDB: Database physically writes the file full: wait...
+120312  9:43:13  InnoDB: Log file ./ib_logfile0 did not exist: new to be created
+InnoDB: Setting log file ./ib_logfile0 size to 1333 MB
+InnoDB: Database physically writes the file full: wait...
+InnoDB: Progress in MB: 100 200 300 400 500 600 700 800 900 1000 1100 1200 1300
+120312  9:43:33  InnoDB: Log file ./ib_logfile1 did not exist: new to be created
+InnoDB: Setting log file ./ib_logfile1 size to 1333 MB
+InnoDB: Database physically writes the file full: wait...
+InnoDB: Progress in MB: 100 200 300 400 500 600 700 800 900 1000 1100 1200 1300
+120312  9:43:51  InnoDB: Log file ./ib_logfile2 did not exist: new to be created
+InnoDB: Setting log file ./ib_logfile2 size to 1333 MB
+InnoDB: Database physically writes the file full: wait...
+InnoDB: Progress in MB: 100 200 300 400 500 600 700 800 900 1000 1100 1200 1300
+InnoDB: Doublewrite buffer not found: creating new
+InnoDB: Doublewrite buffer created
+InnoDB: Creating foreign key constraint system tables
+InnoDB: Foreign key constraint system tables created
+120312  9:44:10 InnoDB Plugin 1.0.17 started; log sequence number 0
+120312  9:44:10 [Note] Event Scheduler: Loaded 0 events
+120312  9:44:10 [Note] /home/axel/mysql-builds/mariadb-5.3.5-ga-default/lib/mysqld: ready for connections.
+Version: '5.3.5-MariaDB-ga'  socket: '/tmp/mysqld.sock.sysbench'  port: 0  Source distribution
+120313  0:08:10 [Note] /home/axel/mysql-builds/mariadb-5.3.5-ga-default/lib/mysqld: Normal shutdown
+
+120313  0:08:10 [Note] Event Scheduler: Purging the queue. 0 events
+120313  0:08:10  InnoDB: Starting shutdown...
+120313  0:08:15  InnoDB: Shutdown completed; log sequence number 91851937274
+120313 00:08:15 [Note] PrimeBase XT Engine shutdown...
+120313  0:08:15 [Note] /home/axel/mysql-builds/mariadb-5.3.5-ga-default/lib/mysqld: Shutdown complete
+
+120313 00:08:15 mysqld_safe mysqld from pid file /tmp/mysqld.pid.sysbench ended

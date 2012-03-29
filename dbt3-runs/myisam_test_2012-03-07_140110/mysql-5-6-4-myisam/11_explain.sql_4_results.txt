@@ -1,0 +1,10 @@
++----+-------------+----------+------+-----------------------+---------------+---------+-------------------------+-------+----------+----------------------------------------------+
+| id | select_type | table    | type | possible_keys         | key           | key_len | ref                     | rows  | filtered | Extra                                        |
++----+-------------+----------+------+-----------------------+---------------+---------+-------------------------+-------+----------+----------------------------------------------+
+|  1 | PRIMARY     | nation   | ALL  | PRIMARY               | NULL          | NULL    | NULL                    |    25 |   100.00 | Using where; Using temporary; Using filesort |
+|  1 | PRIMARY     | supplier | ref  | PRIMARY,i_s_nationkey | i_s_nationkey | 5       | dbt3.nation.n_nationkey | 12000 |   100.00 | Using join buffer (Batched Key Access)       |
+|  1 | PRIMARY     | partsupp | ref  | i_ps_suppkey          | i_ps_suppkey  | 4       | dbt3.supplier.s_suppkey |    80 |   100.00 | Using join buffer (Batched Key Access)       |
+|  2 | SUBQUERY    | nation   | ALL  | PRIMARY               | NULL          | NULL    | NULL                    |    25 |   100.00 | Using where                                  |
+|  2 | SUBQUERY    | supplier | ref  | PRIMARY,i_s_nationkey | i_s_nationkey | 5       | dbt3.nation.n_nationkey | 12000 |   100.00 | Using join buffer (Batched Key Access)       |
+|  2 | SUBQUERY    | partsupp | ref  | i_ps_suppkey          | i_ps_suppkey  | 4       | dbt3.supplier.s_suppkey |    80 |   100.00 | Using join buffer (Batched Key Access)       |
++----+-------------+----------+------+-----------------------+---------------+---------+-------------------------+-------+----------+----------------------------------------------+

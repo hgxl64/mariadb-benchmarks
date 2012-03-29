@@ -1,0 +1,4 @@
+initial MyISAM run
+- find good test script params
+- find needed optimizer flags
+- find which queries time out

@@ -1,0 +1,57 @@
+[mysqld]
+
+#####files and sockets
+datadir=/bench_hdd/benchmark/sysbench/datadir
+socket=/tmp/mysqld.sock.sysbench
+pid-file=/tmp/mysqld.pid.sysbench
+skip-networking
+
+#####non innodb options (fixed)
+#back_log = 50
+max_connections = 400
+#table_cache = 2048
+#max_allowed_packet = 16M
+#max_heap_table_size = 64M
+sort_buffer_size = 4M
+join_buffer_size = 4M
+#thread_cache_size = 400
+query_cache_size = 0
+query_cache_type = 0
+#tmp_table_size = 64M
+#gdb
+
+
+#####MyISAM Specific options
+key_buffer_size = 8M
+read_buffer_size = 1M
+read_rnd_buffer_size = 4M
+#bulk_insert_buffer_size = 8M
+#myisam_sort_buffer_size = 8M
+#myisam_max_sort_file_size = 10G
+#myisam_repair_threads = 1
+#myisam_recover
+
+#####for mysql-5.1/MariaDB
+ignore-builtin-innodb
+plugin-load=innodb=ha_innodb_plugin.so
+
+#####fixed innodb options
+innodb_file_per_table = true
+innodb_data_file_path = ibdata1:50M:autoextend
+innodb_flush_log_at_trx_commit = 2
+innodb_flush_method = O_DIRECT
+innodb_log_buffer_size = 256M
+innodb_log_file_size = 1333M
+innodb_log_files_in_group = 3
+innodb_buffer_pool_size = 20G
+innodb_read_io_threads = 4
+innodb_write_io_threads = 4
+innodb_io_capacity = 200
+
+#####tuning for SSD
+#innodb_adaptive_flushing = 1
+#innodb_adaptive_checkpoint = keep_average
+#innodb_flush_neighbor_pages = 0
+#innodb_log_block_size = 4096
+
+

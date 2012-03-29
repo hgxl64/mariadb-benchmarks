@@ -1,0 +1,22 @@
+Testing server 'MySQL 5.6.4 m7' at 2012-01-26 19:04:10
+
+ATIS table test
+
+Creating tables
+Time for create_table (28):  1 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+
+Inserting data
+Time to insert (9768):  0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+
+Time for book-keeping (1):  0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+
+Retrieving data
+Time for select_simple_join (25000): 13 wallclock secs ( 5.87 usr  0.30 sys +  0.00 cusr  0.00 csys =  6.17 CPU)
+Time for select_join (5000): 12 wallclock secs ( 4.42 usr  0.09 sys +  0.00 cusr  0.00 csys =  4.51 CPU)
+Time for select_key_prefix_join (5000): 75 wallclock secs (36.49 usr  0.59 sys +  0.00 cusr  0.00 csys = 37.08 CPU)
+Time for select_distinct (40000): 59 wallclock secs (16.31 usr  0.53 sys +  0.00 cusr  0.00 csys = 16.84 CPU)
+Time for select_group (130000): 76 wallclock secs (15.64 usr  1.27 sys +  0.00 cusr  0.00 csys = 16.91 CPU)
+
+Removing tables
+Time to drop_table (28):  0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+Total time: 236 wallclock secs (78.73 usr  2.78 sys +  0.00 cusr  0.00 csys = 81.51 CPU)

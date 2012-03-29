@@ -1,0 +1,154 @@
+This is the result file of the different benchmark tests.
+
+The number in () after each tests shows how many SQL commands the particular
+test did.  As one test may have many different parameters this gives only
+a rough picture of what was done.  Check the source for more information :)
+
+Keep in mind that one can't compare benchmarks run with different --cmp
+options. The --cmp options sets the all limits according to the worst
+limit for all server in the benchmark.
+
+Numbers marked with '+' are estimated according to previous runs because
+the query took longer than a given time-limit to finish. The estimation
+shouldn't be far from the real result thought.
+
+Numbers marked with '?' contains results that gave wrong result. This can only
+be used as an indication of how long it took for the server to produce a wrong
+result :)
+
+Numbers marked with '*' are tests that was run a different number times
+than the test in the first column.  The reason for this is normally that the
+marked test was run with different options that affects the number of tests
+or that the test was from another version of the MySQL benchmarks.
+
+Hope this will give you some idea how each db is performing at what thing ....
+Hope you like it .... Luuk & Monty (1997)
+
+Column 1 is in seconds. All other columns are presented relative
+to this. 1.00 is the same, bigger numbers indicates slower
+
+The test was run with limits from: mysql,pg
+
+The result logs which where found and the options:
+ 1 mysql-mysql_5.6.7_ddefault              : MySQL 5.6.4 m7 --socket=/tmp/mysql.sock.sqlbench --fast --fast-insert --only-missing-tests
+  default
+ 2 mysql-mysql_5.6.7_debug                 : MySQL 5.6.4 m7 debug --socket=/tmp/mysql.sock.sqlbench --fast --fast-insert --only-missing-tests
+  debug
+ 3 mysql-mysql_5.6.7_engine_heap           : MySQL 5.6.4 m7 --socket=/tmp/mysql.sock.sqlbench --fast --fast-insert --create-options=ENGINE=HEAP --only-missing-tests
+  engine-heap
+ 4 mysql-mysql_5.6.7_gcc_O2                : MySQL 5.6.4 m7 --socket=/tmp/mysql.sock.sqlbench --fast --fast-insert --only-missing-tests
+  gcc-O2
+ 5 mysql-mysql_5.6.7_omit_frame_pointer    : MySQL 5.6.4 m7 --socket=/tmp/mysql.sock.sqlbench --fast --fast-insert --only-missing-tests
+  omit-frame-pointer
+ 6 mysql-mysql_5.6.7_skip_grants           : MySQL 5.6.4 m7 --socket=/tmp/mysql.sock.sqlbench --fast --fast-insert --only-missing-tests
+  skip-grants
+ 7 mysql-mysql_5.6.7_static                : MySQL 5.6.4 m7 --socket=/tmp/mysql.sock.sqlbench --fast --fast-insert --only-missing-tests
+  static
+
+===========================================================================================================
+Operation                    |         1|         2|         3|         4|         5|         6|         7|
+                             |mysql-mysq|mysql-mysq|mysql-mysq|mysql-mysq|mysql-mysq|mysql-mysq|mysql-mysq|
+-----------------------------------------------------------------------------------------------------------
+Relative results per test (First column is in seconds):                                                   |
+-----------------------------------------------------------------------------------------------------------
+ATIS                         |    237.00|     2.076|     1.443|     1.025|     0.996|     0.996|     0.987|
+alter-table                  |     60.00|     1.050|     0.933|     1.033|     1.000|     0.950|     1.050|
+big-tables                   |    294.00|     1.874|          |     1.007|     0.959|     0.986|     0.973|
+connect                      |    209.00|     1.440|     0.914|     0.986|     1.177|     1.182|     0.981|
+create                       |   1163.00|     1.008|     1.000|     0.989|     1.021|     1.006|     1.032|
+insert                       |    303.00|     1.881|          |     0.957|     0.941|     1.050|     0.960|
+select                       |    312.00|     4.747|     1.260|     1.022|     0.981|     1.029|     0.968|
+wisconsin                    |    253.00|     1.518|     0.929|     1.043|     0.996|     1.004|     1.016|
+-----------------------------------------------------------------------------------------------------------
+The results per operation:                                                                                |
+-----------------------------------------------------------------------------------------------------------
+alter_table_add (992)        |     59.00|     1.034|     0.932|     1.017|     0.983|     0.949|     1.034|
+book-keeping (11)            |      1.00|     1.000|    *0.000|     0.000|     1.000|     1.000|     1.000|
+connect (50000)              |     21.00|     1.095|     1.048|     1.048|     1.048|     1.048|     1.000|
+connect+select_1_row (50000) |     29.00|     1.138|     1.000|     0.931|     1.000|     0.931|     0.966|
+connect+select_simple (50000)|     25.00|     1.120|     1.040|     1.040|     0.960|     1.000|     1.000|
+count (100)                  |      2.00|     5.500|          |     1.000|     1.000|     1.500|     1.000|
+count_distinct (7000)        |     21.00|     3.429|     0.571|     1.000|     1.000|     0.952|     0.952|
+count_distinct_2 (7000)      |     31.00|     2.742|     0.935|     1.000|     0.903|     1.032|     0.968|
+count_distinct_big (720)     |     16.00|    28.938|    *0.750|     1.125|     1.062|     1.000|     1.062|
+count_distinct_group (7000)  |     23.00|     5.739|     1.043|     1.000|     0.913|     1.000|     0.913|
+count_distinct_group_on_key (|     21.00|     3.714|     1.381|     1.095|     1.048|     1.000|     1.000|
+count_distinct_group_on_key_p|     23.00|     5.696|     1.000|     1.000|     0.913|     0.957|     0.913|
+count_distinct_key_prefix (70|      1.00|     1.000|     8.000|     1.000|     1.000|     1.000|     1.000|
+count_group (7000)           |     20.00|     3.100|     1.050|     1.100|     1.000|     1.150|     1.000|
+count_group_on_key_parts (700|     31.00|     2.806|     0.710|     0.968|     0.935|     1.032|     1.000|
+count_group_with_order (7000)|     20.00|     3.050|     1.100|     1.050|     1.000|     1.200|     0.950|
+count_on_key (50100)         |     40.00|     3.775|    *1.150|     1.075|     1.050|     1.000|     1.000|
+create+drop (10000)          |    560.00|     0.998|     1.007|     0.998|     1.043|     0.996|     1.052|
+create_MANY_tables (400)     |     18.00|     1.000|     1.111|     1.000|     0.944|     1.000|     0.944|
+create_index (8)             |      0.00|     1.000|     1.000|     1.000|     0.000|     1.000|     1.000|
+create_key+drop (10000)      |    585.00|     1.017|     0.990|     0.979|     1.002|     1.015|     1.015|
+create_table (31)            |      2.00|     0.500|     1.000|     1.000|     1.000|     1.000|     1.500|
+delete_all_many_keys (1)     |      4.00|     3.500|          |     1.000|     1.000|     1.000|     1.000|
+delete_big (1)               |      1.00|     0.000|     0.000|     0.000|     0.000|     0.000|     0.000|
+delete_big_many_keys (128)   |      4.00|     3.500|          |     1.000|     1.000|     1.000|     1.000|
+delete_key (10000)           |      0.00|     1.000|          |     0.000|     1.000|     1.000|     1.000|
+delete_range (12)            |      1.00|     3.000|          |     2.000|     1.000|     1.000|     1.000|
+drop_index (8)               |      1.00|     1.000|     0.000|     0.000|     1.000|     0.000|     1.000|
+drop_table (28)              |      0.00|     0.000|     0.000|     0.000|     0.000|     0.000|     0.000|
+drop_table_when_MANY_tables (|      0.00|     0.000|     0.000|     0.000|     0.000|     0.000|     0.000|
+insert (350768)              |      3.00|     2.333|    *0.333|     0.667|     0.667|     1.000|     1.000|
+insert_duplicates (100000)   |      6.00|     0.833|          |     0.667|     0.667|     1.000|     1.000|
+insert_key (100000)          |      5.00|     3.000|          |     1.000|     1.200|     1.000|     1.000|
+insert_many_fields (140000)  |    110.00|     2.045|          |     1.009|     0.964|     0.982|     1.000|
+insert_select_1_key (1)      |      1.00|     2.000|          |     1.000|     1.000|     0.000|     1.000|
+insert_select_2_keys (1)     |      1.00|     3.000|          |     1.000|     0.000|     1.000|     1.000|
+min_max (60)                 |      2.00|     4.000|          |     1.500|     1.000|     1.000|     1.000|
+min_max_on_key (85000)       |      8.00|     1.125|    *9.625|     0.875|     0.875|     1.000|     0.750|
+once_prepared_select (100000)|     10.00|     1.300|          |     0.800|     0.800|     1.000|     0.800|
+order_by_big (10)            |      5.00|     1.400|          |     1.200|     1.000|     1.200|     1.000|
+order_by_big_key (10)        |      6.00|     1.167|          |     1.000|     0.833|     1.000|     1.000|
+order_by_big_key2 (10)       |      6.00|     1.167|          |     0.833|     0.833|     0.833|     0.833|
+order_by_big_key_desc (10)   |      5.00|     1.800|          |     1.200|     1.200|     1.000|     1.000|
+order_by_big_key_diff (10)   |      5.00|     1.400|          |     1.000|     1.000|     1.200|     1.000|
+order_by_big_key_prefix (10) |      5.00|     1.600|          |     1.000|     1.000|     1.000|     1.000|
+order_by_key2_diff (500)     |      1.00|     1.000|          |     0.000|     1.000|     0.000|     1.000|
+order_by_key_prefix (500)    |      0.00|     1.000|          |     1.000|     0.000|     1.000|     0.000|
+order_by_range (500)         |      1.00|     1.000|          |     0.000|     1.000|     0.000|     1.000|
+outer_join (10)              |      6.00|     3.667|          |     1.000|     0.833|     1.000|     1.000|
+outer_join_found (10)        |      5.00|     4.200|          |     1.200|     1.000|     1.200|     1.200|
+outer_join_not_found (500)   |      5.00|     3.800|          |     1.000|     1.000|     0.800|     0.800|
+outer_join_on_key (10)       |      4.00|     5.000|          |     1.250|     1.250|     1.000|     1.250|
+prepared_select (100000)     |     14.00|     1.214|          |     0.714|     0.786|     0.929|     0.929|
+select_1_row (500000)        |     24.00|     1.708|     0.917|     1.000|     1.375|     1.417|     1.000|
+select_1_row_cache (500000)  |     23.00|     1.696|     0.913|     0.957|     1.435|     1.435|     0.957|
+select_2_rows (500000)       |     27.00|     1.667|     0.889|     1.000|     1.333|     1.370|     0.963|
+select_big (80)              |      5.00|     1.400|    *0.000|     1.000|     1.000|     1.000|     1.000|
+select_big_str (50000)       |      9.00|     1.111|          |     0.889|     0.889|     1.000|     0.889|
+select_cache (10000)         |     21.00|     3.571|     1.048|     1.048|     1.095|     1.048|     1.000|
+select_cache2 (10000)        |     22.00|     3.409|     1.000|     1.000|     1.045|     1.000|     1.045|
+select_column+column (500000)|     28.00|     1.821|     0.893|     1.000|     1.357|     1.321|     1.000|
+select_diff_key (500)        |      0.00|     0.000|          |     1.000|     0.000|     1.000|     0.000|
+select_distinct (40000)      |     59.00|     2.034|     0.780|     1.034|     1.000|     1.000|     1.000|
+select_group (130111)        |     80.00|     1.950|    *0.775|     1.012|     1.012|     1.000|     0.988|
+select_group_when_MANY_tables|      0.00|     0.000|     0.000|     0.000|     0.000|     0.000|     0.000|
+select_join (5000)           |     12.00|     2.167|     0.583|     1.000|     1.000|     1.000|     1.000|
+select_key (200000)          |     20.00|     1.450|          |     0.900|     0.950|     0.950|     0.950|
+select_key2 (200000)         |     22.00|     1.591|          |     0.955|     1.000|     1.045|     1.000|
+select_key2_return_key (20000|     20.00|     1.600|          |     1.000|     1.000|     1.300|     1.000|
+select_key2_return_prim (2000|     20.00|     1.700|          |     1.050|     1.000|     1.400|     1.000|
+select_key_prefix (200000)   |     26.00|     1.385|          |     0.885|     0.846|     0.846|     0.846|
+select_key_prefix_join (5000)|     75.00|     2.413|     2.867|     1.053|     0.987|     1.000|     0.987|
+select_key_return_key (200000|     18.00|     1.500|          |     1.056|     1.000|     1.056|     1.000|
+select_many_fields (140000)  |    184.00|     1.766|          |     1.005|     0.957|     0.989|     0.957|
+select_range (410)           |     22.00|     1.091|     1.045|     0.909|     0.864|     1.045|     0.909|
+select_range_key2 (25010)    |      4.00|     1.500|          |     1.000|     0.750|     1.000|     1.000|
+select_range_prefix (25010)  |      4.00|     1.500|          |     0.750|     1.000|     0.750|     0.750|
+select_simple (500000)       |     12.00|     1.250|     0.917|     0.917|     1.000|     0.917|     1.000|
+select_simple_cache (500000) |     11.00|     1.455|     1.000|     1.000|     1.000|     1.000|     0.909|
+select_simple_join (25000)   |     13.00|     1.846|     0.769|     1.077|     1.000|     1.000|     0.923|
+update_big (10)              |      4.00|     1.750|          |     1.000|     0.750|     1.000|     1.000|
+update_of_key (50000)        |      4.00|     1.500|          |     0.750|     1.000|     1.000|     0.750|
+update_of_key_big (501)      |      2.00|     3.500|          |     1.500|     1.500|     1.500|     1.500|
+update_of_primary_key_many_ke|      2.00|     4.000|          |     1.000|     1.000|     1.000|     1.000|
+update_with_key (300000)     |     20.00|     1.400|          |     0.850|     0.900|     1.150|     0.900|
+update_with_key_prefix (10000|      8.00|     1.125|          |     0.750|     0.750|     1.000|     0.625|
+wisc_benchmark (50014)       |    252.00|     1.524|     0.933|     1.044|     1.000|     1.004|     1.016|
+-----------------------------------------------------------------------------------------------------------
+TOTALS                       |   2827.00|     1.770|     0.842|     0.999|     1.008|     1.022|     1.002|
+===========================================================================================================

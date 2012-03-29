@@ -1,0 +1,16 @@
+1 ... MariaDB-5.3.4-rc, defaults
+2 ... MariaDB-5.3.4-rc, ICP off
+4 ... MySQL-5.5.20
+5 ... MySQL-5.1.61
+6 ... Percona-5.1.61
+7 ... MariaDB-5.3.4-rc, InnoDB-Plugin
+8 ... MariaDB-5.2.10
+9 ... MariaDB-5.3-bzr, InnoDB-Plugin
+10 .. MariaDB-5.3-bzr
+11 .. Percona-5.5.20
+12 .. MariaDB-5.5-bzr
+13 .. MariaDB-5.5-bzr, InnoDB-Plugin
+14 .. MariaDB-5.3.4-rc, InnoDB-Plugin, no Aria tmp tables
+17 .. MariaDB-5.3.4-rc, vanilla XtraDB
+18 .. MariaDB-5.3.4-rc, SSD-options
+

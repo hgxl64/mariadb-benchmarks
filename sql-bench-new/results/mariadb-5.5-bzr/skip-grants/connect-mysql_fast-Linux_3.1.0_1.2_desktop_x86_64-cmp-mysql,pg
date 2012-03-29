@@ -1,0 +1,35 @@
+Testing server 'MySQL 5.5.21 MariaDB' at 2012-01-31  0:20:29
+
+Testing the speed of connecting to the server and sending of data
+Connect tests are done 50000 times and other tests 500000 times
+
+Testing connection/disconnect
+Time to connect (50000): 20 wallclock secs (10.21 usr  1.89 sys +  0.00 cusr  0.00 csys = 12.10 CPU)
+
+Test connect/simple select/disconnect
+Time for connect+select_simple (50000): 24 wallclock secs (11.11 usr  2.33 sys +  0.00 cusr  0.00 csys = 13.44 CPU)
+
+Test simple select
+Time for select_simple (500000): 13 wallclock secs ( 4.09 usr  1.97 sys +  0.00 cusr  0.00 csys =  6.06 CPU)
+
+Test simple select
+Time for select_simple_cache (500000): 13 wallclock secs ( 3.72 usr  2.03 sys +  0.00 cusr  0.00 csys =  5.75 CPU)
+
+Testing connect/select 1 row from table/disconnect
+Time to connect+select_1_row (50000): 26 wallclock secs (11.09 usr  3.08 sys +  0.00 cusr  0.00 csys = 14.17 CPU)
+
+Testing select 1 row from table
+Time to select_1_row (500000): 27 wallclock secs ( 4.55 usr  2.08 sys +  0.00 cusr  0.00 csys =  6.63 CPU)
+
+Time to select_1_row_cache (500000): 25 wallclock secs ( 3.97 usr  2.09 sys +  0.00 cusr  0.00 csys =  6.06 CPU)
+
+Testing select 2 rows from table
+Time to select_2_rows (500000): 30 wallclock secs ( 4.74 usr  2.04 sys +  0.00 cusr  0.00 csys =  6.78 CPU)
+
+Test select with aritmetic (+)
+Time for select_column+column (500000): 30 wallclock secs ( 4.26 usr  1.99 sys +  0.00 cusr  0.00 csys =  6.25 CPU)
+
+Testing retrieval of big records (65000 bytes)
+Time to select_big_str (50000):  8 wallclock secs ( 3.68 usr  0.83 sys +  0.00 cusr  0.00 csys =  4.51 CPU)
+
+Total time: 216 wallclock secs (61.42 usr 20.33 sys +  0.00 cusr  0.00 csys = 81.75 CPU)

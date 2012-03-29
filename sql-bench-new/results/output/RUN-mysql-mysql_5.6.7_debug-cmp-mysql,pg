@@ -1,0 +1,112 @@
+Benchmark DBD suite: 2.15
+Date of test:        2012-01-26 14:34:35
+Running tests on:    Linux 3.1.0-1.2-desktop x86_64
+Arguments:           --socket=/tmp/mysql.sock.sqlbench --fast --fast-insert --only-missing-tests
+Comments:            debug
+Limits from:         mysql,pg
+Server version:      MySQL 5.6.4 m7 debug
+Optimization:        None
+Hardware:            
+
+alter-table: Total time: 63 wallclock secs ( 0.07 usr  0.02 sys +  0.00 cusr  0.00 csys =  0.09 CPU)
+ATIS: Total time: 492 wallclock secs (81.53 usr  2.72 sys +  0.00 cusr  0.00 csys = 84.25 CPU)
+big-tables: Total time: 551 wallclock secs (82.24 usr 13.33 sys +  0.00 cusr  0.00 csys = 95.57 CPU)
+connect: Total time: 301 wallclock secs (67.10 usr 22.33 sys +  0.00 cusr  0.00 csys = 89.43 CPU)
+create: Total time: 1172 wallclock secs ( 1.50 usr  0.55 sys +  0.00 cusr  0.00 csys =  2.05 CPU)
+insert: Total time: 570 wallclock secs (117.07 usr 14.66 sys +  0.00 cusr  0.00 csys = 131.73 CPU)
+select: Total time: 1481 wallclock secs (33.80 usr  2.46 sys +  0.00 cusr  0.00 csys = 36.26 CPU)
+transactions: Test skipped because the database doesn't support transactions
+wisconsin: Total time: 384 wallclock secs (143.84 usr  5.42 sys +  0.00 cusr  0.00 csys = 149.26 CPU)
+
+All 9 test executed successfully
+
+Totals per operation:
+Operation             seconds     usr     sys     cpu   tests
+alter_table_add                       61.00    0.06    0.01    0.07     992 
+book-keeping                           1.00    0.00    0.00    0.00      11 
+connect                               23.00   10.64    2.24   12.88   50000 
+connect+select_1_row                  33.00   13.22    2.34   15.56   50000 
+connect+select_simple                 28.00   11.69    2.85   14.54   50000 
+count                                 11.00    0.01    0.00    0.01     100 
+count_distinct                        72.00    0.81    0.08    0.89    7000 
+count_distinct_2                      85.00    0.76    0.12    0.88    7000 
+count_distinct_big                   463.00   10.06    0.15   10.21     720 
+count_distinct_group                 132.00    1.85    0.10    1.95    7000 
+count_distinct_group_on_key           78.00    0.82    0.11    0.93    7000 
+count_distinct_group_on_key_parts    131.00    1.86    0.09    1.95    7000 
+count_distinct_key_prefix              1.00    0.43    0.06    0.49    7000 
+count_group                           62.00    1.81    0.09    1.90    7000 
+count_group_on_key_parts              87.00    1.77    0.11    1.88    7000 
+count_group_with_order                61.00    1.84    0.06    1.90    7000 
+count_on_key                         151.00    4.69    0.67    5.36   50100 
+create+drop                          559.00    0.69    0.27    0.96   10000 
+create_MANY_tables                    18.00    0.02    0.01    0.03     400 
+create_index                           1.00    0.00    0.00    0.00       8 
+create_key+drop                      595.00    0.78    0.27    1.05   10000 
+create_table                           1.00    0.00    0.00    0.00      31 
+delete_all_many_keys                  14.00    0.01    0.00    0.01       1 
+delete_big                             0.00    0.00    0.00    0.00       1 
+delete_big_many_keys                  14.00    0.01    0.00    0.01     128 
+delete_key                             1.00    0.10    0.04    0.14   10000 
+delete_range                           3.00    0.00    0.00    0.00      12 
+drop_index                             1.00    0.00    0.00    0.00       8 
+drop_table                             0.00    0.01    0.00    0.01      28 
+drop_table_when_MANY_tables            0.00    0.00    0.00    0.00     400 
+insert                                 7.00    0.41    0.06    0.47  350768 
+insert_duplicates                      5.00    0.95    0.44    1.39  100000 
+insert_key                            15.00    0.52    0.00    0.52  100000 
+insert_many_fields                   225.00    6.43    1.92    8.35  140000 
+insert_select_1_key                    2.00    0.00    0.00    0.00       1 
+insert_select_2_keys                   3.00    0.00    0.00    0.00       1 
+min_max                                8.00    0.01    0.00    0.01      60 
+min_max_on_key                         9.00    3.93    0.56    4.49   85000 
+once_prepared_select                  13.00    2.02    0.72    2.74  100000 
+order_by_big                           7.00    4.06    0.06    4.12      10 
+order_by_big_key                       7.00    4.12    0.01    4.13      10 
+order_by_big_key2                      7.00    3.99    0.05    4.04      10 
+order_by_big_key_desc                  9.00    4.13    0.06    4.19      10 
+order_by_big_key_diff                  7.00    3.99    0.04    4.03      10 
+order_by_big_key_prefix                8.00    4.00    0.03    4.03      10 
+order_by_key2_diff                     1.00    0.39    0.01    0.40     500 
+order_by_key_prefix                    1.00    0.22    0.00    0.22     500 
+order_by_range                         1.00    0.22    0.00    0.22     500 
+outer_join                            22.00    0.00    0.00    0.00      10 
+outer_join_found                      21.00    0.01    0.00    0.01      10 
+outer_join_not_found                  19.00    0.00    0.00    0.00     500 
+outer_join_on_key                     20.00    0.00    0.00    0.00      10 
+prepared_select                       17.00    5.12    0.73    5.85  100000 
+select_1_row                          41.00    5.58    2.25    7.83  500000 
+select_1_row_cache                    39.00    4.82    2.24    7.06  500000 
+select_2_rows                         45.00    5.52    2.34    7.86  500000 
+select_big                             7.00    4.10    0.00    4.10      80 
+select_big_str                        10.00    3.52    1.06    4.58   50000 
+select_cache                          75.00    1.02    0.16    1.18   10000 
+select_cache2                         75.00    1.05    0.10    1.15   10000 
+select_column+column                  51.00    4.79    2.99    7.78  500000 
+select_diff_key                        0.00    0.04    0.00    0.04     500 
+select_distinct                      120.00   17.18    0.39   17.57   40000 
+select_group                         156.00   17.06    1.42   18.48  130111 
+select_group_when_MANY_tables          0.00    0.01    0.00    0.01     400 
+select_join                           26.00    4.59    0.10    4.69    5000 
+select_key                            29.00   11.57    1.27   12.84  200000 
+select_key2                           35.00   11.55    1.94   13.49  200000 
+select_key2_return_key                32.00   11.23    1.54   12.77  200000 
+select_key2_return_prim               34.00   11.30    2.04   13.34  200000 
+select_key_prefix                     36.00   12.29    1.25   13.54  200000 
+select_key_prefix_join               181.00   36.31    0.47   36.78    5000 
+select_key_return_key                 27.00   10.33    2.00   12.33  200000 
+select_many_fields                   325.00   75.81   11.41   87.22  140000 
+select_range                          24.00    1.72    0.01    1.73     410 
+select_range_key2                      6.00    1.36    0.15    1.51   25010 
+select_range_prefix                    6.00    1.39    0.14    1.53   25010 
+select_simple                         15.00    3.72    2.12    5.84  500000 
+select_simple_cache                   16.00    3.60    1.90    5.50  500000 
+select_simple_join                    24.00    6.38    0.34    6.72   25000 
+update_big                             7.00    0.00    0.01    0.01      10 
+update_of_key                          6.00    0.50    0.28    0.78   50000 
+update_of_key_big                      7.00    0.01    0.00    0.01     501 
+update_of_primary_key_many_keys        8.00    0.00    0.01    0.01     256 
+update_with_key                       28.00    2.87    1.22    4.09  300000 
+update_with_key_prefix                 9.00    1.63    0.51    2.14  100000 
+wisc_benchmark                       384.00  143.84    5.42  149.26   50014 
+TOTALS                              5005.00  525.15   61.44  586.59 6441162 

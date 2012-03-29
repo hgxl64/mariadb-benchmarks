@@ -1,0 +1,15 @@
+set terminal jpeg nocrop enhanced size 1280,1024
+	set output '/home/mariadb/benchmark/dbt3/results/myisam_test_2012-03-24_004446/graphics.jpeg'
+	set boxwidth 0.9 absolute
+	set style fill solid 0.5 border -1
+	set style histogram errorbars gap 1 lw 3 title offset character 0, 0, 0
+	set datafile missing '-'
+	set style data histograms
+	set xtics border in scale 1,0.5 nomirror rotate by -45  offset character 0, 0, 0 
+	set xlabel 'Query'
+	set ylabel 'Seconds'
+	set grid
+	set key below right
+	set title "MariaDB 5.3.5 + MyISAM\n vs. MySQL 5.6.4 + MyISAM\n vs. MySQL 5.5.21 + MyISAM" 
+	set yrange [ 0. : 1962. ] noreverse nowriteback
+	plot '/home/mariadb/benchmark/dbt3/results/myisam_test_2012-03-24_004446/results.dat' index 0 using ($3):(0):($2):xtic(1) ti "mariadb-5-3-5-myisam",'/home/mariadb/benchmark/dbt3/results/myisam_test_2012-03-24_004446/results.dat' index 1 using ($3):(0):($2):xtic(1) ti "mysql-5-6-4-myisam",'/home/mariadb/benchmark/dbt3/results/myisam_test_2012-03-24_004446/results.dat' index 2 using ($3):(0):($2):xtic(1) ti "mysql-5-5-21-myisam"

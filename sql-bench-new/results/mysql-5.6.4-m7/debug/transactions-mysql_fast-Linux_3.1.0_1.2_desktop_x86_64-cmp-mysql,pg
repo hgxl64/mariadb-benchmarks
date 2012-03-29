@@ -1,0 +1,3 @@
+Testing server 'MySQL 5.6.4 m7 debug' at 2012-01-26 15:51:45
+
+Test skipped because the database doesn't support transactions
