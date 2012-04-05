@@ -14,6 +14,8 @@ export DSS_CONFIG=$HERE/build/dbt3-1.9/src/dbgen
 export DSS_QUERY=$HERE/build/dbt3-1.9/queries/mysql
 export DSS_PATH=$HERE/work
 
+test -d work || mkdir work
+
 echo "generating data"
 build/dbt3-1.9/src/dbgen/dbgen -vfF -s $SCALE
 
