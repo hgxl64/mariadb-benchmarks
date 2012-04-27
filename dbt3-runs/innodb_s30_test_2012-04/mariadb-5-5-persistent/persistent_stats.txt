@@ -1,0 +1,48 @@
+mysql> select * from information_schema.innodb_table_stats where table_schema='dbt3';
++--------------+-----------------+-----------+------------+------------+----------+
+| table_schema | table_name      | rows      | clust_size | other_size | modified |
++--------------+-----------------+-----------+------------+------------+----------+
+| dbt3         | time_statistics |        23 |          1 |          0 |        0 |
+| dbt3         | supplier        |    299353 |       3301 |        289 |        0 |
+| dbt3         | region          |         5 |          1 |          0 |        0 |
+| dbt3         | partsupp        |  20170794 |     384448 |      40046 |        0 |
+| dbt3         | part            |   5999870 |      59840 |          0 |        0 |
+| dbt3         | orders          |  45069762 |     365376 |      77824 |        0 |
+| dbt3         | nation          |        25 |          1 |          1 |        0 |
+| dbt3         | lineitem        | 180229362 |    1688448 |    1642880 |        0 |
+| dbt3         | customer        |   4496648 |      53312 |       4071 |        0 |
++--------------+-----------------+-----------+------------+------------+----------+
+9 rows in set (0.00 sec)
+
+mysql> select * from information_schema.innodb_index_stats where table_schema='dbt3';
++--------------+-----------------+-----------------------+--------+---------------+-------------------+------------------+
+| table_schema | table_name      | index_name            | fields | rows_per_key  | index_total_pages | index_leaf_pages |
++--------------+-----------------+-----------------------+--------+---------------+-------------------+------------------+
+| dbt3         | time_statistics | GEN_CLUST_INDEX       |      1 | 1             |                 1 |                1 |
+| dbt3         | supplier        | PRIMARY               |      1 | 1             |              3301 |             3271 |
+| dbt3         | supplier        | i_s_nationkey         |      2 | 13606, 0      |               289 |              269 |
+| dbt3         | region          | PRIMARY               |      1 | 1             |                 1 |                1 |
+| dbt3         | partsupp        | PRIMARY               |      2 | 3, 1          |            384448 |           335829 |
+| dbt3         | partsupp        | i_ps_partkey          |      2 | 3, 0          |             20023 |            19951 |
+| dbt3         | partsupp        | i_ps_suppkey          |      2 | 67, 0         |             20023 |            19951 |
+| dbt3         | part            | PRIMARY               |      1 | 1             |             59840 |            59681 |
+| dbt3         | orders          | PRIMARY               |      1 | 1             |            365376 |           364983 |
+| dbt3         | orders          | i_o_orderdate         |      2 | 15119, 1      |             37504 |            37407 |
+| dbt3         | orders          | i_o_custkey           |      2 | 15, 1         |             40320 |            40180 |
+| dbt3         | nation          | PRIMARY               |      1 | 1             |                 1 |                1 |
+| dbt3         | nation          | i_n_regionkey         |      2 | 5, 1          |                 1 |                1 |
+| dbt3         | lineitem        | PRIMARY               |      2 | 4, 1          |           1688448 |          1686356 |
+| dbt3         | lineitem        | i_l_shipdate          |      3 | 2772759, 1, 1 |            194304 |           193965 |
+| dbt3         | lineitem        | i_l_suppkey_partkey   |      4 | 30, 7, 1, 1   |            249728 |           249306 |
+| dbt3         | lineitem        | i_l_partkey           |      3 | 29, 1, 1      |            205312 |           205011 |
+| dbt3         | lineitem        | i_l_suppkey           |      3 | 611, 1, 1     |            205312 |           205011 |
+| dbt3         | lineitem        | i_l_receiptdate       |      3 | 2772759, 1, 1 |            194304 |           193965 |
+| dbt3         | lineitem        | i_l_orderkey          |      2 | 4, 1          |            149888 |           149626 |
+| dbt3         | lineitem        | i_l_orderkey_quantity |      3 | 4, 1, 1       |            249728 |           249306 |
+| dbt3         | lineitem        | i_l_commitdate        |      3 | 2772759, 1, 1 |            194304 |           193965 |
+| dbt3         | customer        | PRIMARY               |      1 | 1             |             53312 |            53214 |
+| dbt3         | customer        | i_c_nationkey         |      2 | 642378, 0     |              4071 |             4019 |
++--------------+-----------------+-----------------------+--------+---------------+-------------------+------------------+
+24 rows in set (0.00 sec)
+
+mysql> notee

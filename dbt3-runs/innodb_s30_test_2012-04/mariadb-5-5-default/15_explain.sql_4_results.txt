@@ -1,0 +1,9 @@
++------+-------------+------------+-------+---------------+--------------+---------+-------------------------+----------+----------+----------------------------------------------------------------------------+
+| id   | select_type | table      | type  | possible_keys | key          | key_len | ref                     | rows     | filtered | Extra                                                                      |
++------+-------------+------------+-------+---------------+--------------+---------+-------------------------+----------+----------+----------------------------------------------------------------------------+
+|    1 | PRIMARY     | supplier   | index | PRIMARY       | PRIMARY      | 4       | NULL                    |     6759 |   100.00 |                                                                            |
+|    1 | PRIMARY     | <derived3> | ref   | key0          | key0         | 5       | dbt3.supplier.s_suppkey |       44 |   100.00 | Using where                                                                |
+|    3 | DERIVED     | lineitem   | range | i_l_shipdate  | i_l_shipdate | 4       | NULL                    | 13143886 |   100.00 | Using index condition; Rowid-ordered scan; Using temporary; Using filesort |
+|    2 | SUBQUERY    | <derived4> | ALL   | NULL          | NULL         | NULL    | NULL                    | 13143886 |   100.00 |                                                                            |
+|    4 | DERIVED     | lineitem   | range | i_l_shipdate  | i_l_shipdate | 4       | NULL                    | 13143886 |   100.00 | Using index condition; Rowid-ordered scan; Using temporary; Using filesort |
++------+-------------+------------+-------+---------------+--------------+---------+-------------------------+----------+----------+----------------------------------------------------------------------------+

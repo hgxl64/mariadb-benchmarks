@@ -1,0 +1,405 @@
+SQL_command:
+show status; select * from information_schema.STATISTICS;
+
+===Results===
++-------------------------------------------+-------------+
+| Variable_name                             | Value       |
++-------------------------------------------+-------------+
+| Aborted_clients                           | 0           |
+| Aborted_connects                          | 0           |
+| Binlog_cache_disk_use                     | 0           |
+| Binlog_cache_use                          | 0           |
+| Binlog_stmt_cache_disk_use                | 0           |
+| Binlog_stmt_cache_use                     | 0           |
+| Bytes_received                            | 122         |
+| Bytes_sent                                | 181         |
+| Com_admin_commands                        | 0           |
+| Com_assign_to_keycache                    | 0           |
+| Com_alter_db                              | 0           |
+| Com_alter_db_upgrade                      | 0           |
+| Com_alter_event                           | 0           |
+| Com_alter_function                        | 0           |
+| Com_alter_procedure                       | 0           |
+| Com_alter_server                          | 0           |
+| Com_alter_table                           | 0           |
+| Com_alter_tablespace                      | 0           |
+| Com_analyze                               | 0           |
+| Com_begin                                 | 0           |
+| Com_binlog                                | 0           |
+| Com_call_procedure                        | 0           |
+| Com_change_db                             | 0           |
+| Com_change_master                         | 0           |
+| Com_check                                 | 0           |
+| Com_checksum                              | 0           |
+| Com_commit                                | 0           |
+| Com_create_db                             | 0           |
+| Com_create_event                          | 0           |
+| Com_create_function                       | 0           |
+| Com_create_index                          | 0           |
+| Com_create_procedure                      | 0           |
+| Com_create_server                         | 0           |
+| Com_create_table                          | 0           |
+| Com_create_trigger                        | 0           |
+| Com_create_udf                            | 0           |
+| Com_create_user                           | 0           |
+| Com_create_view                           | 0           |
+| Com_dealloc_sql                           | 0           |
+| Com_delete                                | 0           |
+| Com_delete_multi                          | 0           |
+| Com_do                                    | 0           |
+| Com_drop_db                               | 0           |
+| Com_drop_event                            | 0           |
+| Com_drop_function                         | 0           |
+| Com_drop_index                            | 0           |
+| Com_drop_procedure                        | 0           |
+| Com_drop_server                           | 0           |
+| Com_drop_table                            | 0           |
+| Com_drop_trigger                          | 0           |
+| Com_drop_user                             | 0           |
+| Com_drop_view                             | 0           |
+| Com_empty_query                           | 0           |
+| Com_execute_sql                           | 0           |
+| Com_flush                                 | 0           |
+| Com_get_diagnostics                       | 0           |
+| Com_grant                                 | 0           |
+| Com_ha_close                              | 0           |
+| Com_ha_open                               | 0           |
+| Com_ha_read                               | 0           |
+| Com_help                                  | 0           |
+| Com_insert                                | 0           |
+| Com_insert_select                         | 0           |
+| Com_install_plugin                        | 0           |
+| Com_kill                                  | 0           |
+| Com_load                                  | 0           |
+| Com_lock_tables                           | 0           |
+| Com_optimize                              | 0           |
+| Com_preload_keys                          | 0           |
+| Com_prepare_sql                           | 0           |
+| Com_purge                                 | 0           |
+| Com_purge_before_date                     | 0           |
+| Com_release_savepoint                     | 0           |
+| Com_rename_table                          | 0           |
+| Com_rename_user                           | 0           |
+| Com_repair                                | 0           |
+| Com_replace                               | 0           |
+| Com_replace_select                        | 0           |
+| Com_reset                                 | 0           |
+| Com_resignal                              | 0           |
+| Com_revoke                                | 0           |
+| Com_revoke_all                            | 0           |
+| Com_rollback                              | 0           |
+| Com_rollback_to_savepoint                 | 0           |
+| Com_savepoint                             | 0           |
+| Com_select                                | 1           |
+| Com_set_option                            | 0           |
+| Com_signal                                | 0           |
+| Com_show_authors                          | 0           |
+| Com_show_binlog_events                    | 0           |
+| Com_show_binlogs                          | 0           |
+| Com_show_charsets                         | 0           |
+| Com_show_collations                       | 0           |
+| Com_show_contributors                     | 0           |
+| Com_show_create_db                        | 0           |
+| Com_show_create_event                     | 0           |
+| Com_show_create_func                      | 0           |
+| Com_show_create_proc                      | 0           |
+| Com_show_create_table                     | 0           |
+| Com_show_create_trigger                   | 0           |
+| Com_show_databases                        | 0           |
+| Com_show_engine_logs                      | 0           |
+| Com_show_engine_mutex                     | 0           |
+| Com_show_engine_status                    | 0           |
+| Com_show_events                           | 0           |
+| Com_show_errors                           | 0           |
+| Com_show_fields                           | 0           |
+| Com_show_function_code                    | 0           |
+| Com_show_function_status                  | 0           |
+| Com_show_grants                           | 0           |
+| Com_show_keys                             | 0           |
+| Com_show_master_status                    | 0           |
+| Com_show_open_tables                      | 0           |
+| Com_show_plugins                          | 0           |
+| Com_show_privileges                       | 0           |
+| Com_show_procedure_code                   | 0           |
+| Com_show_procedure_status                 | 0           |
+| Com_show_processlist                      | 0           |
+| Com_show_profile                          | 0           |
+| Com_show_profiles                         | 0           |
+| Com_show_relaylog_events                  | 0           |
+| Com_show_slave_hosts                      | 0           |
+| Com_show_slave_status                     | 0           |
+| Com_show_status                           | 1           |
+| Com_show_storage_engines                  | 0           |
+| Com_show_table_status                     | 0           |
+| Com_show_tables                           | 0           |
+| Com_show_triggers                         | 0           |
+| Com_show_variables                        | 0           |
+| Com_show_warnings                         | 0           |
+| Com_slave_start                           | 0           |
+| Com_slave_stop                            | 0           |
+| Com_stmt_close                            | 0           |
+| Com_stmt_execute                          | 0           |
+| Com_stmt_fetch                            | 0           |
+| Com_stmt_prepare                          | 0           |
+| Com_stmt_reprepare                        | 0           |
+| Com_stmt_reset                            | 0           |
+| Com_stmt_send_long_data                   | 0           |
+| Com_truncate                              | 0           |
+| Com_uninstall_plugin                      | 0           |
+| Com_unlock_tables                         | 0           |
+| Com_update                                | 0           |
+| Com_update_multi                          | 0           |
+| Com_xa_commit                             | 0           |
+| Com_xa_end                                | 0           |
+| Com_xa_prepare                            | 0           |
+| Com_xa_recover                            | 0           |
+| Com_xa_rollback                           | 0           |
+| Com_xa_start                              | 0           |
+| Compression                               | OFF         |
+| Connections                               | 8           |
+| Created_tmp_disk_tables                   | 0           |
+| Created_tmp_files                         | 0           |
+| Created_tmp_tables                        | 0           |
+| Delayed_errors                            | 0           |
+| Delayed_insert_threads                    | 0           |
+| Delayed_writes                            | 0           |
+| Flush_commands                            | 1           |
+| Handler_commit                            | 0           |
+| Handler_delete                            | 0           |
+| Handler_discover                          | 0           |
+| Handler_external_lock                     | 0           |
+| Handler_mrr_init                          | 0           |
+| Handler_prepare                           | 0           |
+| Handler_read_first                        | 0           |
+| Handler_read_key                          | 0           |
+| Handler_read_last                         | 0           |
+| Handler_read_next                         | 0           |
+| Handler_read_prev                         | 0           |
+| Handler_read_rnd                          | 0           |
+| Handler_read_rnd_next                     | 0           |
+| Handler_rollback                          | 0           |
+| Handler_savepoint                         | 0           |
+| Handler_savepoint_rollback                | 0           |
+| Handler_update                            | 0           |
+| Handler_write                             | 0           |
+| Innodb_buffer_pool_dump_status            | not started |
+| Innodb_buffer_pool_load_status            | not started |
+| Innodb_buffer_pool_pages_data             | 93748       |
+| Innodb_buffer_pool_pages_dirty            | 0           |
+| Innodb_buffer_pool_pages_flushed          | 2           |
+| Innodb_buffer_pool_pages_free             | 561612      |
+| Innodb_buffer_pool_pages_misc             | 0           |
+| Innodb_buffer_pool_pages_total            | 655360      |
+| Innodb_buffer_pool_read_ahead_rnd         | 0           |
+| Innodb_buffer_pool_read_ahead             | 93168       |
+| Innodb_buffer_pool_read_ahead_evicted     | 0           |
+| Innodb_buffer_pool_read_requests          | 3048315     |
+| Innodb_buffer_pool_reads                  | 581         |
+| Innodb_buffer_pool_wait_free              | 0           |
+| Innodb_buffer_pool_write_requests         | 1           |
+| Innodb_data_fsyncs                        | 4           |
+| Innodb_data_pending_fsyncs                | 0           |
+| Innodb_data_pending_reads                 | 0           |
+| Innodb_data_pending_writes                | 0           |
+| Innodb_data_read                          | 1538166784  |
+| Innodb_data_reads                         | 93761       |
+| Innodb_data_writes                        | 4           |
+| Innodb_data_written                       | 17920       |
+| Innodb_dblwr_pages_written                | 0           |
+| Innodb_dblwr_writes                       | 0           |
+| Innodb_have_atomic_builtins               | ON          |
+| Innodb_log_waits                          | 0           |
+| Innodb_log_write_requests                 | 0           |
+| Innodb_log_writes                         | 1           |
+| Innodb_os_log_fsyncs                      | 3           |
+| Innodb_os_log_pending_fsyncs              | 0           |
+| Innodb_os_log_pending_writes              | 0           |
+| Innodb_os_log_written                     | 512         |
+| Innodb_page_size                          | 16384       |
+| Innodb_pages_created                      | 0           |
+| Innodb_pages_read                         | 93748       |
+| Innodb_pages_written                      | 1           |
+| Innodb_row_lock_current_waits             | 0           |
+| Innodb_row_lock_time                      | 0           |
+| Innodb_row_lock_time_avg                  | 0           |
+| Innodb_row_lock_time_max                  | 0           |
+| Innodb_row_lock_waits                     | 0           |
+| Innodb_rows_deleted                       | 0           |
+| Innodb_rows_inserted                      | 0           |
+| Innodb_rows_read                          | 9382556     |
+| Innodb_rows_updated                       | 0           |
+| Innodb_num_open_files                     | 5           |
+| Innodb_truncated_status_writes            | 0           |
+| Innodb_available_undo_logs                | 128         |
+| Key_blocks_not_flushed                    | 0           |
+| Key_blocks_unused                         | 13394       |
+| Key_blocks_used                           | 2           |
+| Key_read_requests                         | 7           |
+| Key_reads                                 | 1           |
+| Key_write_requests                        | 5           |
+| Key_writes                                | 4           |
+| Last_query_cost                           | 0.000000    |
+| Max_used_connections                      | 3           |
+| Not_flushed_delayed_rows                  | 0           |
+| Open_files                                | 22          |
+| Open_streams                              | 0           |
+| Open_table_definitions                    | 68          |
+| Open_tables                               | 62          |
+| Opened_files                              | 117         |
+| Opened_table_definitions                  | 0           |
+| Opened_tables                             | 0           |
+| Performance_schema_accounts_lost          | 0           |
+| Performance_schema_cond_classes_lost      | 0           |
+| Performance_schema_cond_instances_lost    | 0           |
+| Performance_schema_file_classes_lost      | 0           |
+| Performance_schema_file_handles_lost      | 0           |
+| Performance_schema_file_instances_lost    | 0           |
+| Performance_schema_hosts_lost             | 0           |
+| Performance_schema_locker_lost            | 0           |
+| Performance_schema_mutex_classes_lost     | 0           |
+| Performance_schema_mutex_instances_lost   | 0           |
+| Performance_schema_rwlock_classes_lost    | 0           |
+| Performance_schema_rwlock_instances_lost  | 0           |
+| Performance_schema_socket_classes_lost    | 0           |
+| Performance_schema_socket_instances_lost  | 0           |
+| Performance_schema_stage_classes_lost     | 0           |
+| Performance_schema_statement_classes_lost | 0           |
+| Performance_schema_table_handles_lost     | 0           |
+| Performance_schema_table_instances_lost   | 0           |
+| Performance_schema_thread_classes_lost    | 0           |
+| Performance_schema_thread_instances_lost  | 0           |
+| Performance_schema_users_lost             | 0           |
+| Prepared_stmt_count                       | 0           |
+| Qcache_free_blocks                        | 0           |
+| Qcache_free_memory                        | 0           |
+| Qcache_hits                               | 0           |
+| Qcache_inserts                            | 0           |
+| Qcache_lowmem_prunes                      | 0           |
+| Qcache_not_cached                         | 0           |
+| Qcache_queries_in_cache                   | 0           |
+| Qcache_total_blocks                       | 0           |
+| Queries                                   | 24          |
+| Questions                                 | 2           |
+| Select_full_join                          | 0           |
+| Select_full_range_join                    | 0           |
+| Select_range                              | 0           |
+| Select_range_check                        | 0           |
+| Select_scan                               | 0           |
+| Slave_heartbeat_period                    | 0.000       |
+| Slave_last_heartbeat                      |             |
+| Slave_open_temp_tables                    | 0           |
+| Slave_received_heartbeats                 | 0           |
+| Slave_retried_transactions                | 0           |
+| Slave_running                             | OFF         |
+| Slow_launch_threads                       | 0           |
+| Slow_queries                              | 0           |
+| Sort_merge_passes                         | 0           |
+| Sort_range                                | 0           |
+| Sort_rows                                 | 0           |
+| Sort_scan                                 | 0           |
+| Table_locks_immediate                     | 10          |
+| Table_locks_waited                        | 0           |
+| Tc_log_max_pages_used                     | 0           |
+| Tc_log_page_size                          | 0           |
+| Tc_log_page_waits                         | 0           |
+| Threads_cached                            | 0           |
+| Threads_connected                         | 1           |
+| Threads_created                           | 6           |
+| Threads_running                           | 2           |
+| Uptime                                    | 17          |
+| Uptime_since_flush_status                 | 14          |
++-------------------------------------------+-------------+
++---------------+--------------+---------------------------+------------+--------------+-----------------------+--------------+--------------------+-----------+-------------+----------+--------+----------+------------+---------+---------------+
+| TABLE_CATALOG | TABLE_SCHEMA | TABLE_NAME                | NON_UNIQUE | INDEX_SCHEMA | INDEX_NAME            | SEQ_IN_INDEX | COLUMN_NAME        | COLLATION | CARDINALITY | SUB_PART | PACKED | NULLABLE | INDEX_TYPE | COMMENT | INDEX_COMMENT |
++---------------+--------------+---------------------------+------------+--------------+-----------------------+--------------+--------------------+-----------+-------------+----------+--------+----------+------------+---------+---------------+
+| def           | dbt3         | customer                  |          0 | dbt3         | PRIMARY               |            1 | c_custkey          | A         |     4496592 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | dbt3         | customer                  |          1 | dbt3         | i_c_nationkey         |            1 | c_nationkey        | A         |          18 |     NULL | NULL   | YES      | BTREE      |         |               |
+| def           | dbt3         | lineitem                  |          0 | dbt3         | PRIMARY               |            1 | l_orderkey         | A         |    90009256 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | dbt3         | lineitem                  |          0 | dbt3         | PRIMARY               |            2 | l_linenumber       | A         |   180018512 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | dbt3         | lineitem                  |          1 | dbt3         | i_l_shipdate          |            1 | l_shipDATE         | A         |       48509 |     NULL | NULL   | YES      | BTREE      |         |               |
+| def           | dbt3         | lineitem                  |          1 | dbt3         | i_l_suppkey_partkey   |            1 | l_partkey          | A         |    12001234 |     NULL | NULL   | YES      | BTREE      |         |               |
+| def           | dbt3         | lineitem                  |          1 | dbt3         | i_l_suppkey_partkey   |            2 | l_suppkey          | A         |    60006170 |     NULL | NULL   | YES      | BTREE      |         |               |
+| def           | dbt3         | lineitem                  |          1 | dbt3         | i_l_partkey           |            1 | l_partkey          | A         |    12001234 |     NULL | NULL   | YES      | BTREE      |         |               |
+| def           | dbt3         | lineitem                  |          1 | dbt3         | i_l_suppkey           |            1 | l_suppkey          | A         |      512873 |     NULL | NULL   | YES      | BTREE      |         |               |
+| def           | dbt3         | lineitem                  |          1 | dbt3         | i_l_receiptdate       |            1 | l_receiptDATE      | A         |          18 |     NULL | NULL   | YES      | BTREE      |         |               |
+| def           | dbt3         | lineitem                  |          1 | dbt3         | i_l_orderkey          |            1 | l_orderkey         | A         |   180018512 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | dbt3         | lineitem                  |          1 | dbt3         | i_l_orderkey_quantity |            1 | l_orderkey         | A         |    90009256 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | dbt3         | lineitem                  |          1 | dbt3         | i_l_orderkey_quantity |            2 | l_quantity         | A         |   180018512 |     NULL | NULL   | YES      | BTREE      |         |               |
+| def           | dbt3         | lineitem                  |          1 | dbt3         | i_l_commitdate        |            1 | l_commitDATE       | A         |          18 |     NULL | NULL   | YES      | BTREE      |         |               |
+| def           | dbt3         | nation                    |          0 | dbt3         | PRIMARY               |            1 | n_nationkey        | A         |          25 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | dbt3         | nation                    |          1 | dbt3         | i_n_regionkey         |            1 | n_regionkey        | A         |          12 |     NULL | NULL   | YES      | BTREE      |         |               |
+| def           | dbt3         | orders                    |          0 | dbt3         | PRIMARY               |            1 | o_orderkey         | A         |    45075409 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | dbt3         | orders                    |          1 | dbt3         | i_o_orderdate         |            1 | o_orderDATE        | A         |          18 |     NULL | NULL   | YES      | BTREE      |         |               |
+| def           | dbt3         | orders                    |          1 | dbt3         | i_o_custkey           |            1 | o_custkey          | A         |     6439344 |     NULL | NULL   | YES      | BTREE      |         |               |
+| def           | dbt3         | part                      |          0 | dbt3         | PRIMARY               |            1 | p_partkey          | A         |     6005409 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | dbt3         | partsupp                  |          0 | dbt3         | PRIMARY               |            1 | ps_partkey         | A         |    23466060 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | dbt3         | partsupp                  |          0 | dbt3         | PRIMARY               |            2 | ps_suppkey         | A         |    23466060 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | dbt3         | partsupp                  |          1 | dbt3         | i_ps_partkey          |            1 | ps_partkey         | A         |    23466060 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | dbt3         | partsupp                  |          1 | dbt3         | i_ps_suppkey          |            1 | ps_suppkey         | A         |      601693 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | dbt3         | region                    |          0 | dbt3         | PRIMARY               |            1 | r_regionkey        | A         |           5 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | dbt3         | supplier                  |          0 | dbt3         | PRIMARY               |            1 | s_suppkey          | A         |      301758 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | dbt3         | supplier                  |          1 | dbt3         | i_s_nationkey         |            1 | s_nationkey        | A         |         141 |     NULL | NULL   | YES      | BTREE      |         |               |
+| def           | mysql        | columns_priv              |          0 | mysql        | PRIMARY               |            1 | Host               | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | columns_priv              |          0 | mysql        | PRIMARY               |            2 | Db                 | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | columns_priv              |          0 | mysql        | PRIMARY               |            3 | User               | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | columns_priv              |          0 | mysql        | PRIMARY               |            4 | Table_name         | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | columns_priv              |          0 | mysql        | PRIMARY               |            5 | Column_name        | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | db                        |          0 | mysql        | PRIMARY               |            1 | Host               | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | db                        |          0 | mysql        | PRIMARY               |            2 | Db                 | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | db                        |          0 | mysql        | PRIMARY               |            3 | User               | A         |           2 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | db                        |          1 | mysql        | User                  |            1 | User               | A         |           1 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | event                     |          0 | mysql        | PRIMARY               |            1 | db                 | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | event                     |          0 | mysql        | PRIMARY               |            2 | name               | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | func                      |          0 | mysql        | PRIMARY               |            1 | name               | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | help_category             |          0 | mysql        | PRIMARY               |            1 | help_category_id   | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | help_category             |          0 | mysql        | name                  |            1 | name               | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | help_keyword              |          0 | mysql        | PRIMARY               |            1 | help_keyword_id    | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | help_keyword              |          0 | mysql        | name                  |            1 | name               | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | help_relation             |          0 | mysql        | PRIMARY               |            1 | help_keyword_id    | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | help_relation             |          0 | mysql        | PRIMARY               |            2 | help_topic_id      | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | help_topic                |          0 | mysql        | PRIMARY               |            1 | help_topic_id      | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | help_topic                |          0 | mysql        | name                  |            1 | name               | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | host                      |          0 | mysql        | PRIMARY               |            1 | Host               | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | host                      |          0 | mysql        | PRIMARY               |            2 | Db                 | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | innodb_index_stats        |          0 | mysql        | PRIMARY               |            1 | database_name      | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | innodb_index_stats        |          0 | mysql        | PRIMARY               |            2 | table_name         | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | innodb_index_stats        |          0 | mysql        | PRIMARY               |            3 | index_name         | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | innodb_index_stats        |          0 | mysql        | PRIMARY               |            4 | stat_name          | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | innodb_table_stats        |          0 | mysql        | PRIMARY               |            1 | database_name      | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | innodb_table_stats        |          0 | mysql        | PRIMARY               |            2 | table_name         | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | ndb_binlog_index          |          0 | mysql        | PRIMARY               |            1 | epoch              | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | plugin                    |          0 | mysql        | PRIMARY               |            1 | name               | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | proc                      |          0 | mysql        | PRIMARY               |            1 | db                 | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | proc                      |          0 | mysql        | PRIMARY               |            2 | name               | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | proc                      |          0 | mysql        | PRIMARY               |            3 | type               | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | procs_priv                |          0 | mysql        | PRIMARY               |            1 | Host               | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | procs_priv                |          0 | mysql        | PRIMARY               |            2 | Db                 | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | procs_priv                |          0 | mysql        | PRIMARY               |            3 | User               | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | procs_priv                |          0 | mysql        | PRIMARY               |            4 | Routine_name       | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | procs_priv                |          0 | mysql        | PRIMARY               |            5 | Routine_type       | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | procs_priv                |          1 | mysql        | Grantor               |            1 | Grantor            | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | proxies_priv              |          0 | mysql        | PRIMARY               |            1 | Host               | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | proxies_priv              |          0 | mysql        | PRIMARY               |            2 | User               | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | proxies_priv              |          0 | mysql        | PRIMARY               |            3 | Proxied_host       | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | proxies_priv              |          0 | mysql        | PRIMARY               |            4 | Proxied_user       | A         |           2 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | proxies_priv              |          1 | mysql        | Grantor               |            1 | Grantor            | A         |           1 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | servers                   |          0 | mysql        | PRIMARY               |            1 | Server_name        | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | slave_master_info         |          0 | mysql        | PRIMARY               |            1 | Master_id          | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | slave_relay_log_info      |          0 | mysql        | PRIMARY               |            1 | Master_id          | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | slave_worker_info         |          0 | mysql        | PRIMARY               |            1 | Master_id          | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | slave_worker_info         |          0 | mysql        | PRIMARY               |            2 | Worker_id          | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | tables_priv               |          0 | mysql        | PRIMARY               |            1 | Host               | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | tables_priv               |          0 | mysql        | PRIMARY               |            2 | Db                 | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | tables_priv               |          0 | mysql        | PRIMARY               |            3 | User               | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | tables_priv               |          0 | mysql        | PRIMARY               |            4 | Table_name         | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | tables_priv               |          1 | mysql        | Grantor               |            1 | Grantor            | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | time_zone                 |          0 | mysql        | PRIMARY               |            1 | Time_zone_id       | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | time_zone_leap_second     |          0 | mysql        | PRIMARY               |            1 | Transition_time    | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | time_zone_name            |          0 | mysql        | PRIMARY               |            1 | Name               | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | time_zone_transition      |          0 | mysql        | PRIMARY               |            1 | Time_zone_id       | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | time_zone_transition      |          0 | mysql        | PRIMARY               |            2 | Transition_time    | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | time_zone_transition_type |          0 | mysql        | PRIMARY               |            1 | Time_zone_id       | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | time_zone_transition_type |          0 | mysql        | PRIMARY               |            2 | Transition_type_id | A         |           0 |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | user                      |          0 | mysql        | PRIMARY               |            1 | Host               | A         |        NULL |     NULL | NULL   |          | BTREE      |         |               |
+| def           | mysql        | user                      |          0 | mysql        | PRIMARY               |            2 | User               | A         |           6 |     NULL | NULL   |          | BTREE      |         |               |
++---------------+--------------+---------------------------+------------+--------------+-----------------------+--------------+--------------------+-----------+-------------+----------+--------+----------+------------+---------+---------------+

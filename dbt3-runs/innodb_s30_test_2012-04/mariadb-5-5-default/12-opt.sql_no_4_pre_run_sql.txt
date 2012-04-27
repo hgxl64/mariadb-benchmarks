@@ -1,0 +1,4 @@
+SQL_command:
+flush status; set global userstat=on; set optimizer_use_stat_tables='preferably';
+
+===Results===
