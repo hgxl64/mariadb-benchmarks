@@ -1,4 +1,4 @@
-Testing server 'MySQL 5.5.21 MariaDB' at 2012-01-30 23:05:29
+Testing server 'MySQL 5.5.21 MariaDB' at 2012-05-07 19:57:04
 
 Testing the speed of inserting data into 1 table and do some selects on it.
 The tests are done with a table that has 100000 rows.

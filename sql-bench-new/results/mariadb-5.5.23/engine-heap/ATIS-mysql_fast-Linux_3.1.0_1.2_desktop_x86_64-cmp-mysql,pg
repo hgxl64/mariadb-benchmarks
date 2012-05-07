@@ -1,22 +1,22 @@
-Testing server 'MySQL 5.5.23 MariaDB' at 2012-05-07 16:52:37
+Testing server 'MySQL 5.5.23 MariaDB' at 2012-05-07 19:21:31
 
 ATIS table test
 
 Creating tables
-Time for create_table (28):  0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+Time for create_table (28): 0.00653696 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
 
 Inserting data
-Time to insert (9768):  0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+Time to insert (9768): 0.0103278 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
 
-Time for book-keeping (1):  0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+Time for book-keeping (1): 0.00032115 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
 
 Retrieving data
-Time for select_simple_join (25000): 10 wallclock secs ( 6.14 usr  0.11 sys +  0.00 cusr  0.00 csys =  6.25 CPU)
-Time for select_join (5000):  7 wallclock secs ( 4.32 usr  0.09 sys +  0.00 cusr  0.00 csys =  4.41 CPU)
-Time for select_key_prefix_join (5000): 224 wallclock secs (36.31 usr  0.46 sys +  0.00 cusr  0.00 csys = 36.77 CPU)
-Time for select_distinct (40000): 37 wallclock secs (15.84 usr  0.56 sys +  0.00 cusr  0.00 csys = 16.40 CPU)
-Time for select_group (130000): 57 wallclock secs (14.88 usr  1.39 sys +  0.00 cusr  0.00 csys = 16.27 CPU)
+Time for select_simple_join (25000): 9.86105 wallclock secs ( 5.99 usr  0.17 sys +  0.00 cusr  0.00 csys =  6.16 CPU)
+Time for select_join (5000): 7.09376 wallclock secs ( 4.42 usr  0.09 sys +  0.00 cusr  0.00 csys =  4.51 CPU)
+Time for select_key_prefix_join (5000): 224.237 wallclock secs (36.54 usr  0.57 sys +  0.00 cusr  0.00 csys = 37.11 CPU)
+Time for select_distinct (40000): 36.855 wallclock secs (15.71 usr  0.56 sys +  0.00 cusr  0.00 csys = 16.27 CPU)
+Time for select_group (130000): 55.9536 wallclock secs (14.84 usr  1.48 sys +  0.00 cusr  0.00 csys = 16.32 CPU)
 
 Removing tables
-Time to drop_table (28):  0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
-Total time: 335 wallclock secs (77.49 usr  2.61 sys +  0.00 cusr  0.00 csys = 80.10 CPU)
+Time to drop_table (28): 0.00259995 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+Total time: 334.022 wallclock secs (77.50 usr  2.87 sys +  0.00 cusr  0.00 csys = 80.37 CPU)

@@ -30,70 +30,70 @@ to this. 1.00 is the same, bigger numbers indicates slower
 The test was run with limits from: mysql,pg
 
 The result logs which where found and the options:
- 1 mysql-mariadb_5.5.21_engine_heap        : MySQL 5.5.21 MariaDB --socket=/tmp/mysql.sock.sqlbench --fast --fast-insert --create-options=ENGINE=HEAP --only-missing-tests
+ 1 mysql_mariadb_5.5.21_engine_heap        : MySQL 5.5.21 MariaDB --socket=/tmp/mysql.sock.sqlbench --fast --only-missing-tests --fast-insert --create-options=ENGINE=HEAP
   engine-heap
- 2 mysql-mariadb_5.5.23_engine_heap        : MySQL 5.5.23 MariaDB --socket=/tmp/mysql.sock.sqlbench --fast --only-missing-tests --fast-insert --create-options=ENGINE=HEAP
+ 2 mysql_mariadb_5.5.23_engine_heap        : MySQL 5.5.23 MariaDB --socket=/tmp/mysql.sock.sqlbench --fast --only-missing-tests --fast-insert --create-options=ENGINE=HEAP
   engine-heap
 
 ===========================================================
 Operation                           |         1|         2|
-                                    |mysql-mari|mysql-mari|
+                                    |mysql_mari|mysql_mari|
 -----------------------------------------------------------
 Relative results per test (First column is in seconds):   |
 -----------------------------------------------------------
-ATIS                                |    349.00|     0.960|
-alter-table                         |     12.00|     0.917|
-connect                             |    199.00|     1.116|
-create                              |      6.00|     1.000|
-select                              |    383.00|     0.956|
-wisconsin                           |    236.00|     1.076|
+ATIS                                |    353.37|     0.945|
+alter-table                         |     12.78|     0.903|
+connect                             |    215.49|     0.999|
+create                              |      6.17|     0.976|
+select                              |    379.15|     0.942|
+wisconsin                           |    238.60|     1.003|
 -----------------------------------------------------------
 The results per operation:                                |
 -----------------------------------------------------------
-alter_table_add (992)               |     10.00|     1.000|
-book-keeping (3)                    |      0.00|     0.000|
-connect (50000)                     |     21.00|     0.905|
-connect+select_1_row (50000)        |     25.00|     1.000|
-connect+select_simple (50000)       |     23.00|     0.913|
-count_distinct (7000)               |     13.00|     0.846|
-count_distinct_2 (7000)             |     31.00|     0.935|
-count_distinct_big (700)            |     12.00|     1.000|
-count_distinct_group (7000)         |     24.00|     1.000|
-count_distinct_group_on_key (7000)  |     28.00|     0.964|
-count_distinct_group_on_key_parts (7|     25.00|     0.960|
-count_distinct_key_prefix (7000)    |      9.00|     1.000|
-count_group (7000)                  |     18.00|     0.944|
-count_group_on_key_parts (7000)     |     18.00|     1.000|
-count_group_with_order (7000)       |     18.00|     1.000|
-count_on_key (50000)                |     46.00|     0.913|
-create+drop (10000)                 |      2.00|     1.500|
-create_MANY_tables (400)            |      0.00|     0.000|
-create_index (8)                    |      1.00|     1.000|
-create_key+drop (10000)             |      4.00|     0.750|
-create_table (31)                   |      0.00|     0.000|
-delete_big (1)                      |      0.00|     0.000|
-drop_index (8)                      |      0.00|     0.000|
+alter_table_add (992)               |     12.24|     0.902|
+book-keeping (2)                    |      0.00|     0.000|
+connect (50000)                     |     19.19|     1.007|
+connect+select_1_row (50000)        |     25.35|     0.972|
+connect+select_simple (50000)       |     22.13|     0.993|
+count_distinct (7000)               |     11.65|     0.956|
+count_distinct_2 (7000)             |     29.21|     0.978|
+count_distinct_big (700)            |     12.65|     0.969|
+count_distinct_group (7000)         |     22.89|     1.018|
+count_distinct_group_on_key (7000)  |     26.84|     1.004|
+count_distinct_group_on_key_parts (7|     22.93|     1.016|
+count_distinct_key_prefix (7000)    |      9.41|     0.921|
+count_group (7000)                  |     19.61|     0.887|
+count_group_on_key_parts (7000)     |     19.21|     0.929|
+count_group_with_order (7000)       |     19.70|     0.875|
+count_on_key (50000)                |     45.64|     0.889|
+create+drop (10000)                 |      2.55|     0.980|
+create_MANY_tables (400)            |      0.09|     0.778|
+create_index (8)                    |      0.24|     0.958|
+create_key+drop (10000)             |      3.48|     0.977|
+create_table (31)                   |      0.01|     1.000|
+delete_big (1)                      |      0.01|     1.000|
+drop_index (8)                      |      0.24|     0.958|
 drop_table (28)                     |      0.00|     0.000|
-drop_table_when_MANY_tables (400)   |      0.00|     0.000|
-insert (50768)                      |      1.00|     1.000|
-min_max_on_key (70000)              |     78.00|     0.949|
-select_1_row (500000)               |     26.00|     1.115|
-select_1_row_cache (500000)         |     23.00|     1.391|
-select_2_rows (500000)              |     27.00|     1.333|
-select_big (70)                     |      0.00|     0.000|
-select_cache (10000)                |     21.00|     0.905|
-select_cache2 (10000)               |     20.00|     1.000|
-select_column+column (500000)       |     28.00|     1.286|
-select_distinct (40000)             |     47.00|     0.787|
-select_group (130000)               |     61.00|     0.934|
-select_group_when_MANY_tables (400) |      0.00|     0.000|
-select_join (5000)                  |      7.00|     1.000|
-select_key_prefix_join (5000)       |    224.00|     1.000|
-select_range (410)                  |     22.00|     0.955|
-select_simple (500000)              |     13.00|     1.000|
-select_simple_cache (500000)        |     13.00|     0.846|
-select_simple_join (25000)          |     10.00|     1.000|
-wisc_benchmark (50014)              |    235.00|     1.081|
+drop_table_when_MANY_tables (400)   |      0.01|     1.000|
+insert (50768)                      |      0.45|     1.000|
+min_max_on_key (70000)              |     77.98|     0.913|
+select_1_row (500000)               |     25.24|     0.950|
+select_1_row_cache (500000)         |     23.52|     1.295|
+select_2_rows (500000)              |     26.69|     1.258|
+select_big (70)                     |      0.07|     1.000|
+select_cache (10000)                |     19.85|     0.965|
+select_cache2 (10000)               |     19.70|     0.976|
+select_column+column (500000)       |     27.91|     1.339|
+select_distinct (40000)             |     47.21|     0.781|
+select_group (130000)               |     60.40|     0.926|
+select_group_when_MANY_tables (400) |      0.04|     1.000|
+select_join (5000)                  |      7.07|     1.003|
+select_key_prefix_join (5000)       |    228.72|     0.980|
+select_range (410)                  |     21.43|     0.927|
+select_simple (500000)              |     23.09|     0.524|
+select_simple_cache (500000)        |     22.37|     0.525|
+select_simple_join (25000)          |      9.95|     0.991|
+wisc_benchmark (50014)              |    238.51|     1.003|
 -----------------------------------------------------------
-TOTALS                              |   1184.00|     1.008|
+TOTALS                              |   1205.50|     0.965|
 ===========================================================

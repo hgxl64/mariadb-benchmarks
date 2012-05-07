@@ -1,32 +1,32 @@
-Testing server 'MySQL 5.5.23 MariaDB' at 2012-05-07 17:01:32
+Testing server 'MySQL 5.5.23 MariaDB' at 2012-05-07 19:30:20
 
 Testing the speed of connecting to the server and sending of data
 Connect tests are done 50000 times and other tests 500000 times
 
 Testing connection/disconnect
-Time to connect (50000): 19 wallclock secs ( 9.95 usr  1.73 sys +  0.00 cusr  0.00 csys = 11.68 CPU)
+Time to connect (50000): 19.3225 wallclock secs ( 9.98 usr  1.86 sys +  0.00 cusr  0.00 csys = 11.84 CPU)
 
 Test connect/simple select/disconnect
-Time for connect+select_simple (50000): 21 wallclock secs (10.64 usr  2.45 sys +  0.00 cusr  0.00 csys = 13.09 CPU)
+Time for connect+select_simple (50000): 21.9848 wallclock secs (10.61 usr  2.44 sys +  0.00 cusr  0.00 csys = 13.05 CPU)
 
 Test simple select
-Time for select_simple (500000): 13 wallclock secs ( 4.20 usr  2.09 sys +  0.00 cusr  0.00 csys =  6.29 CPU)
+Time for select_simple (500000): 12.098 wallclock secs ( 4.06 usr  2.11 sys +  0.00 cusr  0.00 csys =  6.17 CPU)
 
 Test simple select
-Time for select_simple_cache (500000): 11 wallclock secs ( 3.75 usr  2.11 sys +  0.00 cusr  0.00 csys =  5.86 CPU)
+Time for select_simple_cache (500000): 11.7441 wallclock secs ( 3.72 usr  2.10 sys +  0.00 cusr  0.00 csys =  5.82 CPU)
 
 Testing connect/select 1 row from table/disconnect
-Time to connect+select_1_row (50000): 25 wallclock secs (10.87 usr  2.61 sys +  0.00 cusr  0.00 csys = 13.48 CPU)
+Time to connect+select_1_row (50000): 24.6313 wallclock secs (11.11 usr  2.63 sys +  0.00 cusr  0.00 csys = 13.74 CPU)
 
 Testing select 1 row from table
-Time to select_1_row (500000): 29 wallclock secs ( 7.00 usr  3.03 sys +  0.00 cusr  0.00 csys = 10.03 CPU)
+Time to select_1_row (500000): 23.9903 wallclock secs ( 4.39 usr  2.21 sys +  0.00 cusr  0.00 csys =  6.60 CPU)
 
-Time to select_1_row_cache (500000): 32 wallclock secs ( 7.94 usr  5.18 sys +  0.00 cusr  0.00 csys = 13.12 CPU)
+Time to select_1_row_cache (500000): 30.4535 wallclock secs ( 6.95 usr  4.65 sys +  0.00 cusr  0.00 csys = 11.60 CPU)
 
 Testing select 2 rows from table
-Time to select_2_rows (500000): 36 wallclock secs ( 8.00 usr  5.64 sys +  0.00 cusr  0.00 csys = 13.64 CPU)
+Time to select_2_rows (500000): 33.5684 wallclock secs ( 7.01 usr  4.99 sys +  0.00 cusr  0.00 csys = 12.00 CPU)
 
 Test select with aritmetic (+)
-Time for select_column+column (500000): 36 wallclock secs ( 7.76 usr  4.26 sys +  0.00 cusr  0.00 csys = 12.02 CPU)
+Time for select_column+column (500000): 37.3823 wallclock secs ( 8.56 usr  4.86 sys +  0.00 cusr  0.00 csys = 13.42 CPU)
 
-Total time: 222 wallclock secs (70.11 usr 29.11 sys +  0.00 cusr  0.00 csys = 99.22 CPU)
+Total time: 215.178 wallclock secs (66.39 usr 27.85 sys +  0.00 cusr  0.00 csys = 94.24 CPU)
