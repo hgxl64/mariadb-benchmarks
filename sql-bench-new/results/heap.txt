@@ -1,0 +1,96 @@
+This is the result file of the different benchmark tests.
+
+The number in () after each tests shows how many SQL commands the particular
+test did.  As one test may have many different parameters this gives only
+a rough picture of what was done.  Check the source for more information :)
+
+Keep in mind that one can't compare benchmarks run with different --cmp
+options. The --cmp options sets the all limits according to the worst
+limit for all server in the benchmark.
+
+Numbers marked with '+' are estimated according to previous runs because
+the query took longer than a given time-limit to finish. The estimation
+shouldn't be far from the real result thought.
+
+Numbers marked with '?' contains results that gave wrong result. This can only
+be used as an indication of how long it took for the server to produce a wrong
+result :)
+
+Numbers marked with '*' are tests that was run a different number times
+than the test in the first column.  The reason for this is normally that the
+marked test was run with different options that affects the number of tests
+or that the test was from another version of the MySQL benchmarks.
+
+Hope this will give you some idea how each db is performing at what thing ....
+Hope you like it .... Luuk & Monty (1997)
+
+The test was run with limits from: mysql,pg
+
+The result logs which where found and the options:
+ 1 mysql-mariadb_5.5.21_engine_heap        : MySQL 5.5.21 MariaDB --socket=/tmp/mysql.sock.sqlbench --fast --fast-insert --create-options=ENGINE=HEAP --only-missing-tests
+  engine-heap
+ 2 mysql-mariadb_5.5.23_engine_heap        : MySQL 5.5.23 MariaDB --socket=/tmp/mysql.sock.sqlbench --fast --only-missing-tests --fast-insert --create-options=ENGINE=HEAP
+  engine-heap
+
+=====================================================
+Operation                           |      1|      2|
+                                    |mysql-m|mysql-m|
+-----------------------------------------------------
+Results per test in seconds:                        |
+-----------------------------------------------------
+ATIS                                | 349.00| 335.00|
+alter-table                         |  12.00|  11.00|
+connect                             | 199.00| 222.00|
+create                              |   6.00|   6.00|
+select                              | 383.00| 366.00|
+wisconsin                           | 236.00| 254.00|
+-----------------------------------------------------
+The results per operation:                          |
+-----------------------------------------------------
+alter_table_add (992)               |  10.00|  10.00|
+book-keeping (3)                    |   0.00|   0.00|
+connect (50000)                     |  21.00|  19.00|
+connect+select_1_row (50000)        |  25.00|  25.00|
+connect+select_simple (50000)       |  23.00|  21.00|
+count_distinct (7000)               |  13.00|  11.00|
+count_distinct_2 (7000)             |  31.00|  29.00|
+count_distinct_big (700)            |  12.00|  12.00|
+count_distinct_group (7000)         |  24.00|  24.00|
+count_distinct_group_on_key (7000)  |  28.00|  27.00|
+count_distinct_group_on_key_parts (7|  25.00|  24.00|
+count_distinct_key_prefix (7000)    |   9.00|   9.00|
+count_group (7000)                  |  18.00|  17.00|
+count_group_on_key_parts (7000)     |  18.00|  18.00|
+count_group_with_order (7000)       |  18.00|  18.00|
+count_on_key (50000)                |  46.00|  42.00|
+create+drop (10000)                 |   2.00|   3.00|
+create_MANY_tables (400)            |   0.00|   0.00|
+create_index (8)                    |   1.00|   1.00|
+create_key+drop (10000)             |   4.00|   3.00|
+create_table (31)                   |   0.00|   0.00|
+delete_big (1)                      |   0.00|   0.00|
+drop_index (8)                      |   0.00|   0.00|
+drop_table (28)                     |   0.00|   0.00|
+drop_table_when_MANY_tables (400)   |   0.00|   0.00|
+insert (50768)                      |   1.00|   1.00|
+min_max_on_key (70000)              |  78.00|  74.00|
+select_1_row (500000)               |  26.00|  29.00|
+select_1_row_cache (500000)         |  23.00|  32.00|
+select_2_rows (500000)              |  27.00|  36.00|
+select_big (70)                     |   0.00|   0.00|
+select_cache (10000)                |  21.00|  19.00|
+select_cache2 (10000)               |  20.00|  20.00|
+select_column+column (500000)       |  28.00|  36.00|
+select_distinct (40000)             |  47.00|  37.00|
+select_group (130000)               |  61.00|  57.00|
+select_group_when_MANY_tables (400) |   0.00|   0.00|
+select_join (5000)                  |   7.00|   7.00|
+select_key_prefix_join (5000)       | 224.00| 224.00|
+select_range (410)                  |  22.00|  21.00|
+select_simple (500000)              |  13.00|  13.00|
+select_simple_cache (500000)        |  13.00|  11.00|
+select_simple_join (25000)          |  10.00|  10.00|
+wisc_benchmark (50014)              | 235.00| 254.00|
+-----------------------------------------------------
+TOTALS                              |1184.00|1194.00|
+=====================================================

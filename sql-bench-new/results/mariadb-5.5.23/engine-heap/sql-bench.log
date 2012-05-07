@@ -1,0 +1,4 @@
+Warning: Can't execute big-tables.  Check the file '/home/axel/sqlbench/results/mariadb-5.5.23/engine-heap/big-tables-mysql_fast-Linux_3.1.0_1.2_desktop_x86_64-cmp-mysql,pg'
+Warning: Can't execute insert.  Check the file '/home/axel/sqlbench/results/mariadb-5.5.23/engine-heap/insert-mysql_fast-Linux_3.1.0_1.2_desktop_x86_64-cmp-mysql,pg'
+Test finished. You can find the result in:
+/home/axel/sqlbench/results/mariadb-5.5.23/engine-heap/RUN-mysql_fast-Linux_3.1.0_1.2_desktop_x86_64-cmp-mysql,pg
