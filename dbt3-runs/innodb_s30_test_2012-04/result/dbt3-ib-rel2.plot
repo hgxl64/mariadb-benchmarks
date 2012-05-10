@@ -28,5 +28,5 @@ set title "MariaDB-5.5.23/InnoDB vs. MariaDB-5.3.6/MyISAM"
 
 
 #the plot
-plot "summary_innodb_vs_myisam.dat" index 1 using ($3>0?$3:NaN):2:4:xtic(1) title "InnoDB",\
-     "" index 1 using ($6>0?$6:NaN):5:7 title "MyISAM"
+plot "summary_innodb_vs_myisam.dat" index 1 using ($3>0?$3:999):2:4:xtic(1) title "InnoDB",\
+     "" index 1 using ($6>0?$6:999):5:7 title "MyISAM"

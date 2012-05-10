@@ -28,7 +28,7 @@ set title "MySQL-5.6.5 with different statistics"
 
 
 #the plot
-plot "summary_mysql.dat" index 1 using ($3>0?$3:NaN):2:4:xtic(1) title "exact stats",\
-     "" index 1 using ($6>0?$6:NaN):5:7 title "persistent stats",\
-     "" index 1 using ($9>0?$9:NaN):8:10 title "default stats"
+plot "summary_mysql.dat" index 1 using ($3>0?$3:999):2:4:xtic(1) title "exact stats",\
+     "" index 1 using ($6>0?$6:999):5:7 title "persistent stats",\
+     "" index 1 using ($9>0?$9:999):8:10 title "default stats"
 

@@ -1,5 +1,5 @@
 all: dbt3-ib-abs1.png dbt3-ib-rel1.png dbt3-ib-rel2.png dbt3-ib-rel3.png \
- dbt3-ib-rel4.png dbt3-ib-rel5r.png
+ dbt3-ib-rel4.png dbt3-ib-rel5r.png dbt3-ib-rel6.png
 
 current: current.plot
 	gnuplot -p current.plot
@@ -24,6 +24,7 @@ dbt3-ib-rel2.png: summary_innodb_vs_myisam.dat
 dbt3-ib-rel3.png: summary_mysql.dat
 dbt3-ib-rel4.png: summary_maria.dat
 dbt3-ib-rel5.png: summary.dat
+dbt3-ib-rel6.png: summary_mysql_exact.dat
 
 
 

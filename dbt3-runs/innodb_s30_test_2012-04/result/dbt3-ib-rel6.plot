@@ -6,7 +6,7 @@ reset
 
 #output device and size
 set terminal png nocrop enhanced size 960,500 small
-set output "dbt3-ib-abs1.png"
+set output "dbt3-ib-rel6.png"
 
 #type and plot and parameters
 set boxwidth 0.9 absolute
@@ -19,14 +19,15 @@ set xtics border in scale 1,0.5 nomirror
 set xlabel 'Query'
 
 #y-axis
-set ylabel 'execution time [seconds]'
-set yrange [ 0. : 5600. ] noreverse nowriteback
+set ylabel 'relative execution time [percent]'
+set yrange [ 0. : 200. ] noreverse nowriteback
 
 set grid
 set key below right
-set title "MariaDB-5.5.23 vs. MySQL-5.6.5 with exact statistics"
+set title "MySQL-5.6.5 with exact statistics"
 
 
 #the plot
-plot "summary_maria_vs_mysql.dat" index 0 using ($3>0?$3:9999):2:4:xtic(1) title "MariaDB-5.5.23",\
-     "" index 0 using ($6>0?$6:9999):5:7 title "MySQL-5.6.5-m8"
+plot "summary_mysql_exact.dat" index 1 using ($3>0?$3:999):2:4:xtic(1) title "corrected",\
+     "" index 1 using ($6>0?$6:999):5:7 title "cheating"
+

@@ -48,10 +48,14 @@ sub process_file
 sub dump_data
 {
     for my $q (sort semi_numeric keys %{$data[0]}) {
-        print "<tr><td>$q</td><td>", $data[0]->{$q}, "</td>";
+        print "<tr><td>$q</td><td>";
+        print time_formatted($data[0]->{$q});
+        print "</td>";
         for my $ds (1..$n-1) {
             if (exists $data[$ds]->{$q}) {
-                print "<td>", $data[$ds]->{$q}, "</td><td>";
+                print "<td>";
+                print time_formatted($data[$ds]->{$q});
+                print "</td><td>";
                 print deviation_formatted($data[$ds]->{$q}, $data[0]->{$q});
                 print "</td>";
             } else {
@@ -72,9 +76,18 @@ sub semi_numeric
 }
 
 
+sub time_formatted
+{
+    my $t = shift;
+    return ($t < 0 ? ">7200" : sprintf "%d", $t);
+}
+
 sub deviation_formatted
 {
     my ($x, $ref) = @_;
+
+    return "" if ($x<0 || $ref<0);
+
     my $res = "+";
 
     $x -= $ref;

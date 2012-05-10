@@ -28,5 +28,5 @@ set title "MariaDB-5.5.23 vs. MySQL-5.6.5 with exact statistics"
 
 
 #the plot
-plot "summary_maria_vs_mysql.dat" index 1 using ($3>0?$3:NaN):2:4:xtic(1) title "MariaDB-5.5.23",\
-     "" index 1 using ($6>0?$6:NaN):5:7 title "MySQL-5.6.5-m8"
+plot "summary_maria_vs_mysql.dat" index 1 using ($3>0?$3:999):2:4:xtic(1) title "MariaDB-5.5.23",\
+     "" index 1 using ($6>0?$6:999):5:7 title "MySQL-5.6.5-m8"

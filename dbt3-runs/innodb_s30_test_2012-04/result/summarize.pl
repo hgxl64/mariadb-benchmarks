@@ -63,8 +63,14 @@ sub dump_data
         print $q;
         for my $ds (0..$n-1) {
             if (exists $data[$ds]->{$q} && $data[$ds]->{$q}->[0] > 0) {
-                map { printf "\t%.2f", 100.0 * $_ / $ref{$q} }
-                @{$data[$ds]->{$q}};
+                if ($ref{$q} > 0) {
+                    map { printf "\t%.2f", 100.0 * $_ / $ref{$q} }
+                    @{$data[$ds]->{$q}};
+                } else {
+                    my $median = $data[$ds]->{$q}->[1];
+                    map { printf "\t(%.2f)", 100.0 * $_ / $median }
+                    @{$data[$ds]->{$q}};
+                }
             } else {
                 print "\t-1\t-1\t-1";
             }
