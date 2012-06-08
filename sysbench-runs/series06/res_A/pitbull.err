@@ -1,0 +1,26 @@
+120606 23:38:42 mysqld_safe Starting mysqld daemon with databases from /ssd_disk/sysbench/datadir
+120606 23:38:42 [Note] Flashcache bypass: disabled
+120606 23:38:42 [Note] Flashcache setup error is : open flash device failed
+
+120606 23:38:42 [Note] Plugin 'FEDERATED' is disabled.
+120606 23:38:42 InnoDB: The InnoDB memory heap is disabled
+120606 23:38:42 InnoDB: Mutexes and rw_locks use GCC atomic builtins
+120606 23:38:42 InnoDB: Compressed tables use zlib 1.2.5
+120606 23:38:42 InnoDB: Using Linux native AIO
+120606 23:38:42 InnoDB: Initializing buffer pool, size = 16.0G
+120606 23:38:43 InnoDB: Completed initialization of buffer pool
+120606 23:38:43 InnoDB: highest supported file format is Barracuda.
+120606 23:38:43  InnoDB: Waiting for the background threads to start
+120606 23:38:44 Percona XtraDB (http://www.percona.com) 1.1.8-26.0 started; log sequence number 38495203859
+120606 23:38:44 [Note] Event Scheduler: Loaded 0 events
+120606 23:38:44 [Note] /home/axel/mysql-builds/Percona-Server-5.5.24-default/libexec/mysqld: ready for connections.
+Version: '5.5.24'  socket: '/tmp/mysqld.sock.sysbench'  port: 0  Source distribution
+120606 23:59:59 [Note] /home/axel/mysql-builds/Percona-Server-5.5.24-default/libexec/mysqld: Normal shutdown
+
+120606 23:59:59 [Note] Event Scheduler: Purging the queue. 0 events
+120606 23:59:59  InnoDB: Starting shutdown...
+120607  0:00:00  InnoDB: Waiting for 38 pages to be flushed
+120607  0:00:01  InnoDB: Shutdown completed; log sequence number 54980897716
+120607  0:00:01 [Note] /home/axel/mysql-builds/Percona-Server-5.5.24-default/libexec/mysqld: Shutdown complete
+
+120607 00:00:01 mysqld_safe mysqld from pid file /tmp/mysqld.pid.sysbench ended

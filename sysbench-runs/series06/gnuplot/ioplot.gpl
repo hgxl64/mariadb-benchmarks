@@ -1,0 +1,47 @@
+#
+# plot sysbench OLPT tps vs. IO vs response time
+#
+
+reset
+
+#output device and size
+set terminal png medium nocrop enhanced size 960,500 background '#F0F0F0'
+
+#type and plot and parameters
+set style line 1 lw 2 lc rgbcolor "blue" pt 3
+set style line 2 lw 2 lc rgbcolor "blue" pt 11
+set style line 3 lw 2 lc rgbcolor "green" pt 3
+set style line 4 lw 2 lc rgbcolor "green" pt 11
+set style line 5 lw 2 lc rgbcolor "red" pt 3
+set style line 6 lw 2 lc rgbcolor "red" pt 11
+
+set title 'OLTP tps and disk writes over time'
+set key below right
+
+#x-axis
+set xtics border
+set xlabel 'Seconds'
+
+#y-axis
+set ylabel 'transactions per second'
+set yrange [0:6100]
+set ytics border nomirror
+set y2label 'disk writes [MB/s]'
+set y2range [0:250]
+set y2tics border nomirror
+
+
+#
+# tps vs. write throughput
+#
+
+set output "oltp-io1.png"
+plot 'A_sysbench' using 1:2 with linespoints axes x1y1 ls 1 title "config A",\
+     'A_iostat' using 2 with linespoints axes x2y2 ls 2 title "config A",\
+     'B_sysbench' using 1:2 with linespoints axes x1y1 ls 3 title "config B",\
+     'B_iostat' using 2 with linespoints axes x2y2 ls 4 title "config B",\
+     'D_sysbench' using 1:2 with linespoints axes x1y1 ls 5 title "config D",\
+     'D_iostat' using 2 with linespoints axes x2y2 ls 6 title "config D"
+
+
+

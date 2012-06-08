@@ -1,0 +1,43 @@
+1  MariaDB-5.5.24/InnoDB       1    430      4.06
+2  MariaDB-5.5.24/InnoDB       2    994      3.29
+3  MariaDB-5.5.24/InnoDB       4   1986      3.69
+4  MariaDB-5.5.24/InnoDB       8   3580      3.15
+5  MariaDB-5.5.24/InnoDB      16   5469    522.26
+6  MariaDB-5.5.24/InnoDB      32   6002  50952.68
+7  MariaDB-5.5.24/InnoDB      64   6140  94286.55
+8  MariaDB-5.5.24/InnoDB     128   5979 109936.12
+9  MariaDB-5.5.24/InnoDB     256   5604 116893.58
+
+
+10 MariaDB-5.5.24/XtraDB       1    423      4.58
+11 MariaDB-5.5.24/XtraDB       2    909      3.93
+12 MariaDB-5.5.24/XtraDB       4   1963      4.06
+13 MariaDB-5.5.24/XtraDB       8   3445      5.13
+14 MariaDB-5.5.24/XtraDB      16   5139      7.30
+15 MariaDB-5.5.24/XtraDB      32   5687     15.85
+16 MariaDB-5.5.24/XtraDB      64   5731     42.51
+17 MariaDB-5.5.24/XtraDB     128   5640    122.91
+18 MariaDB-5.5.24/XtraDB     256   5616    529.34
+
+
+19          MySQL-5.5.25       1    420      4.13
+20          MySQL-5.5.25       2    984      3.08
+21          MySQL-5.5.25       4   1978      3.78
+22          MySQL-5.5.25       8   3317      5.24
+23          MySQL-5.5.25      16   5442  39946.25
+24          MySQL-5.5.25      32   5947    230.25
+25          MySQL-5.5.25      64   6056  90173.63
+26          MySQL-5.5.25     128   5902 107431.17
+27          MySQL-5.5.25     256   5611 115917.94
+
+
+28        Percona-5.5.24       1    412      3.61
+29        Percona-5.5.24       2    960      3.78
+30        Percona-5.5.24       4   1887      4.05
+31        Percona-5.5.24       8   3526      4.48
+32        Percona-5.5.24      16   5305      6.85
+33        Percona-5.5.24      32   5887     15.51
+34        Percona-5.5.24      64   5912     80.74
+35        Percona-5.5.24     128   5780    170.33
+36        Percona-5.5.24     256   5690  89554.93
+

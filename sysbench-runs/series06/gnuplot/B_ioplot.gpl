@@ -1,0 +1,55 @@
+#
+# plot sysbench OLPT tps vs. IO vs response time
+#
+
+reset
+
+#output device and size
+set terminal png medium nocrop enhanced size 680,300 background '#F0F0F0'
+
+#type and plot and parameters
+set style line 1 linewidth 2 linecolor rgbcolor 'blue'
+set style line 2 linewidth 2 linecolor rgbcolor 'red'
+set title 'OLTP tps and disk writes over time' font 'giant'
+set key below
+
+#x-axis
+set xtics border
+set xlabel 'Seconds'
+
+#y-axis
+set ylabel 'transactions per second'
+set yrange [0:6100]
+set ytics border nomirror
+set y2label 'disk writes [MB/s]'
+set y2range [0:250]
+set y2tics border nomirror
+
+#labels
+set label 1 at graph 0.02,0.77 font 'small' 'innodb_io_capacity = 20000'
+set label 2 at graph 0.02,0.70 font 'small' 'innodb_adaptive_flushing = 1 (default)'
+set label 3 at graph 0.02,0.63 font 'small' 'innodb_adaptive_flushing_method = keep_average'
+set label 4 at graph 0.02,0.56 font 'small' 'innodb_flush_neighbor_pages = area (default)'
+
+
+#
+# tps vs. write throughput
+#
+
+set output "B_oltp-io1.png"
+plot 'B_sysbench' using 1:2 with lines ls 1 axes x1y1 title "transactions",\
+     'B_iostat' using 2 with lines ls 2 axes x2y2 title "disk writes"
+
+
+#
+# tps vs. write ops
+#
+
+#set output "B_oltp-io2.png"
+#
+#set y2label 'writes per second]'
+#set y2range [0:30000]
+#
+#plot 'B_sysbench' using 1:2 with lines ls 1 axes x1y1 title "transactions",\
+#     'B_iostat' using 1 with lines ls 2 axes x2y2 title "write ops"
+

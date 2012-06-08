@@ -1,0 +1,13 @@
+OLTP multi-table
+
+11 ... MySQL-5.5.25
+12 ... Maria-5.5.24/XtraDB
+13 ... Maria-5.5.24/InnoDB
+14 ... Percona-5.5.24
+
+Percona-5.5.24, 64 threads
+
+A ... io capacity=20000
+B ... flushing method = keep_average
+C ... neighbor blocks = cont
+D ... neighbor blocks = none

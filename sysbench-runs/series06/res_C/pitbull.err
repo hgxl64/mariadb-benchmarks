@@ -1,0 +1,38 @@
+120607 00:22:46 mysqld_safe Starting mysqld daemon with databases from /ssd_disk/sysbench/datadir
+120607  0:22:46 [Note] Flashcache bypass: disabled
+120607  0:22:46 [Note] Flashcache setup error is : open flash device failed
+
+120607  0:22:46 [Note] Plugin 'FEDERATED' is disabled.
+120607  0:22:46 InnoDB: The InnoDB memory heap is disabled
+120607  0:22:46 InnoDB: Mutexes and rw_locks use GCC atomic builtins
+120607  0:22:46 InnoDB: Compressed tables use zlib 1.2.5
+120607  0:22:46 InnoDB: Using Linux native AIO
+120607  0:22:46 InnoDB: Initializing buffer pool, size = 16.0G
+120607  0:22:47 InnoDB: Completed initialization of buffer pool
+120607  0:22:47 InnoDB: highest supported file format is Barracuda.
+120607  0:22:48  InnoDB: Waiting for the background threads to start
+120607  0:22:49 Percona XtraDB (http://www.percona.com) 1.1.8-26.0 started; log sequence number 59085660077
+120607  0:22:49 [Note] Event Scheduler: Loaded 0 events
+120607  0:22:49 [Note] /home/axel/mysql-builds/Percona-Server-5.5.24-default/libexec/mysqld: ready for connections.
+Version: '5.5.24'  socket: '/tmp/mysqld.sock.sysbench'  port: 0  Source distribution
+120607  0:38:34 [Note] /home/axel/mysql-builds/Percona-Server-5.5.24-default/libexec/mysqld: Normal shutdown
+
+120607  0:38:34 [Note] Event Scheduler: Purging the queue. 0 events
+120607  0:38:34  InnoDB: Starting shutdown...
+120607  0:38:40  InnoDB: Shutdown completed; log sequence number 63810455242
+120607  0:38:40 [Note] /home/axel/mysql-builds/Percona-Server-5.5.24-default/libexec/mysqld: Shutdown complete
+
+120607 00:38:40 mysqld_safe mysqld from pid file /tmp/mysqld.pid.sysbench ended
+120607 00:39:01 mysqld_safe Starting mysqld daemon with databases from /ssd_disk/sysbench/datadir
+120607  0:39:01 [Note] Flashcache bypass: disabled
+120607  0:39:01 [Note] Flashcache setup error is : open flash device failed
+
+120607  0:39:01 [ERROR] /home/axel/mysql-builds/Percona-Server-5.5.24-default/libexec/mysqld: Error while setting value 'bone' to 'innodb-flush-neighbor-pages'
+120607  0:39:01 [ERROR] Parsing options for plugin 'InnoDB' failed.
+120607  0:39:01 [Note] Plugin 'FEDERATED' is disabled.
+120607  0:39:01 [ERROR] /home/axel/mysql-builds/Percona-Server-5.5.24-default/libexec/mysqld: unknown variable 'innodb_file_per_table=true'
+120607  0:39:01 [ERROR] Aborting
+
+120607  0:39:01 [Note] /home/axel/mysql-builds/Percona-Server-5.5.24-default/libexec/mysqld: Shutdown complete
+
+120607 00:39:01 mysqld_safe mysqld from pid file /tmp/mysqld.pid.sysbench ended
