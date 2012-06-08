@@ -11,9 +11,10 @@ CPU_MASK="0,1,6,7,12,13,18,19"
 THREADS="1 2 4 8 16 32 64 128 256"
 CREATEDB=1
 TABLES=8
-TOTAL_ROWS=60000000
-RUNTIME_RO=602
-RUNTIME_RW=1802
+TOTAL_ROWS=40000000
+RUNTIME_RO=302
+RUNTIME_RW=602
+REPORT=5
 
 #setup
 ROWS=$(($TOTAL_ROWS / $TABLES))
@@ -104,18 +105,18 @@ for thread in $THREADS
 do
   if [ $RUNTIME_RO -gt 0 ]
   then
-    $TASKSET iostat -mx 10 $(($RUNTIME_RO/10+1))  >> $OUTDIR/iostat.ro.$thread.res &
+    $TASKSET iostat -mx $REPORT $(($RUNTIME_RO/$REPORT+1))  >> $OUTDIR/iostat.ro.$thread.res &
 
-    $TASKSET $SYSBENCH --test=lua/oltp.lua --oltp_tables_count=$TABLES --oltp-table-size=$ROWS --rand-seed=42 --rand-type=uniform --num-threads=$thread --oltp-read-only=on --report-interval=10 --mysql-socket=$SOCKET --max-time=$RUNTIME_RO --max-requests=0 --mysql-user=root --percentile=99 run | tee -a $OUTDIR/sysbench.ro.$thread.res
+    $TASKSET $SYSBENCH --test=lua/oltp.lua --oltp_tables_count=$TABLES --oltp-table-size=$ROWS --rand-seed=42 --rand-type=uniform --num-threads=$thread --oltp-read-only=on --report-interval=$REPORT --mysql-socket=$SOCKET --max-time=$RUNTIME_RO --max-requests=0 --mysql-user=root --percentile=99 run | tee -a $OUTDIR/sysbench.ro.$thread.res
 
     sleep 10
   fi
 
   if [ $RUNTIME_RW -gt 0 ]
   then
-    $TASKSET iostat -mx 10 $(($RUNTIME_RW/10+1))  >> $OUTDIR/iostat.rw.$thread.res &
+    $TASKSET iostat -mx $REPORT $(($RUNTIME_RW/$REPORT+1))  >> $OUTDIR/iostat.rw.$thread.res &
 
-    $TASKSET $SYSBENCH --test=lua/oltp.lua --oltp_tables_count=$TABLES --oltp-table-size=$ROWS --rand-seed=42 --rand-type=uniform --num-threads=$thread --oltp-read-only=off --report-interval=10 --mysql-socket=$SOCKET --max-time=$RUNTIME_RW --max-requests=0 --mysql-user=root --percentile=99 run | tee -a $OUTDIR/sysbench.rw.$thread.res
+    $TASKSET $SYSBENCH --test=lua/oltp.lua --oltp_tables_count=$TABLES --oltp-table-size=$ROWS --rand-seed=42 --rand-type=uniform --num-threads=$thread --oltp-read-only=off --report-interval=$REPORT --mysql-socket=$SOCKET --max-time=$RUNTIME_RW --max-requests=0 --mysql-user=root --percentile=99 run | tee -a $OUTDIR/sysbench.rw.$thread.res
 
     waitm
   fi
