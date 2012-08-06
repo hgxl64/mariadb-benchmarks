@@ -1,0 +1,390 @@
+MariaDB [test]> set @instance="5.5.r3349";
+Query OK, 0 rows affected (0.00 sec)
+
+MariaDB [test]> \. bench.sql
+Database changed
+Query OK, 0 rows affected (0.00 sec)
+
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+
+Note (Code 1050): Table 'results' already exists
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+
+Note (Code 1051): Unknown table 't1'
+Query OK, 0 rows affected (0.00 sec)
+
++---------------------+
+| @t1:=now()          |
++---------------------+
+| 2012-08-05 21:46:10 |
++---------------------+
+1 row in set (0.00 sec)
+
+Query OK, 52428800 rows affected (2 min 7.28 sec)
+Records: 52428800  Deleted: 0  Skipped: 0  Warnings: 0
+
+Query OK, 0 rows affected (0.50 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
++---------------------+
+| @t1:=now()          |
++---------------------+
+| 2012-08-05 21:48:18 |
++---------------------+
+1 row in set (0.00 sec)
+
+Query OK, 52428800 rows affected (1 min 44.28 sec)
+Records: 52428800  Deleted: 0  Skipped: 0  Warnings: 0
+
++---------------------+
+| @t2:=now()          |
++---------------------+
+| 2012-08-05 21:50:02 |
++---------------------+
+1 row in set (0.00 sec)
+
++-----------------+
+| @rows:=count(*) |
++-----------------+
+|        52428800 |
++-----------------+
+1 row in set (0.00 sec)
+
+Query OK, 1 row affected (0.00 sec)
+
+Query OK, 0 rows affected (0.42 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
++---------------------+
+| @t1:=now()          |
++---------------------+
+| 2012-08-05 21:50:03 |
++---------------------+
+1 row in set (0.00 sec)
+
+Query OK, 52428800 rows affected (2 min 7.88 sec)
+Records: 52428800  Deleted: 0  Skipped: 0  Warnings: 0
+
++---------------------+
+| @t2:=now()          |
++---------------------+
+| 2012-08-05 21:52:10 |
++---------------------+
+1 row in set (0.00 sec)
+
++-----------------+
+| @rows:=count(*) |
++-----------------+
+|        52428800 |
++-----------------+
+1 row in set (0.00 sec)
+
+Query OK, 1 row affected (0.00 sec)
+
+Query OK, 0 rows affected (0.48 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
++---------------------+
+| @t1:=now()          |
++---------------------+
+| 2012-08-05 21:52:11 |
++---------------------+
+1 row in set (0.00 sec)
+
+Query OK, 52428800 rows affected (1 min 44.12 sec)
+Records: 52428800  Deleted: 0  Skipped: 0  Warnings: 0
+
++---------------------+
+| @t2:=now()          |
++---------------------+
+| 2012-08-05 21:53:55 |
++---------------------+
+1 row in set (0.00 sec)
+
++-----------------+
+| @rows:=count(*) |
++-----------------+
+|        52428800 |
++-----------------+
+1 row in set (0.00 sec)
+
+Query OK, 1 row affected (0.00 sec)
+
+Query OK, 0 rows affected (0.41 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
++---------------------+
+| @t1:=now()          |
++---------------------+
+| 2012-08-05 21:53:55 |
++---------------------+
+1 row in set (0.00 sec)
+
+Query OK, 52428800 rows affected (2 min 7.82 sec)
+Records: 52428800  Deleted: 0  Skipped: 0  Warnings: 0
+
++---------------------+
+| @t2:=now()          |
++---------------------+
+| 2012-08-05 21:56:03 |
++---------------------+
+1 row in set (0.00 sec)
+
++-----------------+
+| @rows:=count(*) |
++-----------------+
+|        52428800 |
++-----------------+
+1 row in set (0.00 sec)
+
+Query OK, 1 row affected (0.00 sec)
+
+Query OK, 0 rows affected (0.48 sec)
+
+Query OK, 0 rows affected (0.01 sec)
+
++---------------------+
+| @t1:=now()          |
++---------------------+
+| 2012-08-05 21:56:04 |
++---------------------+
+1 row in set (0.00 sec)
+
+Query OK, 52428800 rows affected (1 min 43.73 sec)
+Records: 52428800  Deleted: 0  Skipped: 0  Warnings: 0
+
++---------------------+
+| @t2:=now()          |
++---------------------+
+| 2012-08-05 21:57:47 |
++---------------------+
+1 row in set (0.00 sec)
+
++-----------------+
+| @rows:=count(*) |
++-----------------+
+|        52428800 |
++-----------------+
+1 row in set (0.00 sec)
+
+Query OK, 1 row affected (0.00 sec)
+
+Query OK, 0 rows affected (0.43 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
++---------------------+
+| @t1:=now()          |
++---------------------+
+| 2012-08-05 21:57:48 |
++---------------------+
+1 row in set (0.00 sec)
+
+Query OK, 52428800 rows affected (2 min 7.32 sec)
+Records: 52428800  Deleted: 0  Skipped: 0  Warnings: 0
+
++---------------------+
+| @t2:=now()          |
++---------------------+
+| 2012-08-05 21:59:55 |
++---------------------+
+1 row in set (0.00 sec)
+
++-----------------+
+| @rows:=count(*) |
++-----------------+
+|        52428800 |
++-----------------+
+1 row in set (0.00 sec)
+
+Query OK, 1 row affected (0.00 sec)
+
+Query OK, 0 rows affected (0.50 sec)
+
+Query OK, 0 rows affected (0.01 sec)
+
++---------------------+
+| @t1:=now()          |
++---------------------+
+| 2012-08-05 21:59:56 |
++---------------------+
+1 row in set (0.00 sec)
+
+Query OK, 52428800 rows affected (1 min 43.79 sec)
+Records: 52428800  Deleted: 0  Skipped: 0  Warnings: 0
+
++---------------------+
+| @t2:=now()          |
++---------------------+
+| 2012-08-05 22:01:40 |
++---------------------+
+1 row in set (0.00 sec)
+
++-----------------+
+| @rows:=count(*) |
++-----------------+
+|        52428800 |
++-----------------+
+1 row in set (0.00 sec)
+
+Query OK, 1 row affected (0.00 sec)
+
+Query OK, 0 rows affected (0.42 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
++---------------------+
+| @t1:=now()          |
++---------------------+
+| 2012-08-05 22:01:40 |
++---------------------+
+1 row in set (0.00 sec)
+
+Query OK, 52428800 rows affected (2 min 7.86 sec)
+Records: 52428800  Deleted: 0  Skipped: 0  Warnings: 0
+
++---------------------+
+| @t2:=now()          |
++---------------------+
+| 2012-08-05 22:03:48 |
++---------------------+
+1 row in set (0.00 sec)
+
++-----------------+
+| @rows:=count(*) |
++-----------------+
+|        52428800 |
++-----------------+
+1 row in set (0.00 sec)
+
+Query OK, 1 row affected (0.00 sec)
+
+Query OK, 0 rows affected (0.50 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
++---------------------+
+| @t1:=now()          |
++---------------------+
+| 2012-08-05 22:03:48 |
++---------------------+
+1 row in set (0.00 sec)
+
+Query OK, 52428800 rows affected (1 min 43.60 sec)
+Records: 52428800  Deleted: 0  Skipped: 0  Warnings: 0
+
++---------------------+
+| @t2:=now()          |
++---------------------+
+| 2012-08-05 22:05:32 |
++---------------------+
+1 row in set (0.00 sec)
+
++-----------------+
+| @rows:=count(*) |
++-----------------+
+|        52428800 |
++-----------------+
+1 row in set (0.00 sec)
+
+Query OK, 1 row affected (0.00 sec)
+
++------+--------+---------+------------+----------+----------------+-------------+-----------------+--------------+-----------+----------------+---------------------+-------------+------------+-------------------+----------+----------------+---------+
+| Name | Engine | Version | Row_format | Rows     | Avg_row_length | Data_length | Max_data_length | Index_length | Data_free | Auto_increment | Create_time         | Update_time | Check_time | Collation         | Checksum | Create_options | Comment |
++------+--------+---------+------------+----------+----------------+-------------+-----------------+--------------+-----------+----------------+---------------------+-------------+------------+-------------------+----------+----------------+---------+
+| t1   | MEMORY |      10 | Fixed      | 52428800 |              8 |   892972160 |      1431655760 |   1312404160 |         0 |           NULL | 2012-08-05 22:03:48 | NULL        | NULL       | latin1_swedish_ci |     NULL |                |         |
++------+--------+---------+------------+----------+----------------+-------------+-----------------+--------------+-----------+----------------+---------------------+-------------+------------+-------------------+----------+----------------+---------+
+1 row in set (0.00 sec)
+
+Query OK, 0 rows affected (0.43 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
++---------------------+
+| @t1:=now()          |
++---------------------+
+| 2012-08-05 22:05:32 |
++---------------------+
+1 row in set (0.00 sec)
+
+Query OK, 52428800 rows affected (2 min 7.58 sec)
+Records: 52428800  Deleted: 0  Skipped: 0  Warnings: 0
+
++---------------------+
+| @t2:=now()          |
++---------------------+
+| 2012-08-05 22:07:40 |
++---------------------+
+1 row in set (0.00 sec)
+
++-----------------+
+| @rows:=count(*) |
++-----------------+
+|        52428800 |
++-----------------+
+1 row in set (0.00 sec)
+
+Query OK, 1 row affected (0.00 sec)
+
++------+--------+---------+------------+----------+----------------+-------------+-----------------+--------------+-----------+----------------+---------------------+-------------+------------+-------------------+----------+----------------+---------+
+| Name | Engine | Version | Row_format | Rows     | Avg_row_length | Data_length | Max_data_length | Index_length | Data_free | Auto_increment | Create_time         | Update_time | Check_time | Collation         | Checksum | Create_options | Comment |
++------+--------+---------+------------+----------+----------------+-------------+-----------------+--------------+-----------+----------------+---------------------+-------------+------------+-------------------+----------+----------------+---------+
+| t1   | MEMORY |      10 | Fixed      | 52428800 |             21 |  1312404160 |      2254857822 |   1312404160 |         0 |           NULL | 2012-08-05 22:05:32 | NULL        | NULL       | latin1_swedish_ci |     NULL |                |         |
++------+--------+---------+------------+----------+----------------+-------------+-----------------+--------------+-----------+----------------+---------------------+-------------+------------+-------------------+----------+----------------+---------+
+1 row in set (0.00 sec)
+
+Query OK, 0 rows affected (0.50 sec)
+
++--------------------------+-----------+----------+-------------+
+| operation                | instance  | duration | ops_per_sec |
++--------------------------+-----------+----------+-------------+
+| load into CHAR(20) table | 5.5.21    |      208 | 252061.5385 |
+| load into CHAR(20) table | 5.5.21    |      208 | 252061.5385 |
+| load into CHAR(20) table | 5.5.21    |      184 | 284939.1304 |
+| load into CHAR(20) table | 5.5.21    |      210 | 249660.9524 |
+| load into CHAR(20) table | 5.5.21    |      203 | 258269.9507 |
+| load into CHAR(20) table | 5.5.r3337 |      211 | 248477.7251 |
+| load into CHAR(20) table | 5.5.r3337 |      209 | 250855.5024 |
+| load into CHAR(20) table | 5.5.r3337 |      210 | 249660.9524 |
+| load into CHAR(20) table | 5.5.r3337 |      210 | 249660.9524 |
+| load into CHAR(20) table | 5.5.r3337 |      210 | 249660.9524 |
+| load into CHAR(20) table | 5.5.r3349 |      127 | 412825.1969 |
+| load into CHAR(20) table | 5.5.r3349 |      128 | 409600.0000 |
+| load into CHAR(20) table | 5.5.r3349 |      127 | 412825.1969 |
+| load into CHAR(20) table | 5.5.r3349 |      128 | 409600.0000 |
+| load into CHAR(20) table | 5.5.r3349 |      128 | 409600.0000 |
+| load into INT table      | 5.5.21    |      133 | 394201.5038 |
+| load into INT table      | 5.5.21    |      132 | 397187.8788 |
+| load into INT table      | 5.5.21    |      132 | 397187.8788 |
+| load into INT table      | 5.5.21    |      111 | 472331.5315 |
+| load into INT table      | 5.5.21    |      133 | 394201.5038 |
+| load into INT table      | 5.5.r3337 |      129 | 406424.8062 |
+| load into INT table      | 5.5.r3337 |      129 | 406424.8062 |
+| load into INT table      | 5.5.r3337 |      129 | 406424.8062 |
+| load into INT table      | 5.5.r3337 |      130 | 403298.4615 |
+| load into INT table      | 5.5.r3337 |      128 | 409600.0000 |
+| load into INT table      | 5.5.r3349 |      104 | 504123.0769 |
+| load into INT table      | 5.5.r3349 |      104 | 504123.0769 |
+| load into INT table      | 5.5.r3349 |      103 | 509017.4757 |
+| load into INT table      | 5.5.r3349 |      104 | 504123.0769 |
+| load into INT table      | 5.5.r3349 |      104 | 504123.0769 |
++--------------------------+-----------+----------+-------------+
+30 rows in set (0.00 sec)
+
++--------------------------+-----------+-----------------+
+| operation                | instance  | avg_ops_per_sec |
++--------------------------+-----------+-----------------+
+| load into CHAR(20) table | 5.5.21    | 259398.62210000 |
+| load into CHAR(20) table | 5.5.r3337 | 249663.21694000 |
+| load into CHAR(20) table | 5.5.r3349 | 410890.07876000 |
+| load into INT table      | 5.5.21    | 411022.05934000 |
+| load into INT table      | 5.5.r3337 | 406434.57602000 |
+| load into INT table      | 5.5.r3349 | 505101.95666000 |
++--------------------------+-----------+-----------------+
+6 rows in set (0.00 sec)
+
+MariaDB [test]> 
