@@ -435,7 +435,8 @@ sub build_with_cmake
     my @cmakeargs =
         ("-DINSTALL_LAYOUT=RPM", "-DINSTALL_SCRIPTDIR=bin",
          "-DINSTALL_MYSQLDATADIR=var", "-DINSTALL_SBINDIR=libexec",
-         "-DINSTALL_SUPPORTFILESDIR=share"
+         "-DINSTALL_SUPPORTFILESDIR=share", "-DINSTALL_SYSCONFDIR=etc",
+         "-DINSTALL_UNIX_ADDRDIR=/tmp/mysql.sock" 
         );
     configure2cmake($conf, \@cmakeargs);
 
