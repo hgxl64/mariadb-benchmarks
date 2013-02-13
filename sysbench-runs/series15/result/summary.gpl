@@ -1,0 +1,157 @@
+#
+# plot sysbench OLPT summary
+#
+
+reset
+
+#output device and size
+set terminal png medium nocrop enhanced size 680,320 background '#F0F0F0'
+
+#parameters
+set style line 1 lw 2 lc rgbcolor "blue" pt 3
+set style line 2 lw 2 lc rgbcolor "green" pt 3
+set style line 3 lw 2 lc rgbcolor "magenta" pt 3
+set style line 4 lw 2 lc rgbcolor "brown" pt 3
+set style line 5 lw 2 lc rgbcolor "red" pt 3
+
+set title 'sysbench OLTP (ro) multi table' font 'giant'
+set key at graph 0.92,0.5 box width 2 height 2 font 'small'
+set grid
+
+#x-axis
+set xtics border
+set xlabel 'Threads'
+
+#y-axis
+set ylabel 'transactions per second'
+set yrange [0:5500]
+set ytics border
+
+
+#
+# transactions per second
+#
+
+set output "summary-ro-tps-1.png"
+
+plot 'summary.ro' \
+   index 2 using 4:xtic(3) with linespoints ls 1 title 'MariaDB-5.5/InnoDB', \
+'' index 3 using 4 with linespoints ls 2 title 'MariaDB-5.5/XtraDB', \
+'' index 0 using 4 with linespoints ls 3 title 'MariaDB-10.0.0', \
+'' index 1 using 4 with linespoints ls 4 title 'MariaDB-10.0.1'
+
+set output "summary-ro-tps-2.png"
+
+plot 'summary.ro' \
+   index 4 using 4:xtic(3) with linespoints ls 1 title 'MySQL-5.5.29', \
+'' index 6 using 4 with linespoints ls 2 title 'MySQL-5.6.9', \
+'' index 5 using 4 with linespoints ls 3 title 'MySQL-5.6.10'
+
+set output "summary-ro-tps-3.png"
+
+plot 'summary.ro' \
+   index 2 using 4:xtic(3) with linespoints ls 1 title 'MariaDB-5.5/InnoDB', \
+'' index 4 using 4 with linespoints ls 2 title 'MySQL-5.5.29', \
+'' index 1 using 4 with linespoints ls 3 title 'MariaDB-10.0.1', \
+'' index 5 using 4 with linespoints ls 4 title 'MySQL-5.6.10'
+
+#'' index 0 using 4 with linespoints ls 4 title 'MariaDB-10.0.0',
+#'' index 1 using 4 with linespoints ls 5 title 'MariaDB-10.0.1',
+#'' index 2 using 4 with linespoints ls 1 title 'MariaDB-5.5/InnoDB',
+#'' index 3 using 4 with linespoints ls 3 title 'MariaDB-5.5/XtraDB',
+#'' index 4 using 4 with linespoints ls 2 title 'MySQL-5.5.29',
+#'' index 5 using 4 with linespoints ls 5 title 'MySQL-5.6.10',
+#'' index 6 using 4 with linespoints ls 5 title 'MySQL-5.6.9',
+
+
+set title 'sysbench OLTP (rw) multi table' font 'giant'
+set yrange [0:4500]
+
+set output "summary-rw-tps-1.png"
+
+plot 'summary.rw' \
+   index 2 using 4:xtic(3) with linespoints ls 1 title 'MariaDB-5.5/InnoDB', \
+'' index 3 using 4 with linespoints ls 2 title 'MariaDB-5.5/XtraDB', \
+'' index 0 using 4 with linespoints ls 3 title 'MariaDB-10.0.0', \
+'' index 1 using 4 with linespoints ls 4 title 'MariaDB-10.0.1'
+
+
+set output "summary-rw-tps-2.png"
+
+plot 'summary.rw' \
+   index 4 using 4:xtic(3) with linespoints ls 1 title 'MySQL-5.5.29', \
+'' index 6 using 4 with linespoints ls 2 title 'MySQL-5.6.9', \
+'' index 5 using 4 with linespoints ls 3 title 'MySQL-5.6.10'
+
+
+set output "summary-rw-tps-3.png"
+
+plot 'summary.rw' \
+   index 2 using 4:xtic(3) with linespoints ls 1 title 'MariaDB-5.5/InnoDB', \
+'' index 4 using 4 with linespoints ls 2 title 'MySQL-5.5.29', \
+'' index 1 using 4 with linespoints ls 3 title 'MariaDB-10.0.1', \
+'' index 5 using 4 with linespoints ls 4 title 'MySQL-5.6.10'
+
+
+
+#
+# response time
+#
+
+
+set ylabel 'response time [ms]'
+set yrange [1:*]
+set logscale y 10
+set key at graph 0.4,0.85 box width 2 height 2 font 'small'
+
+set output "summary-rw-rt-1.png"
+
+plot 'summary.rw' \
+   index 2 using 5:xtic(3) with linespoints ls 1 title 'MariaDB-5.5/InnoDB', \
+'' index 3 using 5 with linespoints ls 2 title 'MariaDB-5.5/XtraDB', \
+'' index 0 using 5 with linespoints ls 3 title 'MariaDB-10.0.0', \
+'' index 1 using 5 with linespoints ls 4 title 'MariaDB-10.0.1'
+
+set output "summary-rw-rt-2.png"
+
+plot 'summary.rw' \
+   index 4 using 5:xtic(3) with linespoints ls 1 title 'MySQL-5.5.29', \
+'' index 6 using 5 with linespoints ls 2 title 'MySQL-5.6.9', \
+'' index 5 using 5 with linespoints ls 3 title 'MySQL-5.6.10'
+
+set output "summary-rw-rt-3.png"
+
+plot 'summary.rw' \
+   index 2 using 5:xtic(3) with linespoints ls 1 title 'MariaDB-5.5/InnoDB', \
+'' index 4 using 5 with linespoints ls 2 title 'MySQL-5.5.29', \
+'' index 1 using 5 with linespoints ls 3 title 'MariaDB-10.0.1', \
+'' index 5 using 5 with linespoints ls 4 title 'MySQL-5.6.10'
+
+
+
+set title 'sysbench OLTP (ro) multi table' font 'giant'
+
+set output "summary-ro-rt-1.png"
+
+plot 'summary.ro' \
+   index 2 using 5:xtic(3) with linespoints ls 1 title 'MariaDB-5.5/InnoDB', \
+'' index 3 using 5 with linespoints ls 2 title 'MariaDB-5.5/XtraDB', \
+'' index 0 using 5 with linespoints ls 3 title 'MariaDB-10.0.0', \
+'' index 1 using 5 with linespoints ls 4 title 'MariaDB-10.0.1'
+
+set output "summary-ro-rt-2.png"
+
+plot 'summary.ro' \
+   index 4 using 5:xtic(3) with linespoints ls 1 title 'MySQL-5.5.29', \
+'' index 6 using 5 with linespoints ls 2 title 'MySQL-5.6.9', \
+'' index 5 using 5 with linespoints ls 3 title 'MySQL-5.6.10'
+
+set output "summary-ro-rt-3.png"
+
+plot 'summary.ro' \
+   index 2 using 5:xtic(3) with linespoints ls 1 title 'MariaDB-5.5/InnoDB', \
+'' index 4 using 5 with linespoints ls 2 title 'MySQL-5.5.29', \
+'' index 1 using 5 with linespoints ls 3 title 'MariaDB-10.0.1', \
+'' index 5 using 5 with linespoints ls 4 title 'MySQL-5.6.10'
+
+

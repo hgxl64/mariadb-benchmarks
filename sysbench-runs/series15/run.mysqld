@@ -1,0 +1,33 @@
+#!/bin/bash
+#
+# usage: $0 <subdir in install-dir> <path to my.cnf>
+#
+# (w) Axel XL Schwenke for MariaDB Services AB
+
+set -e
+set -u
+#set -x
+
+#settings
+CPU_MASK="0-11"
+INST_DIR=/home/mariadb/bin
+DATADIR=/home/mariadb/benchmark/sysbench/datadir
+
+SERVER=${1:?"no server given!"}
+test -d ${INST_DIR}/${SERVER} || { echo " ${INST_DIR}/${SERVER} does not exist!"; exit; }
+shift
+
+CONFIG=${1:?"no config given!"}
+test -s ${CONFIG} || { echo "${CONFIG} does not exist!"; exit; }
+
+#create the datadir
+test -d ${DATADIR} && rm -rf ${DATADIR}
+mkdir ${DATADIR}
+${INST_DIR}/${SERVER}/bin/mysql_install_db --defaults-file=${CONFIG}
+
+#start the server
+numactl --interleave=all --physcpubind=${CPU_MASK} \
+ ${INST_DIR}/${SERVER}/bin/mysqld_safe --defaults-file=${CONFIG}
+
+echo "${SERVER} stopped"
+

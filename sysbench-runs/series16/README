@@ -1,0 +1,2 @@
+quick sysbench MariaDB-5.5 vs. MariaDB 10.0 vs. MySQL 5.5 vs. MySQL 5.6
+second (longer) write-only run, single buffer pool instance

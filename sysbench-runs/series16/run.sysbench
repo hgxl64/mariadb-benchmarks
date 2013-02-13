@@ -1,0 +1,112 @@
+#!/bin/sh
+set -e
+set -u
+#set -x
+ulimit -n 10000
+
+#settings
+SOCKET=/tmp/mysqld.sock.sysbench
+SYSBENCH=sysbench-0.5
+CPU_MASK="12-15"
+THREADS="1 2 4 8 16 32 64 128 256"
+CREATEDB=1
+TABLES=8
+TOTAL_ROWS=40000000
+RUNTIME_RO=0
+RUNTIME_RW=1202
+REPORT=5
+
+#setup
+ROWS=$(($TOTAL_ROWS / $TABLES))
+if [ "$CPU_MASK" != "" ]
+then
+  NUMACTL="numactl --interleave=all --physcpubind=$CPU_MASK"
+else
+  NUMACTL="numactl --interleave=all"
+fi
+
+#force InnoDB checkpoint and wait for completion
+function waitm {
+  mdp=`mysql -S $SOCKET -u root -e "SHOW GLOBAL VARIABLES LIKE 'innodb_max_dirty_pages_pct'" | tail -1 | cut -f 2`
+  mysql -S $SOCKET -u root -e "SET GLOBAL innodb_max_dirty_pages_pct=0"
+  echo -n "dirty pages:"
+  while true
+  do
+    wt=`mysql -S $SOCKET -u root -e "SHOW GLOBAL STATUS LIKE 'innodb_buffer_pool_pages_dirty'" | tail -1 | cut -f 2`
+    echo -n " $wt"
+    if [[ "$wt" -lt 100 ]] 
+    then
+      mysql -S $SOCKET -u root -e "SET GLOBAL innodb_max_dirty_pages_pct=$mdp"
+      echo 
+      break
+    fi
+    sleep 10
+  done
+}
+
+
+#determine run number for selecting an output directory
+RUN_NUMBER=${1:?"run number not given!"}
+
+OUTDIR=`printf "res%02d" $RUN_NUMBER`
+mkdir -p $OUTDIR
+
+
+#prepare database
+if [ "$CREATEDB" != "0" ]
+then
+
+  #create sbtest database
+  mysql -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
+  mysql -S $SOCKET -u root -e "CREATE DATABASE sbtest"
+
+  #create and fill oltp table(s)
+  if [ $TABLES -gt 1 ]
+  then
+    $SYSBENCH --test=lua/parallel_prepare.lua --oltp_tables_count=$TABLES --oltp-table-size=$ROWS --num-threads=$TABLES --mysql-socket=$SOCKET --mysql-user=root run
+  else
+    $SYSBENCH --test=lua/oltp.lua --oltp_tables_count=$TABLES --oltp-table-size=$ROWS --num-threads=1 --mysql-socket=$SOCKET --mysql-user=root prepare
+  fi
+
+  #force checkpoint and wait for completion
+  waitm
+
+else
+
+  #warmup buffer pool
+  echo -n "warmup ... "
+  PIDLIST=""
+  for i in `seq $TABLES` ; do
+    (time mysql -S $SOCKET -e "SELECT AVG(id) FROM sbtest$i FORCE KEY (PRIMARY)" sbtest) > $OUTDIR/warmup.${i}.out 2>&1   &
+    PIDLIST="$PIDLIST $!"
+  done
+  wait $PIDLIST
+  echo "done"
+  sleep 10
+
+fi
+
+
+#run the benchmark
+for thread in $THREADS
+do
+  if [ $RUNTIME_RO -gt 0 ]
+  then
+    $NUMACTL iostat -mx $REPORT $(($RUNTIME_RO/$REPORT+1))  >> $OUTDIR/iostat.ro.$thread.res &
+
+    $NUMACTL $SYSBENCH --test=lua/oltp.lua --oltp_tables_count=$TABLES --oltp-table-size=$ROWS --rand-seed=42 --rand-type=uniform --num-threads=$thread --oltp-read-only=on --report-interval=$REPORT --mysql-socket=$SOCKET --max-time=$RUNTIME_RO --max-requests=0 --mysql-user=root --percentile=99 run | tee -a $OUTDIR/sysbench.ro.$thread.res
+
+    sleep 10
+  fi
+
+  if [ $RUNTIME_RW -gt 0 ]
+  then
+    $NUMACTL iostat -mx $REPORT $(($RUNTIME_RW/$REPORT+1))  >> $OUTDIR/iostat.rw.$thread.res &
+
+    $NUMACTL $SYSBENCH --test=lua/oltp.lua --oltp_tables_count=$TABLES --oltp-table-size=$ROWS --rand-seed=42 --rand-type=uniform --num-threads=$thread --oltp-read-only=off --report-interval=$REPORT --mysql-socket=$SOCKET --max-time=$RUNTIME_RW --max-requests=0 --mysql-user=root --percentile=99 run | tee -a $OUTDIR/sysbench.rw.$thread.res
+
+    waitm
+  fi
+  sleep 10
+
+done

@@ -1,0 +1,41 @@
+[mysqld]
+
+#####files and sockets
+datadir=/home/mariadb/benchmark/sysbench/datadir
+socket=/tmp/mysqld.sock.sysbench
+pid-file=/tmp/mysqld.pid.sysbench
+skip-networking
+
+#####non innodb options (fixed)
+max_connections = 400
+table_open_cache = 2400
+sort_buffer_size = 4M
+join_buffer_size = 4M
+query_cache_size = 0
+query_cache_type = 0
+
+#####MyISAM Specific options
+key_buffer_size = 8M
+read_buffer_size = 1M
+read_rnd_buffer_size = 4M
+
+#####fixed innodb options
+innodb_file_per_table = true
+innodb_data_file_path = ibdata1:50M:autoextend
+innodb_flush_log_at_trx_commit = 2
+innodb_flush_method = O_DIRECT
+innodb_log_buffer_size = 256M
+innodb_log_file_size = 1333M
+innodb_log_files_in_group = 3
+innodb_buffer_pool_size = 16G
+innodb_read_io_threads = 4
+innodb_write_io_threads = 4
+
+#####for 5.5 trees
+innodb_buffer_pool_instances=16
+
+#####tuning for spinning disks
+innodb_adaptive_flushing = 1
+innodb_flush_neighbors = 1
+innodb_io_capacity = 1000
+
