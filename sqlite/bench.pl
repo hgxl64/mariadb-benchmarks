@@ -10,42 +10,33 @@ use Benchmark qw(:all :hireswallclock);
 use Getopt::Long;
 
 #config
-my $MYSQL1DSN = "DBI:mysql:database=test;host=localhost:mysql_server_prepare=1";
-my $MYSQL2DSN = "DBI:mysql:database=test;host=localhost";
-my $SQLITEDSN = "DBI:SQLite:dbname=test.db";
-
-my @rows = (10, 100, 1000, 10000, 100000); #how many rows to insert and select from
-my @threads = (1, 2, 5, 10);               #how many threads to use for select
+my @rows = (10, 100, 1000, 10000, 100000); #table sizes to test
+my @threads = (1, 2, 4, 8, 16);            #thread numbers to test
 my $iter = 10000;                          #number of SELECT iterations
 my $trx_size = 1000;                       #commit after that many operations
-my $result_format = "%.5f";                #printf() time format for tabular result
 my $help = 0;
 #end config
 
 
-my $USAGE = "usage: $0 [options] mysql1|mysql2|sqlite\n";
+my $USAGE = <<EOT;
+usage: $0 [options] DSN
+options:
+  --iterations=n ... run this many selects (default: $iter)
+  --trxsize=n ...... commit after this many ops (default: $trx_size)
+DSN must be a valid DBI data source name, like
+DBI:SQLite:dbname=test.db or DBI:mysql:database=test;host=localhost
+EOT
+
 
 die $USAGE unless GetOptions('help|?'       => \$help,
                              'iterations=i' => \$iter,
                              'trxsize=i'    => \$trx_size
                              ) and not $help;
 
+my $dsn = shift or die $USAGE;
+my $dbh = DBI->connect($dsn, "", "") or die "invalid DSN '$dsn'\n";
+$dbh->disconnect();
 
-my $target = shift or die $USAGE;
-my $dsn = "";
-
-if ($target =~ /mysql1/i) {
-    $dsn = $MYSQL1DSN;
-}
-elsif ($target =~ /mysql2/i) {
-    $dsn = $MYSQL2DSN;
-}
-elsif ($target =~ /sqlite/i) {
-    $dsn = $SQLITEDSN;
-}
-else {
-    die "unknown database '$target'\n";
-}
 
 my %result=();
 
@@ -71,7 +62,7 @@ exit 0;
 sub prepare_table
 {
     my $dsn = shift;
-    my $dbh = DBI->connect($dsn, "", "") or die "connect to '$dsn' failed\n";
+    my $dbh = DBI->connect($dsn, "", "") or die;
     $dbh->do("DROP TABLE IF EXISTS t1");
     $dbh->do("CREATE TABLE t1 (c1 INT UNSIGNED, c2 CHAR(10), PRIMARY KEY (c1))");
     $dbh->disconnect();
@@ -80,7 +71,7 @@ sub prepare_table
 sub empty_table
 {
     my $dsn = shift;
-    my $dbh = DBI->connect($dsn, "", "") or die "connect to '$dsn' failed\n";
+    my $dbh = DBI->connect($dsn, "", "") or die;
     $dbh->do("DELETE FROM t1");
     $dbh->disconnect();
 }
@@ -88,7 +79,7 @@ sub empty_table
 sub cleanup
 {
     my $dsn = shift;
-    my $dbh = DBI->connect($dsn, "", "") or die "connect to '$dsn' failed\n";
+    my $dbh = DBI->connect($dsn, "", "") or die;
     $dbh->do("DROP TABLE t1");
     $dbh->disconnect();
 }
@@ -97,13 +88,13 @@ sub benchmark_insert
 {
     my $dsn = shift;
     my $n = shift;
-    my $dbh = DBI->connect($dsn, "", "") or die "connect to '$dsn' failed\n";
+    my $dbh = DBI->connect($dsn, "", "") or die;
 
     my $t0 = new Benchmark;
     $dbh->begin_work();
     my $sth = $dbh->prepare("INSERT INTO t1 (c1, c2) VALUES (?, ?)");
     for (my $i=0; $i<$n; $i++) {
-        $sth->execute($i, "foobar");
+        die unless (1 == $sth->execute($i, "foobar"));
         if (($i + 1) % $trx_size == 0) {
             $dbh->commit();
             $dbh->begin_work();
@@ -128,10 +119,12 @@ sub benchmark_select
     my %childs = ();
 
     my $t0 = new Benchmark;
+    #spawn $t children
     for (my $c=0; $c<$t; $c++) {
         my $pid = fork;
         if ($pid == 0) {
-            my $dbh = DBI->connect($dsn, "", "") or die "connect to '$dsn' failed\n";
+            #child does the work
+            my $dbh = DBI->connect($dsn, "", "") or die;
             $dbh->begin_work();
             my $sth = $dbh->prepare("SELECT c2 FROM t1 WHERE c1=?");
             for (my $i=0; $i<$m; $i++) {
@@ -152,6 +145,7 @@ sub benchmark_select
             $childs{$pid} = 1;
         }
     }
+    #wait for childs to finish
     while (%childs) {
         my $pid = wait;
         last if $pid < 0;
