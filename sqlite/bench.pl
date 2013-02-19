@@ -7,26 +7,38 @@
 use strict;
 use DBI;
 use Benchmark qw(:all :hireswallclock);
+use Getopt::Long;
 
 #config
-my $MYSQLDSN  = "DBI:mysql:database=test;host=localhost:mysql_server_prepare=1";
-#my $MYSQLDSN  = "DBI:mysql:database=test;host=localhost";
+my $MYSQL1DSN = "DBI:mysql:database=test;host=localhost:mysql_server_prepare=1";
+my $MYSQL2DSN = "DBI:mysql:database=test;host=localhost";
 my $SQLITEDSN = "DBI:SQLite:dbname=test.db";
 
 my @rows = (10, 100, 1000, 10000, 100000); #how many rows to insert and select from
 my @threads = (1, 2, 5, 10);               #how many threads to use for select
 my $iter = 10000;                          #number of SELECT iterations
-my $result_format = "%.4f";                #printf() time format for tabular result
+my $trx_size = 1000;                       #commit after that many operations
+my $result_format = "%.5f";                #printf() time format for tabular result
+my $help = 0;
 #end config
 
 
-my $USAGE = "usage: $0 mysql|sqlite\n";
+my $USAGE = "usage: $0 [options] mysql1|mysql2|sqlite\n";
+
+die $USAGE unless GetOptions('help|?'       => \$help,
+                             'iterations=i' => \$iter,
+                             'trxsize=i'    => \$trx_size
+                             ) and not $help;
+
 
 my $target = shift or die $USAGE;
 my $dsn = "";
 
-if ($target =~ /mysql/i) {
-    $dsn = $MYSQLDSN;
+if ($target =~ /mysql1/i) {
+    $dsn = $MYSQL1DSN;
+}
+elsif ($target =~ /mysql2/i) {
+    $dsn = $MYSQL2DSN;
 }
 elsif ($target =~ /sqlite/i) {
     $dsn = $SQLITEDSN;
@@ -92,6 +104,10 @@ sub benchmark_insert
     my $sth = $dbh->prepare("INSERT INTO t1 (c1, c2) VALUES (?, ?)");
     for (my $i=0; $i<$n; $i++) {
         $sth->execute($i, "foobar");
+        if (($i + 1) % $trx_size == 0) {
+            $dbh->commit();
+            $dbh->begin_work();
+        }
     }
     $sth->finish();
     $dbh->commit();
@@ -123,6 +139,10 @@ sub benchmark_select
                 while (my @row = $sth->fetchrow_array()) {
                     die unless $row[0] eq "foobar";
                 }
+                if (($i + 1) % $trx_size == 0) {
+                    $dbh->commit();
+                    $dbh->begin_work();
+                }
             }
             $sth->finish();
             $dbh->commit();
@@ -147,13 +167,23 @@ sub benchmark_select
 
 sub print_tabular_result
 {
-    print "\n", "-" x 40, "\n\tinsert", "\tselect" x scalar @threads, "\n";
-    print "rows\t1", map { "\t".$_ } @threads, "\n";
+    print "\nresult summary for DSN='$dsn'\n";
+    print "select iterations: $iter, trx size: $trx_size\n";
+    print "-" x 40, "\n";
+    print "threads\t1", map { "\t".$_ } @threads, "\n";
+    print "rows\tinsert", "\tselect" x scalar @threads, "\n";
     for my $r (@rows) {
-        printf "%d\t".$result_format, $r, $result{$r}->{"ins"};
-        map { printf "\t".$result_format, $result{$r}->{"sel"}->{$_}; } @threads;
+        printf "%d\t%s", $r, number_format($result{$r}->{"ins"});
+        map { printf "\t%s", number_format($result{$r}->{"sel"}->{$_}); } @threads;
         print "\n";
     }
     print "-" x 40, "\n";
 }
 
+
+sub number_format
+{
+    my $n = shift;
+    my $d = 3 - int(log($n) / log(10));
+    return sprintf "%.${d}f", $n;
+}
