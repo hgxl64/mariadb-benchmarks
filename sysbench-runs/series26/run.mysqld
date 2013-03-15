@@ -1,0 +1,33 @@
+#!/bin/bash
+#
+# usage: $0 <subdir in install-dir> <path to my.cnf>
+#
+# (w) Axel XL Schwenke for MariaDB Services AB
+
+set -e
+set -u
+#set -x
+
+#settings
+INST_DIR=/home/mariadb/mysql-install
+DATADIR=/mnt/raid/benchmark/sysbench/datadir
+HERE=$(pwd)
+
+SERVER=${1:?"no server given!"}
+test -d ${INST_DIR}/${SERVER} || { echo " ${INST_DIR}/${SERVER} does not exist!"; exit; }
+shift
+
+CONFIG=${1:?"no config given!"}
+test -s ${CONFIG} || { echo "${CONFIG} does not exist!"; exit; }
+
+#create the datadir
+test -d ${DATADIR} && rm -rf ${DATADIR}
+mkdir ${DATADIR}
+${INST_DIR}/${SERVER}/bin/mysql_install_db --defaults-file=${CONFIG} --basedir=${INST_DIR}/${SERVER}
+
+#start the server
+cd ${INST_DIR}/${SERVER}
+numactl --interleave=all ./bin/mysqld_safe --defaults-file=${HERE}/${CONFIG}
+
+echo "${SERVER} stopped"
+
