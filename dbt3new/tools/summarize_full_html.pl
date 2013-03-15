@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 #
-# summarize DBT3 results, make HTML table, median only
+# summarize DBT3 results, make HTML table
+# show min / median / max values
 #
 # (w) Axel XL Schwenke for MariaDB Services AB
 
@@ -16,7 +17,7 @@ while (my $file = shift @ARGV) {
     process_file($file);
 }
 print "</tr>\n\n";
-print "<tr>\n<th>Query</th>\n<th>Seconds</th>\n";
+print "<tr>\n<th>Query</th>\n<th>Seconds (min/median/max)</th>\n";
 print "<th>Seconds</th><th>relative</th>\n" x ($n-1);
 print "</tr>\n\n";
 
@@ -35,7 +36,8 @@ sub process_file
     while (<F>) {
         my @field = split "\t";
         if (5 == scalar @field) {
-            $dataset{$field[0]} = $field[1]; #query => median
+            #        query         min        median     max
+            $dataset{$field[0]} = [$field[2], $field[1], $field[3]];
         }
     }
     close F;
@@ -49,14 +51,20 @@ sub dump_data
 {
     for my $q (sort semi_numeric keys %{$data[0]}) {
         print "<tr><td>$q</td><td>";
-        print time_formatted($data[0]->{$q});
+        print time_formatted($data[0]->{$q}->[0]), "/";
+        print time_formatted($data[0]->{$q}->[1]), "/";
+        print time_formatted($data[0]->{$q}->[2]);
         print "</td>";
         for my $ds (1..$n-1) {
             if (exists $data[$ds]->{$q}) {
                 print "<td>";
-                print time_formatted($data[$ds]->{$q});
+                print time_formatted($data[$ds]->{$q}->[0]), "/";
+                print time_formatted($data[$ds]->{$q}->[1]), "/";
+                print time_formatted($data[$ds]->{$q}->[2]);
                 print "</td><td>";
-                print deviation_formatted($data[$ds]->{$q}, $data[0]->{$q});
+                print deviation_formatted($data[$ds]->{$q}->[0], $data[0]->{$q}->[0]), "/";
+                print deviation_formatted($data[$ds]->{$q}->[1], $data[0]->{$q}->[1]), "/";
+                print deviation_formatted($data[$ds]->{$q}->[2], $data[0]->{$q}->[2]);
                 print "</td>";
             } else {
                 print "<td>>7200</td><td></td>";
@@ -86,7 +94,7 @@ sub deviation_formatted
 {
     my ($x, $ref) = @_;
 
-    return "" if ($x<0 || $ref<0);
+    return "-" if ($x<0 || $ref<0);
 
     my $res = "+";
 

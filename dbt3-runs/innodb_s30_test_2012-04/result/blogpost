@@ -1,0 +1,136 @@
+A month ago I
+<A HREF="http://blog.montyprogram.com/mariadb-5-3-optimizer-benchmark/">
+published benchmark results</A> for DBT3 using MyISAM tables.
+I promised I would rerun the benchmark with InnoDB. Here come the results.
+
+Recapitulation: The DBT3 benchmark implements the TPC-H specification.
+Google will find any detail you want to know about table definitions and queries.
+
+The benchmark was run at scale factor 30 which yields about 30GB of raw
+data and 70GB in .ibd files. The benchmark machine was running with
+16GB of RAM out of which 10GB was dedicated for the InnoDB/XtraDB buffer pool.
+So this benchmark is pretty I/O bound, as intended.
+
+As in the MyISAM benchmark, I tuned the optimizer to use the new features:
+
+<ul>
+<li>
+<A HREF="http://kb.askmonty.org/en/index-condition-pushdown">
+index condition pushdown</A>
+</li>
+<li>
+<A HREF="http://kb.askmonty.org/en/multi-range-read-optimization">
+multi range read</A>
+</li>
+<li>
+<A HREF="http://dev.mysql.com/doc/refman/5.6/en/bka-optimization.html">
+batched key access</A>
+</li>
+</ul>
+
+Complete my.cnf files, benchmark configuration and raw results can be found
+on Launchpad (see below for details).
+
+When running benchmarks on InnoDB tables, there is the problem that index
+statistics in InnoDB are rather mutable and don't necessarily reflect the
+real distribution of values in the indexes. The reason is the rather unique
+approach how InnoDB
+<A HREF="http://dev.mysql.com/doc/refman/5.5/en/innodb-other-changes-statistics-estimation.html">
+estimates index statistics</A>.
+(please follow the link if you are not familiar with this)
+
+As a result InnoDB will use different index statistics after each server
+restart or running ANALYZE TABLE. Even when no data has been modified!
+
+The different index statistics will in turn lead to different execution
+plans for the same query on the same data. For some queries in the DBT3
+portfolio I have seen 3 different plans being used for 5 executions of
+the same query (no data modified, server restarted between queries).
+
+The problem has been approached by all major MySQL vendors:
+
+<ul>
+<li>Oracle implements
+<A HREF="http://dev.mysql.com/doc/refman/5.6/en/innodb-performance.html#innodb-persistent-stats">
+persistent statistics</A> in MySQL-5.6
+</li>
+<li> Percona implemented the
+<A HREF="https://mysqlperformanceblog.com/doc/percona-server/5.5/diagnostics/innodb_stats.html">
+innodb_use_sys_stats_table</A> variable in Percona Server 5.5.8.
+MariaDB-5.5 inherits this feature by using XtraDB.
+</li>
+<li>MariaDB currently implements
+<A HREF="http://askmonty.org/worklog/Server-BackLog/?tid=248">
+engine independent persistent index statistics</A>.
+</li>
+</ul>
+
+Both Oracle and Percona stick to the random sampling method, so we still
+have a random element in the statistics. However the MariaDB prototype
+I have tested, uses exact statistics by scanning the complete table.
+The drawback is obvious: ANALYZE TABLE is expensive.
+
+Armed with those new waepons, I have now rerun the DBT3 benchmark on InnoDB
+tables. Both MariaDB and MySQL have been tested in 3 configurations:
+
+<UL>
+<LI>default statistics (mutable, sampling 20 leaf pages)
+</LI>
+<LI>persistent statistics (configured to sample 64 leaf pages)
+</LI>
+<LI>persistent, exact statistics
+</LI>
+</UL>
+
+For the third configuration I have extracted the statistics from
+MariaDB, transformed them to MySQL format and updated the MySQL
+statistics tables with the exact numbers.
+
+Thanks for following me this far! As a bonus I will show you numbers.
+
+Query execution time MariaDB-5.5.23(MWL248) vs. MySQL-5.6.5 using
+exact statistics:
+
+[graph]
+
+When I looked at the results for default statistics, I had the usual
+figure of greatly variable numbers. This also means that any result
+I would publish would be rarely reproducible.
+
+Not much better is the situation with persistent statistics. Now we do
+get the same plan for each execution of the query. But if a good or bad
+plan is chosen, is again random. Comparing those results with the
+previous ones we had sometimes the best plan picked, sometimes the
+worst and sometimes one between. So again any result would be hard to
+reproduce.
+
+For that reason I decided to use only the numbers based on exact
+statistics. Similar results should be possible by increasing the
+variable innodb_stats_sample_pages very much.
+
+Now lets look at the numbers in more detail:
+
+[table]
+
+I have colored the rows to mark the winner (same colors as the graph
+above). If the difference is below 10% then there is no winner.
+
+There are two queries where MySQL is much faster. On query 8 MySQL uses
+a completely different execution plan as MariaDB. For query 13 MariaDB
+misses a rather obvious optimization: it scans the full table instead
+of a covering secondary index.
+
+On the other hand MySQL is much slower on 7 other queries. And another
+5 queries don't complete within the 2 hour time limit.
+
+For those curious to look at the details, I have published a
+<A HREF="https://code.launchpad.net/~ahel/maria/mariadb-benchmarks">
+bzr repository</A> on Launchpad. It contains the
+<A HREF="http://bazaar.launchpad.net/~ahel/maria/mariadb-benchmarks/files/head:/dbt3-runs/innodb_s30_test_2012-04/">
+current results</A> as well as the
+<A HREF="http://bazaar.launchpad.net/~ahel/maria/mariadb-benchmarks/files/head:/dbt3-runs/myisam_test_2012-03-24_004446/">
+MyISAM results</A>.
+
+The MariaDB prototype with exact statistics is also
+<A HREF="https://code.launchpad.net/~maria-captains/maria/maria-5.5-mwl248">
+available from Launchpad</A>.
