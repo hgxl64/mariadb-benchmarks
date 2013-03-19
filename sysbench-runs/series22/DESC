@@ -1,0 +1,44 @@
+--skip-grant-tables
+
+01 ...	MariaDB-5.5.29
+02 ...	MySQL-5.5.30
+03 ...	MariaDB-10.0.1
+04 ...	MySQL-5.6.10
+05 ...	MariaDB-5.5.29 (w/ tcmalloc)
+06 ...	MySQL-5.5.30   (w/ tcmalloc)
+07 ...	MariaDB-10.0.1 (w/ tcmalloc)
+08 ...	MySQL-5.6.10   (w/ tcmalloc)
+
+GRANT ALL ON *.* TO 'sysbench'@'localhost'
+
+11 ...	MariaDB-5.5.29
+12 ...	MySQL-5.5.30
+13 ...	MariaDB-10.0.1
+14 ...	MySQL-5.6.10
+15 ...	MariaDB-5.5.29 (w/ tcmalloc)
+16 ...	MySQL-5.5.30   (w/ tcmalloc)
+17 ...	MariaDB-10.0.1 (w/ tcmalloc)
+18 ...	MySQL-5.6.10   (w/ tcmalloc)
+
+GRANT ALL ON sbtest.* TO 'sysbench'@'localhost'
+
+21 ...	MariaDB-5.5.29
+22 ...	MySQL-5.5.30
+23 ...	MariaDB-10.0.1
+24 ...	MySQL-5.6.10
+25 ...	MariaDB-5.5.29 (w/ tcmalloc)
+26 ...	MySQL-5.5.30   (w/ tcmalloc)
+27 ...	MariaDB-10.0.1 (w/ tcmalloc)
+28 ...	MySQL-5.6.10   (w/ tcmalloc)
+
+GRANT ALL ON sbtest.sbtest TO 'sysbench'@'localhost'
+
+31 ...	MariaDB-5.5.29
+32 ...	MySQL-5.5.30
+33 ...	MariaDB-10.0.1
+34 ...	MySQL-5.6.10
+35 ...	MariaDB-5.5.29 (w/ tcmalloc)
+36 ...	MySQL-5.5.30   (w/ tcmalloc)
+37 ...	MariaDB-10.0.1 (w/ tcmalloc)
+38 ...	MySQL-5.6.10   (w/ tcmalloc)
+

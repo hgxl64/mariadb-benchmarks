@@ -1,0 +1,190 @@
+#!/usr/local/bin/gnuplot
+
+#
+# plot sysbench OLPT summary
+#
+
+reset
+
+#output device and size
+set terminal png medium nocrop enhanced size 960,480 background '#F0F0F0'
+
+#line styles
+set style line 1 lw 2 lc rgbcolor "blue" pt 3
+set style line 2 lw 2 lc rgbcolor "green" pt 3
+set style line 3 lw 2 lc rgbcolor "magenta" pt 3
+set style line 4 lw 2 lc rgbcolor "brown" pt 3
+set style line 5 lw 2 lc rgbcolor "red" pt 3
+
+
+#x-axis
+set xtics border
+set xlabel 'Threads'
+
+#y-axis
+set ylabel 'transactions per second'
+set yrange [0:*]
+set ytics border
+set grid
+
+
+
+#
+# transactions per second
+#
+
+set key at graph 0.92,0.5 box width 2 height 2 font 'small'
+
+
+set output "tps_maria55_glibc.png"
+set title 'MariaDB-5.5.29 (glibc malloc) single point select vs. privileges' font 'giant'
+
+plot 'tps.dat' \
+   index 0 using 2:xtic(1) with linespoints ls 1 title 'skip-grant-tables', \
+'' index 0 using 3 with linespoints ls 2 title 'global priv', \
+'' index 0 using 4 with linespoints ls 3 title 'database priv', \
+'' index 0 using 5 with linespoints ls 4 title 'table priv'
+
+
+set output "tps_maria10_glibc.png"
+set title 'MariaDB-10.0.1 (glibc malloc) single point select vs. privileges' font 'giant'
+
+plot 'tps.dat' \
+   index 2 using 2:xtic(1) with linespoints ls 1 title 'skip-grant-tables', \
+'' index 2 using 3 with linespoints ls 2 title 'global priv', \
+'' index 2 using 4 with linespoints ls 3 title 'database priv', \
+'' index 2 using 5 with linespoints ls 4 title 'table priv'
+
+
+set output "tps_mysql55_glibc.png"
+set title 'MySQL-5.5.30 (glibc malloc) single point select vs. privileges' font 'giant'
+
+plot 'tps.dat' \
+   index 1 using 2:xtic(1) with linespoints ls 1 title 'skip-grant-tables', \
+'' index 1 using 3 with linespoints ls 2 title 'global priv', \
+'' index 1 using 4 with linespoints ls 3 title 'database priv', \
+'' index 1 using 5 with linespoints ls 4 title 'table priv'
+
+
+set output "tps_mysql56_glibc.png"
+set title 'MySQL-5.6.10 (glibc malloc) single point select vs. privileges' font 'giant'
+
+plot 'tps.dat' \
+   index 3 using 2:xtic(1) with linespoints ls 1 title 'skip-grant-tables', \
+'' index 3 using 3 with linespoints ls 2 title 'global priv', \
+'' index 3 using 4 with linespoints ls 3 title 'database priv', \
+'' index 3 using 5 with linespoints ls 4 title 'table priv'
+
+
+set output "tps_maria55_tcmalloc.png"
+set title 'MariaDB-5.5.29 (tcmalloc) single point select vs. privileges' font 'giant'
+
+plot 'tps.dat' \
+   index 4 using 2:xtic(1) with linespoints ls 1 title 'skip-grant-tables', \
+'' index 4 using 3 with linespoints ls 2 title 'global priv', \
+'' index 4 using 4 with linespoints ls 3 title 'database priv', \
+'' index 4 using 5 with linespoints ls 4 title 'table priv'
+
+
+set output "tps_maria10_tcmalloc.png"
+set title 'MariaDB-10.0.1 (tcmalloc) single point select vs. privileges' font 'giant'
+
+plot 'tps.dat' \
+   index 6 using 2:xtic(1) with linespoints ls 1 title 'skip-grant-tables', \
+'' index 6 using 3 with linespoints ls 2 title 'global priv', \
+'' index 6 using 4 with linespoints ls 3 title 'database priv', \
+'' index 6 using 5 with linespoints ls 4 title 'table priv'
+
+
+set output "tps_mysql55_tcmalloc.png"
+set title 'MySQL-5.5.30 (tcmalloc) single point select vs. privileges' font 'giant'
+
+plot 'tps.dat' \
+   index 5 using 2:xtic(1) with linespoints ls 1 title 'skip-grant-tables', \
+'' index 5 using 3 with linespoints ls 2 title 'global priv', \
+'' index 5 using 4 with linespoints ls 3 title 'database priv', \
+'' index 5 using 5 with linespoints ls 4 title 'table priv'
+
+
+set output "tps_mysql56_tcmalloc.png"
+set title 'MySQL-5.6.10 (tcmalloc) single point select vs. privileges' font 'giant'
+
+plot 'tps.dat' \
+   index 7 using 2:xtic(1) with linespoints ls 1 title 'skip-grant-tables', \
+'' index 7 using 3 with linespoints ls 2 title 'global priv', \
+'' index 7 using 4 with linespoints ls 3 title 'database priv', \
+'' index 7 using 5 with linespoints ls 4 title 'table priv'
+
+
+set output "tps_all_none_glibc.png"
+set title 'single point select, no privileges, glibc malloc' font 'giant'
+
+plot 'tps.dat' \
+   index 0 using 2:xtic(1) with linespoints ls 1 title 'MariaDB-5.5.29', \
+'' index 1 using 2 with linespoints ls 2 title 'MySQL-5.5.30', \
+'' index 2 using 2 with linespoints ls 3 title 'MariaDB-10.0.1', \
+'' index 3 using 2 with linespoints ls 4 title 'MySQL-5.6.10'
+
+
+set output "tps_all_none_tcmalloc.png"
+set title 'single point select, no privileges, tcmalloc' font 'giant'
+
+plot 'tps.dat' \
+   index 4 using 2:xtic(1) with linespoints ls 1 title 'MariaDB-5.5.29', \
+'' index 5 using 2 with linespoints ls 2 title 'MySQL-5.5.30', \
+'' index 6 using 2 with linespoints ls 3 title 'MariaDB-10.0.1', \
+'' index 7 using 2 with linespoints ls 4 title 'MySQL-5.6.10'
+
+
+set output "tps_all_table_glibc.png"
+set title 'single point select, table privileges, glibc malloc' font 'giant'
+
+plot 'tps.dat' \
+   index 0 using 5:xtic(1) with linespoints ls 1 title 'MariaDB-5.5.29', \
+'' index 1 using 5 with linespoints ls 2 title 'MySQL-5.5.30', \
+'' index 2 using 5 with linespoints ls 3 title 'MariaDB-10.0.1', \
+'' index 3 using 5 with linespoints ls 4 title 'MySQL-5.6.10'
+
+
+set output "tps_all_table_tcmalloc.png"
+set title 'single point select, table privileges, tcmalloc' font 'giant'
+
+plot 'tps.dat' \
+   index 4 using 5:xtic(1) with linespoints ls 1 title 'MariaDB-5.5.29', \
+'' index 5 using 5 with linespoints ls 2 title 'MySQL-5.5.30', \
+'' index 6 using 5 with linespoints ls 3 title 'MariaDB-10.0.1', \
+'' index 7 using 5 with linespoints ls 4 title 'MySQL-5.6.10'
+
+
+#
+# response time
+#
+
+set key at graph 0.4,0.85 box width 2 height 2 font 'small'
+
+
+set yrange [0.01:*]
+set logscale y 10
+
+set output "rt1_maria55_glibc.png"
+set title 'MariaDB-5.5.29 (glibc malloc) single point select vs. privileges' font 'giant'
+set ylabel 'avg response time [ms]'
+
+plot 'rt_avg.dat' \
+   index 0 using 2:xtic(1) with linespoints ls 1 title 'skip-grant-tables', \
+'' index 0 using 3 with linespoints ls 2 title 'global priv', \
+'' index 0 using 4 with linespoints ls 3 title 'database priv', \
+'' index 0 using 5 with linespoints ls 4 title 'table priv'
+
+
+set output "rt2_maria55_glibc.png"
+set title 'MariaDB-5.5.29 (glibc malloc) single point select vs. privileges' font 'giant'
+set ylabel '95% response time [ms]'
+
+plot 'rt_95.dat' \
+   index 0 using 2:xtic(1) with linespoints ls 1 title 'skip-grant-tables', \
+'' index 0 using 3 with linespoints ls 2 title 'global priv', \
+'' index 0 using 4 with linespoints ls 3 title 'database priv', \
+'' index 0 using 5 with linespoints ls 4 title 'table priv'
+
+

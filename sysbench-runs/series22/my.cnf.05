@@ -1,0 +1,32 @@
+[mysqld_safe]
+
+malloc-lib=/usr/local/lib/libtcmalloc_minimal.so
+
+
+[mysqld]
+
+skip-grant-tables
+
+#####files and sockets
+datadir=/mnt/raid/benchmark/sysbench/datadir
+socket=/tmp/mysqld.sock.sysbench
+pid-file=/tmp/mysqld.pid.sysbench
+skip-networking
+
+#####non innodb options (fixed)
+max_connections = 400
+thread_cache_size = 256
+table_open_cache = 400
+query_cache_size = 0
+query_cache_type = 0
+
+
+#####MyISAM Specific options
+key_buffer_size = 8M
+read_buffer_size = 256K
+read_rnd_buffer_size = 256K
+
+#####for 5.5 trees
+innodb_buffer_pool_instances=16
+innodb_thread_concurrency=0
+

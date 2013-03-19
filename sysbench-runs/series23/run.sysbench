@@ -1,0 +1,58 @@
+#!/bin/sh
+set -e
+set -u
+#set -x
+ulimit -n 10000
+
+#settings
+SOCKET=/tmp/mysqld.sock.sysbench
+SYSBENCH=sysbench-0.4
+CPU_MASK="0,1,8,9,16,17,24,25,32,33,40,41,48,49,56,57"
+THREADS="1 2 4 8 16 32 64 128 256"
+ROWS=1000
+RUNTIME=60
+ENGINE=InnoDB
+
+#setup
+if [ "$CPU_MASK" != "" ]
+then
+  NUMACTL="numactl --interleave=all --physcpubind=$CPU_MASK"
+else
+  NUMACTL="numactl --interleave=all"
+fi
+
+#determine run number for selecting an output directory
+RUN_NUMBER=${1:?"run number not given!"}
+
+OUTDIR=`printf "res%02d" $RUN_NUMBER`
+mkdir -p $OUTDIR
+
+
+#prepare database
+CREATEDB=${2:?"create option not given!"}
+if [ "$CREATEDB" != "0" ]
+then
+
+  #create sbtest database
+  mysql -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
+  mysql -S $SOCKET -u root -e "CREATE DATABASE sbtest"
+
+  #create and fill oltp table(s)
+  $SYSBENCH --test=oltp --oltp-table-size=$ROWS --mysql-table-engine=${ENGINE} --mysql-socket=$SOCKET --mysql-user=sysbench --mysql-password=sysbench prepare
+
+  sleep 10
+fi
+
+
+#run the benchmark
+for thread in $THREADS
+do
+  if [ $RUNTIME -gt 0 ]
+  then
+
+    $NUMACTL $SYSBENCH --test=oltp --oltp-table-size=$ROWS --oltp-dist-type=uniform --num-threads=$thread --oltp-read-only=on --oltp-test-mode=simple --oltp-skip-trx --oltp-reconnect-mode=query --oltp-connect-delay=0 --db-ps-mode=disable --mysql-table-engine=${ENGINE} --mysql-engine-trx=no --mysql-socket=$SOCKET --max-time=$RUNTIME --max-requests=0 --mysql-user=sysbench --mysql-password=sysbench --percentile=95 run | tee -a $OUTDIR/sysbench.ro.$thread.res
+
+    sleep 2
+  fi
+
+done

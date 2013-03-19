@@ -1,0 +1,4 @@
+Testing connect/autheticate performance
+single OLTP table, HEAP, 1000 rows
+per-thread workload is connect; select ... where pk=rand; disconnect
+
