@@ -5,6 +5,29 @@
 #
 # $Id$
 
+use Getopt::Long;
+
+#defaults
+my $opt_unset = 0;
+my $opt_same = 0;
+my $opt_help = 0;
+#end defaults
+
+my $usage = <<EOT;
+$0 [options] file1 file2 ...
+read and compare tabular SHOW STATUS or SHOW VARIABLES from file1..n
+options:
+--zero|unset ... skip variables that are 0 or unset in all files
+--same ......... skip variables that are same in all files
+--help, -? ..... show this text
+
+EOT
+
+die $usage unless GetOptions("zero|unset!" => \$opt_unset,
+                             "same!" =>  \$opt_same,
+                             "help|?" => \$opt_help)
+    and not $opt_help;
+
 my %data = ();
 my $heading = "variable name";
 my $varlen = length $heading;
@@ -21,29 +44,36 @@ exit 0;
 
 sub process_file
 {
-    my $f= shift;
+    my $file= shift;
     my %vars = ();
-    my $c= 0;
-    $datlen{$f} = length $f;
+    my $count= 0;
+    $datlen{$file} = length $file;
 
-    open F, "<$f" or die "could not read $f : $!\n";
+    open F, "<$file" or die "could not read $file : $!\n";
 
     while (<F>) {
         if (/^\| (.*?)\s*\|\s*(.*?)\s*\|$/) {
             $vars{$1}= $2;
             $varlen= length($1) if $varlen < length($1);
-            $datlen{$f}= length($2) if $datlen{$f} < length($2);
-            $c++;
+            $datlen{$file}= length($2) if $datlen{$file} < length($2);
+            $count++;
+        }
+        elsif (/^(.*?)\t(.*)/) {
+            $vars{$1}= $2;
+            $varlen= length($1) if $varlen < length($1);
+            $datlen{$file}= length($2) if $datlen{$file} < length($2);
+            $count++;
         }
     }
-    $data{$f}= \%vars;
+    $data{$file}= \%vars;
     close F;
-    print STDERR "read ", $c, " lines from ", $f, "\n";
+    print STDERR "read ", $count, " lines from ", $file, "\n";
 }
 
 sub dump_data
 {
     my @files = sort keys %datlen;
+    my $count= 0;
     my %vars = ();
     map { map { $vars{$_} = 1 unless defined $vars{$_} } keys %{$data{$_}} } @files;
 
@@ -60,6 +90,12 @@ sub dump_data
     print "-+\n";
 
     foreach my $k (sort keys %vars) {
+        if ($opt_unset && all_unset_or_zero($k)) {
+            next;
+        }
+        if ($opt_same && all_same($k)) {
+            next;
+        }
         print "| ", $k, " " x ($varlen - length $k);
         map {
             defined $data{$_}->{$k}
@@ -67,10 +103,68 @@ sub dump_data
             : print " | ", " " x $datlen{$_}
         } @files;
         print " |\n";
+        $count++;
     }
 
     print "+-", "-" x $varlen;
     map { print "-+-", "-" x $datlen{$_} } @files;
     print "-+\n";
-
+    print $count, " lines\n";
 }
+
+
+sub all_unset_or_zero
+{
+    my $key = shift;
+    my $same = 1;
+    my @files = sort keys %datlen;
+    my $val;
+
+    map {
+        if (defined $data{$_}->{$key}) {
+            if ($data{$_}->{$key} eq '' || $data{$_}->{$key} eq '0') {
+                if (not defined $val) {
+                    $val = $data{$_}->{$key};
+                }
+                else {
+                    if ($val ne $data{$_}->{$key}) {
+                        $same = 0;
+                    }
+                }
+            }
+            else {
+                $same = 0;
+            }
+        }
+    } @files;
+
+    return $same;
+}
+
+
+sub all_same
+{
+    my $key = shift;
+    my $same = 1;
+    my @files = sort keys %datlen;
+    my $val;
+
+    map {
+        if (defined $data{$_}->{$key}) {
+            if (not defined $val) {
+                $val = $data{$_}->{$key};
+            }
+            else {
+                if ($val ne $data{$_}->{$key}) {
+                    $same = 0;
+                }
+            }
+        }
+        else {
+            $same = 0;
+        }
+    } @files;
+
+    return $same;
+}
+
