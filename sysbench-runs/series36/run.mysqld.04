@@ -1,0 +1,44 @@
+Installing MariaDB/MySQL system tables in '/mnt/fiox/sysbench/datadir' ...
+OK
+Filling help tables...
+OK
+
+To start mysqld at boot time you have to copy
+support-files/mysql.server to the right place for your system
+
+PLEASE REMEMBER TO SET A PASSWORD FOR THE MariaDB root USER !
+To do so, start the server, then issue the following commands:
+
+'/home/axel/mysql-builds/mariadb-5.5-fusion/bin/mysqladmin' -u root password 'new-password'
+'/home/axel/mysql-builds/mariadb-5.5-fusion/bin/mysqladmin' -u root -h pitbull.askmonty.org password 'new-password'
+
+Alternatively you can run:
+'/home/axel/mysql-builds/mariadb-5.5-fusion/bin/mysql_secure_installation'
+
+which will also give you the option of removing the test
+databases and anonymous user created by default.  This is
+strongly recommended for production servers.
+
+See the MariaDB Knowledgebase at http://kb.askmonty.org or the
+MySQL manual for more instructions.
+
+You can start the MariaDB daemon with:
+cd '/home/axel/mysql-builds/mariadb-5.5-fusion' ; /home/axel/mysql-builds/mariadb-5.5-fusion/bin/mysqld_safe --datadir='/mnt/fiox/sysbench/datadir'
+
+You can test the MariaDB daemon with mysql-test-run.pl
+cd '/home/axel/mysql-builds/mariadb-5.5-fusion/mysql-test' ; perl mysql-test-run.pl
+
+Please report any problems with the '/home/axel/mysql-builds/mariadb-5.5-fusion/scripts/mysqlbug' script!
+
+The latest information about MariaDB is available at http://mariadb.org/.
+You can find additional information about the MySQL part at:
+http://dev.mysql.com
+Support MariaDB development by buying support/new features from
+Monty Program Ab. You can contact us about this at sales@montyprogram.com.
+Alternatively consider joining our community based development effort:
+http://kb.askmonty.org/en/contributing-to-the-mariadb-project/
+
+130424 00:11:24 mysqld_safe Logging to '/mnt/fiox/sysbench/datadir/pitbull.askmonty.org.err'.
+130424 00:11:25 mysqld_safe Starting mysqld daemon with databases from /mnt/fiox/sysbench/datadir
+130424 09:26:47 mysqld_safe mysqld from pid file /mnt/fiox/sysbench/datadir/pitbull.askmonty.org.pid ended
+mariadb-5.5-fusion stopped

@@ -1,0 +1,89 @@
+#!/usr/local/bin/gnuplot
+
+#
+# plot sysbench OLPT summary
+#
+
+reset
+
+#output device and size
+set terminal png medium nocrop enhanced size 960,480 background '#F0F0F0'
+
+#line styles
+set style line 1 lw 2 lc rgbcolor "blue" pt 3
+set style line 2 lw 2 lc rgbcolor "green" pt 3
+set style line 3 lw 2 lc rgbcolor "magenta" pt 3
+set style line 4 lw 2 lc rgbcolor "brown" pt 3
+set style line 5 lw 2 lc rgbcolor "red" pt 3
+
+
+#x-axis
+set xtics border
+set xlabel 'Threads'
+
+#y-axis
+set ylabel 'transactions per second'
+set yrange [0:*]
+set ytics border
+set grid
+
+
+
+#
+# transactions per second
+#
+
+set key at graph 0.92,0.5 box width 2 height 2 font 'small'
+
+
+set output "tps_ro.png"
+set title 'OLTP (ro), tps vs. write config' font 'giant'
+
+plot 'tps.dat' \
+   index 0 using 2:xtic(1) with linespoints ls 1 title 'double write', \
+'' index 0 using 3 with linespoints ls 2 title 'atomic write', \
+'' index 0 using 4 with linespoints ls 3 title 'aw + fast checksum', \
+'' index 0 using 5 with linespoints ls 4 title 'aw + no checksum'
+
+set output "tps_rw.png"
+set title 'OLTP (rw), tps vs. write config' font 'giant'
+
+plot 'tps.dat' \
+   index 1 using 2:xtic(1) with linespoints ls 1 title 'double write', \
+'' index 1 using 3 with linespoints ls 2 title 'atomic write', \
+'' index 1 using 4 with linespoints ls 3 title 'aw + fast checksum', \
+'' index 1 using 5 with linespoints ls 4 title 'aw + no checksum'
+
+
+#
+# response time
+#
+
+set key at graph 0.4,0.85 box width 2 height 2 font 'small'
+
+
+#set yrange [0.01:*]
+#set logscale y 10
+
+set output "rt_avg.png"
+set title 'OLTP (rw), avg response time vs. write config' font 'giant'
+set ylabel 'avg response time [ms]'
+
+plot 'rt_avg.dat' \
+   index 1 using 2:xtic(1) with linespoints ls 1 title 'double write', \
+'' index 1 using 3 with linespoints ls 2 title 'atomic write', \
+'' index 1 using 4 with linespoints ls 3 title 'aw + fast checksum', \
+'' index 1 using 5 with linespoints ls 4 title 'aw + no checksum'
+
+
+set output "rt_99pct.png"
+set title 'OLTP (rw), 99% response time vs. write config' font 'giant'
+set ylabel '99% response time [ms]'
+
+plot 'rt_99.dat' \
+   index 1 using 2:xtic(1) with linespoints ls 1 title 'double write', \
+'' index 1 using 3 with linespoints ls 2 title 'atomic write', \
+'' index 1 using 4 with linespoints ls 3 title 'aw + fast checksum', \
+'' index 1 using 5 with linespoints ls 4 title 'aw + no checksum'
+
+
