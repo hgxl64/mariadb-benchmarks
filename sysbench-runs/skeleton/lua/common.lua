@@ -112,6 +112,7 @@ function cleanup()
 end
 
 function set_vars()
+   oltp_databases = oltp_databases or 1
    oltp_table_size = oltp_table_size or 10000
    oltp_range_size = oltp_range_size or 100
    oltp_tables_count = oltp_tables_count or 1

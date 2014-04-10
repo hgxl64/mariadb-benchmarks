@@ -1,0 +1,63 @@
+[mysqld_safe]
+
+[mysqld]
+
+performance-schema = true
+performance-schema-consumer-events_waits_current=on
+performance-schema-consumer-events_statements_current=off
+performance-schema-consumer-statements_digest=off
+performance-schema-instrument='%=off'
+performance-schema-instrument='wait/synch/mutex/%=on'
+performance-schema-instrument='wait/synch/rwlock/%=on'
+
+
+#####files and sockets
+pid-file=/tmp/mysqld.pid.sysbench
+
+#####non innodb options (fixed)
+max_connections = 400
+back_log = 1500
+table_open_cache = 800
+table_open_cache_instances = 16
+key_buffer_size = 200M
+low_priority_updates = 1
+query_cache_type = 0
+join_buffer_size = 32K
+sort_buffer_size = 32K
+
+#####use InnoDB plugin
+#ignore-builtin-innodb
+#plugin-load=innodb=ha_innodb.so
+
+#####fixed innodb options
+innodb_file_per_table = true
+innodb_open_files = 4000
+innodb_data_file_path = ibdata1:50M:autoextend
+innodb_flush_log_at_trx_commit = 2
+innodb_flush_method = O_DIRECT
+innodb_log_buffer_size = 256M
+innodb_log_file_size = 1333M
+innodb_log_files_in_group = 3
+innodb_buffer_pool_size = 32G
+innodb_buffer_pool_instances = 32
+innodb_read_io_threads = 8
+innodb_write_io_threads = 8
+innodb_purge_threads = 1
+innodb_thread_concurrency = 0
+
+#####tuning for spinning disks
+innodb_adaptive_flushing = 1
+innodb_flush_neighbors = 0
+innodb_io_capacity = 2000
+innodb_read_io_threads = 16
+innodb_write_io_threads = 4
+
+#####those are not safe for production
+#innodb_checksums = 0
+#innodb_doublewrite = 0
+#innodb_support_xa = 0
+
+#special tuning
+#innodb_spin_wait_delay = 6 / 96
+#innodb_adaptive_hash_index =  1 / 0
+

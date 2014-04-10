@@ -1,3 +1,7 @@
+-- OLTP benchmark with multiple databases
+--
+-- (w) Axel XL Schwenke for MariaDB
+
 pathtest = string.match(test, "(.*/)") or ""
 
 dofile(pathtest .. "common.lua")
@@ -13,11 +17,38 @@ function thread_init(thread_id)
       commit_query = "COMMIT"
    end
 
+  db_query("use sbtest" .. (thread_id % oltp_databases) + 1)
+
 end
+
 
 function thread_done(thread_id)                                                                               
     db_disconnect()                                                                                           
 end                                                                                                           
+
+
+function prepare()
+   local query
+   local i
+   local j
+
+   set_vars()
+
+   db_connect()
+   db_query("set @@sql_log_bin=0")
+
+   for j = 1,oltp_databases do
+      print("Setting up database 'sbtest" .. j .. "' ...")
+      db_query("drop database if exists sbtest" .. j)
+      db_query("create database sbtest" .. j)
+      db_query("use sbtest" .. j)
+      for i = 1,oltp_tables_count do
+        create_insert(i)
+      end
+   end
+
+   return 0
+end
 
 
 function event(thread_id)

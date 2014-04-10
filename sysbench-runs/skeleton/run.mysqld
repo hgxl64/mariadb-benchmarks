@@ -1,0 +1,56 @@
+#!/bin/bash
+#
+# usage: $0 <subdir in install-dir> <path to my.cnf>
+#
+# (w) Axel XL Schwenke for MariaDB Services AB
+
+set -e
+set -u
+#set -x
+
+. config.sh
+
+HERE=$(pwd)
+
+ii=${1:?"no run number given!"}
+read SERVER <server.$ii
+
+CONFIG="my.cnf.$ii"
+test -s ${CONFIG} || { echo "${CONFIG} does not exist!"; exit; }
+
+#create the datadir
+if [ "$CREATEDB" != "0" ]
+then
+  MY_INST_DB=""
+  for SUBDIR in bin scripts
+  do
+    if [ -x ${INST_DIR}/${SERVER}/$SUBDIR/mysql_install_db ]
+    then
+      MY_INST_DB=${INST_DIR}/${SERVER}/$SUBDIR/mysql_install_db
+      break
+    fi
+  done
+
+  if [ $MY_INST_DB == "" ]
+  then
+    echo "no mysql_install_db in ${INST_DIR}/${SERVER}/{bin,scripts}"
+    exit 1
+  fi
+
+  test -d ${DATADIR} && rm -rf ${DATADIR}
+  mkdir ${DATADIR}
+  $MY_INST_DB --defaults-file=${CONFIG} --basedir=${INST_DIR}/${SERVER} --datadir=${DATADIR}
+fi
+
+#start the server
+PARAMS="--defaults-file=${HERE}/${CONFIG} --datadir=${DATADIR} --socket=${SOCKET} --skip-networking"
+if [ -n "${MALLOC_LIB}" ]
+then
+  PARAMS="${PARAMS} --malloc-lib=${MALLOC_LIB}"
+fi
+
+cd ${INST_DIR}/${SERVER}
+numactl --interleave=all --physcpubind=${CPU_MASK_MYSQLD} ./bin/mysqld_safe $PARAMS
+
+echo "${SERVER} stopped"
+

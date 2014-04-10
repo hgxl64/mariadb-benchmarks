@@ -1,0 +1,7 @@
+This is my sysbench test framework. How to use it:
+
+- set global sysbench parameters in config.sh
+- add server.$n and my.cnf.$n for each version/config you want to test
+  ($n must be a two-digit number)
+- run "runme.sh"
+
