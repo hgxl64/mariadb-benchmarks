@@ -30,7 +30,7 @@ do
     continue
   fi
 
-  mkdir res$ii
+  #mkdir res$ii
 
   read ss <server.$ii
   echo -n "starting MySQL server ($ss) for run $i ..."

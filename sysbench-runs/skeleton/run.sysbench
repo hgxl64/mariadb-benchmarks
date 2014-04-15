@@ -2,7 +2,7 @@
 set -e
 set -u
 #set -x
-ulimit -n 10000
+#ulimit -n 8000
 
 . config.sh
 
@@ -14,10 +14,11 @@ then
 else
   NUMACTL="numactl --interleave=all"
 fi
+lc_engine=`echo $ENGINE | tr [:upper:] [:lower:]`  
 
 #force InnoDB checkpoint and wait for completion
 function waitm {
-if [ $ENGINE == "innodb" ]
+if [ $lc_engine = "innodb" ]
 then
   wt_old=0
   repeat=5
@@ -43,7 +44,7 @@ then
   echo 
   mysql -S $SOCKET -u root -e "SET GLOBAL innodb_max_dirty_pages_pct=$mdp"
 fi
-if [ $ENGINE == "tokudb" ]
+if [ $lc_engine = "tokudb" ]
 then
   date "+[%c] forcing tokudb checkpoint via FLUSH LOGS"
   mysql -S $SOCKET -u root -e "FLUSH LOGS"
@@ -80,7 +81,7 @@ then
 
 else
 
-if [ $ENGINE == "innodb" ]
+if [ $lc_engine = "innodb" ]
 then
   #warmup buffer pool
   echo -n "warmup ... "
@@ -91,7 +92,7 @@ then
   done
   wait $PIDLIST
   echo "done"
-  sleep 10
+  sleep 2
 fi
 
 fi
@@ -104,8 +105,8 @@ do
   then
     $NUMACTL iostat -mx $REPORT $(($RUNTIME_RO/$REPORT+1))  >> $OUTDIR/iostat.ro.$thread.res &
     PIDLIST=$!
-    #$NUMACTL ./dump_pfs.sh >> $OUTDIR/mutexes.ro.$thread.res &
-    #PIDLIST="$PIDLIST $!"
+    $NUMACTL ./dump_pfs.sh >> $OUTDIR/mutexes.ro.$thread.res &
+    PIDLIST="$PIDLIST $!"
 
     $NUMACTL $SYSBENCH --test=lua/oltp.lua --oltp_tables_count=$TABLES --oltp-table-size=$ROWS --rand-seed=42 --rand-type=uniform --num-threads=$thread --oltp-read-only=on --report-interval=$REPORT --mysql-socket=$SOCKET --max-time=$RUNTIME_RO --max-requests=0 --mysql-user=root --percentile=99 run | tee -a $OUTDIR/sysbench.ro.$thread.res
 
@@ -117,14 +118,14 @@ do
   then
     $NUMACTL iostat -mx $REPORT $(($RUNTIME_RW/$REPORT+1))  >> $OUTDIR/iostat.rw.$thread.res &
     PIDLIST=$!
-    #$NUMACTL ./dump_pfs.sh >> $OUTDIR/mutexes.rw.$thread.res &
-    #PIDLIST="$PIDLIST $!"
+    $NUMACTL ./dump_pfs.sh >> $OUTDIR/mutexes.rw.$thread.res &
+    PIDLIST="$PIDLIST $!"
 
     $NUMACTL $SYSBENCH --test=lua/oltp.lua --oltp_tables_count=$TABLES --oltp-table-size=$ROWS --rand-seed=42 --rand-type=uniform --num-threads=$thread --oltp-read-only=off --report-interval=$REPORT --mysql-socket=$SOCKET --max-time=$RUNTIME_RW --max-requests=0 --mysql-user=root --percentile=99 run | tee -a $OUTDIR/sysbench.rw.$thread.res
 
     wait $PIDLIST
     waitm
   fi
-  sleep 10
+  sleep 2
 
 done
