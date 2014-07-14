@@ -4,7 +4,7 @@
 #
 # (w) Axel XL Schwenke for MariaDB Services AB
 
-my %v = get_run_info();
+my %v = get_run_info(@ARGV, "DESC");
 my @threads = get_thread_info();
 
 open TPS, ">TPS.dat" or die;
@@ -118,8 +118,9 @@ sub pp
 
 sub get_run_info
 {
+    my $descfile = shift;
     my %res;
-    open F, "<DESC" or die "cannot read from 'DESC' : $!\n";
+    open F, "<$descfile" or die "cannot read from '$descfile' : $!\n";
     while (<F>) {
         chomp;
 	next if /^#/;
