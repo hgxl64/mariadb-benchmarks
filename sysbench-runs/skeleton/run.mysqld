@@ -10,13 +10,17 @@ set -u
 
 . config.sh
 
+ii=${1:?"no run number given!"}
+
+test -e config.${ii} && .  config.${ii}
+
 HERE=$(pwd)
 
-ii=${1:?"no run number given!"}
-read SERVER <server.$ii
-
 CONFIG="my.cnf.$ii"
-test -s ${CONFIG} || { echo "${CONFIG} does not exist!"; exit; }
+test -e ${CONFIG} || { echo "${CONFIG} does not exist!"; exit; }
+
+test -e server.$ii || { echo "server.$ii does not exist!"; exit; }
+read SERVER <server.$ii
 
 #create the datadir
 if [ "$CREATEDB" != "0" ]
@@ -53,4 +57,12 @@ cd ${INST_DIR}/${SERVER}
 numactl --interleave=all --physcpubind=${CPU_MASK_MYSQLD} ./bin/mysqld_safe $PARAMS
 
 echo "${SERVER} stopped"
+
+#move server errorlog to result dir
+ERRORLOG=${DATADIR}/$(hostname).err
+if [ -f ${ERRORLOG} ]
+then
+  test -d ${HERE}/res${ii} || mkdir ${HERE}/res${ii}
+  mv ${ERRORLOG} ${HERE}/res${ii}
+fi
 

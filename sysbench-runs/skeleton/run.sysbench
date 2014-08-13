@@ -4,7 +4,15 @@ set -u
 #set -x
 #ulimit -n 8000
 
+#determine run number for selecting an output directory
+RUN_NUMBER=${1:?"run number not given!"}
+ii=`printf "%02d" $RUN_NUMBER`
+
 . config.sh
+test -e config.${ii} && . config.${ii}
+
+OUTDIR="res${ii}"
+mkdir -p $OUTDIR
 
 #setup
 ROWS=$(($TOTAL_ROWS / $TABLES))
@@ -18,6 +26,7 @@ lc_engine=`echo $ENGINE | tr [:upper:] [:lower:]`
 
 #force InnoDB checkpoint and wait for completion
 function waitm {
+echo "forcing a full database checkpoint..."
 if [ $lc_engine = "innodb" ]
 then
   wt_old=0
@@ -43,21 +52,18 @@ then
   done
   echo 
   mysql -S $SOCKET -u root -e "SET GLOBAL innodb_max_dirty_pages_pct=$mdp"
-fi
-if [ $lc_engine = "tokudb" ]
+
+elif [ $lc_engine = "tokudb" ]
 then
   date "+[%c] forcing tokudb checkpoint via FLUSH LOGS"
   mysql -S $SOCKET -u root -e "FLUSH LOGS"
   date "+[%c] checkpoint finished"
+
+else
+  echo "don't know how to checkpoint ${ENGINE} tables!"
 fi
 }
 
-
-#determine run number for selecting an output directory
-RUN_NUMBER=${1:?"run number not given!"}
-
-OUTDIR=`printf "res%02d" $RUN_NUMBER`
-mkdir -p $OUTDIR
 
 
 #prepare database
@@ -81,10 +87,11 @@ then
 
 else
 
+echo -n "warmup ... "
+
 if [ $lc_engine = "innodb" ]
 then
   #warmup buffer pool
-  echo -n "warmup ... "
   PIDLIST=""
   for i in `seq $TABLES` ; do
     (time mysql -S $SOCKET -u root -e "SELECT AVG(id) FROM sbtest$i FORCE KEY (PRIMARY)" sbtest) > /dev/null 2>&1   &
@@ -93,6 +100,9 @@ then
   wait $PIDLIST
   echo "done"
   sleep 2
+
+else
+  echo "don't know how to warmup ${ENGINE} tables!"
 fi
 
 fi
