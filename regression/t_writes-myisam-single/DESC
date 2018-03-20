@@ -1,0 +1,4 @@
+sysbench OLTP write-only
+9 index-update, 9 non-index-update, 1 delete, 1 insert
+single table, 1 mio rows, engine MyISAM
+numbers are queries per second

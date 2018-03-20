@@ -1,0 +1,4 @@
+sysbench OLTP readonly
+1000 point selects per iteration, no range queries
+32 tables, 1 mio rows total, engine ARIA ROW_FORMAT=FIXED
+numbers are queries per second
