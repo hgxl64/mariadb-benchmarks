@@ -1,0 +1,94 @@
+#!/bin/bash
+set -e
+set -u
+#set -x
+#ulimit -n 8000
+
+#determine run number for selecting an output directory
+RUN_NUMBER=${1:?"run number not given!"}
+ii=`printf "%02d" $RUN_NUMBER`
+
+. config.sh
+test -e config.${ii} && . config.${ii}
+
+OUTDIR="res${ii}"
+mkdir -p $OUTDIR
+
+#setup
+ROWS=$(($TOTAL_ROWS / $TABLES))
+NUMACTL="numactl --interleave=all"
+lc_engine=`echo $ENGINE | tr [:upper:] [:lower:]`  
+
+#force InnoDB checkpoint and wait for completion
+function waitm {
+echo "forcing a full database checkpoint..."
+if [ $lc_engine = "innodb" ]
+then
+  wt_old=0
+  repeat=5
+  mdp=`mysql -S $SOCKET -u root -e "SHOW GLOBAL VARIABLES LIKE 'innodb_max_dirty_pages_pct'" | tail -1 | cut -f 2`
+  mysql -S $SOCKET -u root -e "SET GLOBAL innodb_max_dirty_pages_pct=0"
+  echo -n "dirty pages:"
+  while true
+  do
+    wt=`mysql -S $SOCKET -u root -e "SHOW GLOBAL STATUS LIKE 'innodb_buffer_pool_pages_dirty'" | tail -1 | cut -f 2`
+    echo -n " $wt"
+    if [[ "$wt" -lt 100 ]] || [[ "$repeat" -le 0 ]] 
+    then
+      break
+    fi
+    if [[ "$wt" -eq "$wt_old" ]]
+    then
+      echo -n "($repeat)"
+      repeat=$(($repeat - 1))
+    fi
+    wt_old=$wt
+    sleep 2
+  done
+  echo 
+  mysql -S $SOCKET -u root -e "SET GLOBAL innodb_max_dirty_pages_pct=$mdp"
+
+elif [ $lc_engine = "tokudb" ]
+then
+  date "+[%c] forcing tokudb checkpoint via FLUSH LOGS"
+  mysql -S $SOCKET -u root -e "FLUSH LOGS"
+  date "+[%c] checkpoint finished"
+
+else
+  echo "don't know how to checkpoint ${ENGINE} tables!"
+fi
+}
+
+
+
+#prepare database
+if [ "$CREATEDB" != "0" ]
+then
+
+  #create sbtest database
+  mysql -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
+  mysql -S $SOCKET -u root -e "CREATE DATABASE sbtest"
+
+  #create and fill oltp table(s)
+  $SYSBENCH --test=$LUA $LUA_ARGS --oltp_tables_count=$TABLES --mysql-table-engine=$ENGINE --mysql-socket=$SOCKET --mysql-user=root prepare
+
+fi
+
+
+#run the benchmark
+for thread in $THREADS
+do
+  if [ $RUNTIME -gt 0 ]
+  then
+    $NUMACTL iostat -mx $REPORT $(($RUNTIME/$REPORT+1))  >> $OUTDIR/iostat.ro.$thread.res &
+    PIDLIST=$!
+
+    $NUMACTL $SYSBENCH --test=$LUA $LUA_ARGS --oltp_tables_count=$TABLES --num-threads=$thread --report-interval=$REPORT --mysql-socket=$SOCKET --max-time=$RUNTIME --max-requests=0 --mysql-user=root run | tee -a $OUTDIR/sysbench.$thread.res
+
+    $NUMACTL $SYSBENCH --test=$LUA $LUA_ARGS --oltp_tables_count=$TABLES --mysql-socket=$SOCKET --mysql-user=root cleanup
+    waitm
+    wait $PIDLIST
+
+  fi
+
+done
