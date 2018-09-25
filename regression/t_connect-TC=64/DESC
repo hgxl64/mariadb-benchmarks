@@ -1,0 +1,3 @@
+connect test, thread cache size = 64
+workload: connect; SELECT 1 FROM dual; disconnect
+numbers are connects per second

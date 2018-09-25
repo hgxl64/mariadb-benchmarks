@@ -1,0 +1,101 @@
+#!/bin/bash
+set -e
+set -u
+#set -x
+#ulimit -n 8000
+
+test ${INST_DIR-unset} = "unset" && . config.sh
+
+#determine run number for selecting an output directory
+OUTDIR=${1:?"mariadb/mysql version missing!"}
+#mkdir -p $OUTDIR
+
+#setup
+ROWS=$(($TOTAL_ROWS / $TABLES))
+NUMACTL="numactl --interleave=all"
+lc_engine=`echo $ENGINE | tr [:upper:] [:lower:]`  
+
+#force InnoDB checkpoint and wait for completion
+function waitm {
+echo "forcing a full database checkpoint..."
+if [ $lc_engine = "innodb" ]
+then
+  wt_old=0
+  repeat=5
+  mdp=`mysql -S $SOCKET -u root -e "SHOW GLOBAL VARIABLES LIKE 'innodb_max_dirty_pages_pct'" | tail -1 | cut -f 2`
+  mysql -S $SOCKET -u root -e "SET GLOBAL innodb_max_dirty_pages_pct=0"
+  echo -n "dirty pages:"
+  while true
+  do
+    wt=`mysql -S $SOCKET -u root -e "SHOW GLOBAL STATUS LIKE 'innodb_buffer_pool_pages_dirty'" | tail -1 | cut -f 2`
+    echo -n " $wt"
+    if [[ "$wt" -lt 100 ]] || [[ "$repeat" -le 0 ]] 
+    then
+      break
+    fi
+    if [[ "$wt" -eq "$wt_old" ]]
+    then
+      echo -n "($repeat)"
+      repeat=$(($repeat - 1))
+    fi
+    wt_old=$wt
+    sleep 10
+  done
+  echo 
+  mysql -S $SOCKET -u root -e "SET GLOBAL innodb_max_dirty_pages_pct=$mdp"
+
+elif [ $lc_engine = "tokudb" ]
+then
+  date "+[%c] forcing tokudb checkpoint via FLUSH LOGS"
+  mysql -S $SOCKET -u root -e "FLUSH LOGS"
+  date "+[%c] checkpoint finished"
+
+elif [ $lc_engine = "myisam" ]
+then
+  date "+[%c] forcing MyISAM checkpoint via FLUSH TABLES"
+  mysql -S $SOCKET -u root -e "FLUSH TABLES"
+  date "+[%c] checkpoint finished"
+
+elif [ $lc_engine = "aria" ]
+then
+  date "+[%c] forcing ARIA checkpoint via FLUSH TABLES + FLUSH LOGS"
+  mysql -S $SOCKET -u root -e "FLUSH TABLES"
+  mysql -S $SOCKET -u root -e "FLUSH LOGS"
+  date "+[%c] checkpoint finished"
+
+elif [ $lc_engine = "memory" ]
+then
+  echo "nothing to do for MEMORY tables"
+
+else
+  echo "don't know how to checkpoint ${ENGINE} tables!"
+fi
+}
+
+
+#prepare database
+
+#create sbtest database
+mysql -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
+mysql -S $SOCKET -u root -e "CREATE DATABASE sbtest"
+
+#create and fill oltp table(s)
+$SYSBENCH --test=$LUA $LUA_ARGS_PREPARE --oltp_tables_count=$TABLES --oltp-table-size=$ROWS --mysql-socket=$SOCKET --mysql-user=root prepare
+
+#force checkpoint and wait for completion
+waitm
+
+
+#run the benchmark
+for thread in $THREADS
+do
+  $NUMACTL iostat -mx $REPORT $((($RUNTIME+$EXTRATIME)/$REPORT+1))  >> $OUTDIR/iostat.$thread.res &
+  PIDLIST=$!
+
+  $NUMACTL $SYSBENCH --test=$LUA $LUA_ARGS_RUN --oltp_tables_count=$TABLES --oltp-table-size=$ROWS --num-threads=$thread --max-requests=0 --max-time=$RUNTIME --forced-shutdown=60 --report-interval=$REPORT --mysql-socket=$SOCKET --mysql-user=root run | tee -a $OUTDIR/sysbench.$thread.res
+
+  sleep 2
+  waitm
+  wait $PIDLIST
+
+done

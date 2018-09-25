@@ -1,0 +1,4 @@
+sysbench OLTP write-only, with synchronous binlog
+9 index-update, 9 non-index-update, 1 delete, 1 insert
+32 tables, 10 mio rows total, engine InnoDB/XtraDB (builtin)
+numbers are queries per second

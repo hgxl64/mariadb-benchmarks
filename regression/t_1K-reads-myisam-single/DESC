@@ -1,0 +1,4 @@
+sysbench OLTP readonly
+1000 point selects per iteration, no range queries
+1 table, 1 mio rows, engine MyISAM
+numbers are queries per second

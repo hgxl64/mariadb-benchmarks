@@ -1,0 +1,3 @@
+insert rows in batches of 100
+temporary table, engine ARIA ROW_FORMAT=FIXED, PRIMARY KEY AUTO_INCREMENT
+number is batches inserted per second

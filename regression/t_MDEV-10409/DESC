@@ -1,0 +1,4 @@
+sysbench OLTP readonly
+big ranges (1000 rows), uniform distribution
+1 InnoDB table, 800K rows, bufferpool slightly too small
+numbers are queries per second
