@@ -1,0 +1,20 @@
+01 ... emulated SEQUENCE, InnoDB
+02 ... emulated SEQUENCE, InnoDB, TRX
+03 ... emulated SEQUENCE, MyISAM
+04 ... emulated SEQUENCE, MyISAM, TRX
+05 ... native SEQUENCE, InnoDB
+06 ... native SEQUENCE, InnoDB, TRX
+07 ... native SEQUENCE, MyISAM
+08 ... native SEQUENCE, MyISAM, TRX
+09 ... native SEQUENCE as DEFAULT, InnoDB
+10 ... native SEQUENCE as DEFAULT, InnoDB, TRX
+11 ... native SEQUENCE as DEFAULT, MyISAM
+12 ... native SEQUENCE as DEFAULT, MyISAM, TRX
+13 ... AUTO_INCREMENT, InnoDB
+14 ... AUTO_INCREMENT, InnoDB, TRX
+15 ... emulated SEQUENCE in stored function, InnoDB
+16 ... emulated SEQUENCE in stored function, InnoDB, TRX
+17 ... emulated SEQUENCE in stored function, MyISAM
+18 ... emulated SEQUENCE in stored function, MyISAM, TRX
+19 ... AUTO_INCREMENT (mode 2), InnoDB
+20 ... AUTO_INCREMENT (mode 2), InnoDB, TRX

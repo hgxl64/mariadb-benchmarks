@@ -1,0 +1,2 @@
+LUA=lua/autoincrement.lua
+LUA_ARGS="--trx-size=10"

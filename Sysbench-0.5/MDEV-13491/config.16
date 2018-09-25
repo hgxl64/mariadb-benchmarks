@@ -1,0 +1,2 @@
+LUA=lua/sequence_function.lua
+LUA_ARGS="--trx-size=10"

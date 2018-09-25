@@ -1,0 +1,8 @@
+testing SEQUENCE objects
+
+sequence.lua - use a table and atomic UPDATE + LAST_INSERT_ID() to emulate a sequence
+sequence_native.lua - use a native sequence object
+
+each iteration of the test draws a new number from the sequence (threads competing)
+and then inserts a row using the sequence number as PK
+
