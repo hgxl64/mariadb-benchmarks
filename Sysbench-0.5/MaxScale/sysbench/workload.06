@@ -1,0 +1,2 @@
+WORKLOAD="--test=../lua/oltp_modulo.lua --write-modulus=4 --write-mask=1"
+RW=1

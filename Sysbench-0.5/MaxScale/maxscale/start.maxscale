@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# (w) Axel XL Schwenke for MariaDB Services AB
+
+set -e
+set -u
+#set -x
+
+. ../config.sh
+
+CONN=${1:?"connection number not given!"}
+ii=`printf "%02d" $CONN`
+
+test -e maxscale.$ii     || { echo "maxscale.$ii does not exist!"; exit; }
+test -e maxscale.cnf.$ii || { echo "maxscale.cnf.$ii does not exist!"; exit; }
+
+HERE=$(pwd)
+
+MAXSCALE=${INST_DIR}/$(cat maxscale.$ii)
+
+echo "starting maxscale ($ii) from $MAXSCALE"
+cd $MAXSCALE
+./bin/maxscale -d -f $HERE/maxscale.cnf.$ii
+

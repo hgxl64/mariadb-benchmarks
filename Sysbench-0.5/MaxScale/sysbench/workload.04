@@ -1,0 +1,1 @@
+WORKLOAD="--test=../lua/oltp_modulo.lua --oltp-read-only=on --write-mask=0 --oltp_point_selects=1 --oltp_simple_ranges=0 --oltp_sum_ranges=0 --oltp_order_ranges=0 --oltp_distinct_ranges=0"

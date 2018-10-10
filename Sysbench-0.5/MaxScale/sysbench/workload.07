@@ -1,0 +1,2 @@
+WORKLOAD="--test=../lua/oltp_adaptive.lua"
+RW=1

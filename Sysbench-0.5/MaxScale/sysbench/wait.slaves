@@ -1,0 +1,25 @@
+#!/bin/bash
+set -e
+set -u
+#set -x
+
+#. ../config.sh
+
+SLAVE_PORTS="33062 33063 33064"
+echo "waiting for slave(s) to catch up ..."
+
+while true
+do
+  k=0
+  echo -n "seconds behind:"
+  for P in $SLAVE_PORTS
+  do
+    s=$(mysql -h cheetah02 -P $P -u monitor -pmaxscale --batch -e "show slave status" | cut -f 33 | tail -1)
+    echo -n " $s"
+    k=$(($k+$s))
+  done
+  echo ""
+  test $k -eq 0 && break
+  sleep 5
+done
+  

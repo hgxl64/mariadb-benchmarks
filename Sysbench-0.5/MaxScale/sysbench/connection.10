@@ -1,0 +1,2 @@
+CONNECTION_RO="--mysql-host=127.0.0.1 --mysql-port=4008 --mysql-user=sysbench"
+CONNECTION_RW="--mysql-host=127.0.0.1 --mysql-port=4009 --mysql-user=sysbench"

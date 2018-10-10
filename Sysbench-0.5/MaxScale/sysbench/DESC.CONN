@@ -1,0 +1,22 @@
+02 ... direct, remote
+10 ... 2.2.2-tt3, 4 threads
+11 ... 2.2.2-tt3, 8 threads
+12 ... 2.2.2-tt3, 16 threads
+13 ... 2.2.2-tt3, cache, 4 threads
+14 ... 2.2.2-tt3, cache, 8 threads
+15 ... 2.2.2-tt3, cache, 16 threads
+16 ... 2.2.2-tt3, cache+assume_cacheable, 4 threads
+17 ... 2.2.2-tt3, cache+assume_cacheable, 8 threads
+18 ... 2.2.2-tt3, cache+assume_cacheable, 16 threads
+20 ... 2.1.3, 4 threads
+21 ... 2.1.3, 8 threads
+22 ... 2.1.3, 16 threads
+23 ... 2.1.3, cache, 4 threads
+24 ... 2.1.3, cache, 8 threads
+25 ... 2.1.3, cache, 16 threads
+30 ... 2.1.13, 4 threads
+31 ... 2.1.13, 8 threads
+32 ... 2.1.13, 16 threads
+33 ... 2.1.13, cache, 4 threads
+34 ... 2.1.13, cache, 8 threads
+35 ... 2.1.13, cache, 16 threads

@@ -1,0 +1,2 @@
+CONNECTION_RO="--mysql-host=cheetah02 --mysql-port=33061,33062,33063,33064 --mysql-user=sysbench"
+CONNECTION_RW="--mysql-host=cheetah02 --mysql-port=33061,33062,33063,33064 --mysql-user=sysbench"

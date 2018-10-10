@@ -1,0 +1,45 @@
+#!/bin/bash
+set -e
+set -u
+#set -x
+#ulimit -n 8000
+
+. ../config.sh
+
+CONN=${1:?"connection number not given!"}
+ii=`printf "%02d" $CONN`
+
+WL=${2:?"workload number not given!"}
+jj=`printf "%02d" $WL`
+
+. connection.$ii
+. workload.$jj
+
+if [ $RW -eq 1 ]
+then
+  CONNECTION=$CONNECTION_RW
+else
+  CONNECTION=$CONNECTION_RO
+fi
+
+OUTDIR="../results/conn${ii}_wl${jj}"
+mkdir -p $OUTDIR
+
+#setup
+ROWS=$(($TOTAL_ROWS / $TABLES))
+NUMACTL="numactl --interleave=all"
+
+#run the benchmark
+for thread in $THREADS
+do
+
+  $NUMACTL $SYSBENCH $WORKLOAD --db-ps-mode=$PS_MODE --oltp_tables_count=$TABLES --oltp-table-size=$ROWS --num-threads=$thread --report-interval=$REPORT --max-time=$RUNTIME --max-requests=0 $CONNECTION run | tee -a $OUTDIR/sysbench.ro.$thread.res
+
+  sleep 5
+
+  if [ $RW -eq 1 ]
+  then
+    ./wait.slaves
+  fi
+
+done
