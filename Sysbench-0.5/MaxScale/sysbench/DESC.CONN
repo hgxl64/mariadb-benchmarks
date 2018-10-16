@@ -20,3 +20,21 @@
 33 ... 2.1.13, cache, 4 threads
 34 ... 2.1.13, cache, 8 threads
 35 ... 2.1.13, cache, 16 threads
+40 ... 2.3.0, 4 threads
+41 ... 2.3.0, 8 threads
+42 ... 2.3.0, 16 threads
+43 ... 2.3.0, cache, 4 threads
+44 ... 2.3.0, cache, 8 threads
+45 ... 2.3.0, cache, 16 threads
+46 ... 2.3.0, cache+assume_cacheable, 4 threads
+47 ... 2.3.0, cache+assume_cacheable, 8 threads
+48 ... 2.3.0, cache+assume_cacheable, 16 threads
+50 ... 2.3.0, 4 threads, no classifier cache
+51 ... 2.3.0, 8 threads, no classifier cache
+52 ... 2.3.0, 16 threads, no classifier cache
+53 ... 2.3.0, cache, 4 threads, no classifier cache
+54 ... 2.3.0, cache, 8 threads, no classifier cache
+55 ... 2.3.0, cache, 16 threads, no classifier cache
+56 ... 2.3.0, cache+assume_cacheable, 4 threads, no classifier cache
+57 ... 2.3.0, cache+assume_cacheable, 8 threads, no classifier cache
+58 ... 2.3.0, cache+assume_cacheable, 16 threads, no classifier cache
