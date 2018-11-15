@@ -1,0 +1,10 @@
+--- after read-only ---
+3.3G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (22%) ---
+3.4G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (50%) ---
+3.7G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (80%) ---
+4.4G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (100%) ---
+4.1G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb

@@ -1,0 +1,18 @@
+[mysqld]
+
+#####general options
+max_connections = 100
+table_open_cache = 200
+table_open_cache_instances = 32
+query_cache_type = 0
+performance-schema = off
+secure-file-priv=/tmp
+transaction-isolation=READ-COMMITTED
+
+#####rocksdb
+plugin-load-add = ha_rocksdb.so
+rocksdb_block_cache_size = 8G
+
+#####specific settings
+rocksdb_block_size=16384
+

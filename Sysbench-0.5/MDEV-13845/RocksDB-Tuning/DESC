@@ -1,0 +1,12 @@
+01 ... baseline
+02 ... + max_open_file
+03 ... + block_size=16K
+04 ... + wal_size=4G
+05 ... + num_shardbits=6
+06 ... all above
+07 ... all above + rate limiter
+08 ... 07 with all thread counts
+09 ... 08 with thread pool
+10 ... default compression (snappy)
+11 ... LZ4 compression
+12 ... ZSTD compression

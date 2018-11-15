@@ -1,0 +1,27 @@
+[mysqld]
+
+#####general options
+max_connections = 400
+table_open_cache = 800
+table_open_cache_instances = 32
+query_cache_type = 0
+performance-schema = off
+secure-file-priv=/tmp
+transaction-isolation=READ-COMMITTED
+
+#####rocksdb
+plugin-load-add = ha_rocksdb.so
+rocksdb_block_cache_size = 8G
+
+#####specific settings
+rocksdb_max_open_files=-1
+rocksdb_max_total_wal_size=4G
+rocksdb_block_size=16384
+rocksdb_table_cache_numshardbits=6
+
+rocksdb_bytes_per_sync=4194304
+rocksdb_wal_bytes_per_sync=4194304
+rocksdb_rate_limiter_bytes_per_sec=104857600
+
+rocksdb_default_cf_options="write_buffer_size=256m;target_file_size_base=32m;max_bytes_for_level_base=512m;max_write_buffer_number=4;level0_file_num_compaction_trigger=4;level0_slowdown_writes_trigger=20;level0_stop_writes_trigger=30;max_write_buffer_number=4;block_based_table_factory={cache_index_and_filter_blocks=1;filter_policy=bloomfilter:10:false;whole_key_filtering=0};level_compaction_dynamic_level_bytes=true;optimize_filters_for_hits=true;memtable_prefix_bloom_size_ratio=0.05;prefix_extractor=capped:12;compaction_pri=kMinOverlappingRatio;compression=kZSTD;bottommost_compression=kZSTD;compression_opts=-14:1:0"
+

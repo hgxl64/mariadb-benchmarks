@@ -1,0 +1,43 @@
+2018-11-06 22:26:47 0 [Note] InnoDB: Using Linux native AIO
+2018-11-06 22:26:47 0 [Note] InnoDB: Mutexes and rw_locks use GCC atomic builtins
+2018-11-06 22:26:47 0 [Note] InnoDB: Uses event mutexes
+2018-11-06 22:26:47 0 [Note] InnoDB: Compressed tables use zlib 1.2.8
+2018-11-06 22:26:47 0 [Note] InnoDB: Number of pools: 1
+2018-11-06 22:26:47 0 [Note] InnoDB: Using SSE2 crc32 instructions
+2018-11-06 22:26:47 0 [Note] InnoDB: Initializing buffer pool, total size = 4G, instances = 2, chunk size = 128M
+2018-11-06 22:26:47 0 [Note] InnoDB: Completed initialization of buffer pool
+2018-11-06 22:26:47 0 [Note] InnoDB: If the mysqld execution user is authorized, page cleaner thread priority can be changed. See the man page of setpriority().
+2018-11-06 22:26:47 0 [Note] InnoDB: 128 out of 128 rollback segments are active.
+2018-11-06 22:26:47 0 [Note] InnoDB: Creating shared tablespace for temporary tables
+2018-11-06 22:26:47 0 [Note] InnoDB: Setting file './ibtmp1' size to 12 MB. Physically writing the file full; Please wait ...
+2018-11-06 22:26:47 0 [Note] InnoDB: File './ibtmp1' size is now 12 MB.
+2018-11-06 22:26:47 0 [Note] InnoDB: Waiting for purge to start
+2018-11-06 22:26:47 0 [Note] InnoDB: 10.3.10 started; log sequence number 1630815; transaction id 21
+2018-11-06 22:26:47 0 [Note] InnoDB: Loading buffer pool(s) from /mnt/ssd-raid0/sysbench/datadir/ib_buffer_pool
+2018-11-06 22:26:47 0 [Note] InnoDB: Buffer pool(s) load completed at 181106 22:26:47
+2018-11-06 22:26:47 0 [Note] Plugin 'FEEDBACK' is disabled.
+2018-11-06 22:26:47 0 [Note] Reading of all Master_info entries succeded
+2018-11-06 22:26:47 0 [Note] Added new Master_info '' to hash table
+2018-11-06 22:26:47 0 [Note] /home/axel/mariadb-install/mariadb-10.3.10/libexec/mysqld: ready for connections.
+Version: '10.3.10-MariaDB'  socket: '/tmp/mysqld.sock.sysbench'  port: 0  Source distribution
+2018-11-06 22:26:48 11 [Warning] Aborted connection 11 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-11-06 22:33:00 15 [Warning] Aborted connection 15 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-11-06 22:33:00 19 [Warning] Aborted connection 19 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-11-06 22:33:00 14 [Warning] Aborted connection 14 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-11-06 22:33:00 17 [Warning] Aborted connection 17 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-11-06 22:33:00 13 [Warning] Aborted connection 13 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-11-06 22:33:00 18 [Warning] Aborted connection 18 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-11-06 22:33:00 12 [Warning] Aborted connection 12 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-11-06 22:33:00 16 [Warning] Aborted connection 16 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-11-07  1:11:00 0 [Note] /home/axel/mariadb-install/mariadb-10.3.10/libexec/mysqld (initiated by: root[root] @ localhost []): Normal shutdown
+2018-11-07  1:11:00 0 [Note] Event Scheduler: Purging the queue. 0 events
+2018-11-07  1:11:00 0 [Note] InnoDB: FTS optimize thread exiting.
+2018-11-07  1:11:00 0 [Note] InnoDB: Starting shutdown...
+2018-11-07  1:11:00 0 [Note] InnoDB: Dumping buffer pool(s) to /mnt/ssd-raid0/sysbench/datadir/ib_buffer_pool
+2018-11-07  1:11:00 0 [Note] InnoDB: Instance 0, restricted to 32764 pages due to innodb_buf_pool_dump_pct=25
+2018-11-07  1:11:00 0 [Note] InnoDB: Instance 1, restricted to 32764 pages due to innodb_buf_pool_dump_pct=25
+2018-11-07  1:11:00 0 [Note] InnoDB: Buffer pool(s) dump completed at 181107  1:11:00
+2018-11-07  1:11:02 0 [Note] InnoDB: Shutdown completed; log sequence number 22717275862; transaction id 4451514
+2018-11-07  1:11:02 0 [Note] InnoDB: Removed temporary tablespace data file: "ibtmp1"
+2018-11-07  1:11:02 0 [Note] /home/axel/mariadb-install/mariadb-10.3.10/libexec/mysqld: Shutdown complete
+

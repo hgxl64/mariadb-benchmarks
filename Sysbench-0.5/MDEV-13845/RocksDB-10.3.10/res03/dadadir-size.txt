@@ -1,0 +1,90 @@
+--- after read-only ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (22%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (50%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (80%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (100%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-only ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (22%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (50%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (80%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (100%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-only ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (22%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (50%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (80%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (100%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-only ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (22%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (50%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (80%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (100%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-only ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (22%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (50%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (80%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (100%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-only ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (22%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (50%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (80%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (100%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-only ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (22%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (50%) ---
+14G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (80%) ---
+16G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (100%) ---
+16G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-only ---
+16G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (22%) ---
+16G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (50%) ---
+16G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (80%) ---
+19G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (100%) ---
+19G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-only ---
+19G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (22%) ---
+19G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (50%) ---
+19G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (80%) ---
+19G	/mnt/ssd-raid0/sysbench/datadir
+--- after read-write (100%) ---
+19G	/mnt/ssd-raid0/sysbench/datadir

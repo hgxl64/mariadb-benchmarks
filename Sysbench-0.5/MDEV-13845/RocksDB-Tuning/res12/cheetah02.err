@@ -1,0 +1,85 @@
+2018-05-22 12:10:46 0 [Note] RocksDB: 2 column families found
+2018-05-22 12:10:46 0 [Note] RocksDB: Column Families at start:
+2018-05-22 12:10:46 0 [Note]   cf=default
+2018-05-22 12:10:46 0 [Note]     write_buffer_size=268435456
+2018-05-22 12:10:46 0 [Note]     target_file_size_base=33554432
+2018-05-22 12:10:46 0 [Note]   cf=__system__
+2018-05-22 12:10:46 0 [Note]     write_buffer_size=268435456
+2018-05-22 12:10:46 0 [Note]     target_file_size_base=33554432
+2018-05-22 12:10:46 0 [Note] RocksDB: Table_store: loaded DDL data for 0 tables
+2018-05-22 12:10:46 0 [Note] RocksDB: global statistics using get_sched_indexer_t indexer
+2018-05-22 12:10:46 0 [Note] MyRocks storage engine plugin has been successfully initialized.
+2018-05-22 12:10:46 0 [Note] InnoDB: Mutexes and rw_locks use GCC atomic builtins
+2018-05-22 12:10:46 0 [Note] InnoDB: Uses event mutexes
+2018-05-22 12:10:46 0 [Note] InnoDB: Compressed tables use zlib 1.2.8
+2018-05-22 12:10:46 0 [Note] InnoDB: Using Linux native AIO
+2018-05-22 12:10:46 0 [Note] InnoDB: Number of pools: 1
+2018-05-22 12:10:46 0 [Note] InnoDB: Using SSE2 crc32 instructions
+2018-05-22 12:10:46 0 [Note] InnoDB: Initializing buffer pool, total size = 128M, instances = 1, chunk size = 128M
+2018-05-22 12:10:46 0 [Note] InnoDB: Completed initialization of buffer pool
+2018-05-22 12:10:46 0 [Note] InnoDB: If the mysqld execution user is authorized, page cleaner thread priority can be changed. See the man page of setpriority().
+2018-05-22 12:10:46 0 [Note] InnoDB: 128 out of 128 rollback segments are active.
+2018-05-22 12:10:46 0 [Note] InnoDB: Creating shared tablespace for temporary tables
+2018-05-22 12:10:46 0 [Note] InnoDB: Setting file './ibtmp1' size to 12 MB. Physically writing the file full; Please wait ...
+2018-05-22 12:10:46 0 [Note] InnoDB: File './ibtmp1' size is now 12 MB.
+2018-05-22 12:10:46 0 [Note] InnoDB: Waiting for purge to start
+2018-05-22 12:10:46 0 [Note] InnoDB: 5.7.21 started; log sequence number 1632468; transaction id 21
+2018-05-22 12:10:46 0 [Note] InnoDB: Loading buffer pool(s) from /mnt/ssd-raid0/sysbench/datadir/ib_buffer_pool
+2018-05-22 12:10:46 0 [Note] InnoDB: Buffer pool(s) load completed at 180522 12:10:46
+2018-05-22 12:10:46 0 [Note] Plugin 'FEEDBACK' is disabled.
+2018-05-22 12:10:46 0 [Note] Reading of all Master_info entries succeded
+2018-05-22 12:10:46 0 [Note] Added new Master_info '' to hash table
+2018-05-22 12:10:46 0 [Note] /home/axel/mariadb-install/mariadb-10.3.6-rocks/libexec/mysqld: ready for connections.
+Version: '10.3.6-MariaDB'  socket: '/tmp/mysqld.sock.sysbench'  port: 0  Source distribution
+2018-05-22 12:10:47 11 [Note] RocksDB: Begin index creation (0,257)
+2018-05-22 12:10:47 11 [Note] RocksDB: Begin index creation (0,259)
+2018-05-22 12:10:47 11 [Note] RocksDB: Begin index creation (0,261)
+2018-05-22 12:10:47 11 [Note] RocksDB: Begin index creation (0,263)
+2018-05-22 12:10:47 11 [Note] RocksDB: Begin index creation (0,265)
+2018-05-22 12:10:47 11 [Note] RocksDB: Begin index creation (0,267)
+2018-05-22 12:10:47 11 [Note] RocksDB: Begin index creation (0,269)
+2018-05-22 12:10:47 11 [Note] RocksDB: Begin index creation (0,271)
+2018-05-22 12:10:47 11 [Warning] Aborted connection 11 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-05-22 12:13:02 19 [Warning] Aborted connection 19 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-05-22 12:13:02 18 [Warning] Aborted connection 18 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-05-22 12:13:02 17 [Warning] Aborted connection 17 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-05-22 12:13:02 15 [Warning] Aborted connection 15 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-05-22 12:13:02 13 [Warning] Aborted connection 13 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-05-22 12:13:02 16 [Warning] Aborted connection 16 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-05-22 12:13:02 14 [Warning] Aborted connection 14 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-05-22 12:13:02 12 [Warning] Aborted connection 12 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2018-05-22 12:13:02 20 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:15:38 37 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:17:11 46 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:18:43 55 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:20:15 64 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:22:55 97 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:24:28 114 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:26:01 131 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:27:35 148 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:30:14 213 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:31:47 246 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:33:21 279 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:34:54 312 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:37:32 441 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:39:05 506 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:40:39 571 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:42:12 636 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:44:51 893 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:46:24 1022 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:47:57 1151 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:49:30 1280 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:52:08 1793 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:53:41 2050 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:55:13 2307 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:56:46 2564 [Note] RocksDB: Manual memtable flush.
+2018-05-22 12:56:51 0 [Note] /home/axel/mariadb-install/mariadb-10.3.6-rocks/libexec/mysqld (initiated by: root[root] @ localhost []): Normal shutdown
+2018-05-22 12:56:51 0 [Note] Event Scheduler: Purging the queue. 0 events
+2018-05-22 12:56:51 0 [Note] InnoDB: FTS optimize thread exiting.
+2018-05-22 12:56:51 0 [Note] InnoDB: Starting shutdown...
+2018-05-22 12:56:51 0 [Note] InnoDB: Dumping buffer pool(s) to /mnt/ssd-raid0/sysbench/datadir/ib_buffer_pool
+2018-05-22 12:56:51 0 [Note] InnoDB: Buffer pool(s) dump completed at 180522 12:56:51
+2018-05-22 12:56:52 0 [Note] InnoDB: Shutdown completed; log sequence number 1632477; transaction id 22
+2018-05-22 12:56:52 0 [Note] InnoDB: Removed temporary tablespace data file: "ibtmp1"
+2018-05-22 12:56:52 0 [Note] /home/axel/mariadb-install/mariadb-10.3.6-rocks/libexec/mysqld: Shutdown complete
+

@@ -1,0 +1,60 @@
+--- after read-only ---
+1.9G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (22%) ---
+1.6G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (50%) ---
+2.0G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (80%) ---
+2.0G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (100%) ---
+2.1G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-only ---
+2.4G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (22%) ---
+2.1G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (50%) ---
+2.4G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (80%) ---
+2.6G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (100%) ---
+2.3G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-only ---
+2.5G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (22%) ---
+2.3G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (50%) ---
+2.4G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (80%) ---
+3.0G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (100%) ---
+3.1G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-only ---
+2.5G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (22%) ---
+2.3G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (50%) ---
+2.6G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (80%) ---
+3.4G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (100%) ---
+3.6G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-only ---
+2.5G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (22%) ---
+2.3G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (50%) ---
+2.6G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (80%) ---
+3.4G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (100%) ---
+3.3G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-only ---
+2.5G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (22%) ---
+2.2G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (50%) ---
+2.4G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (80%) ---
+2.8G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb
+--- after read-write (100%) ---
+3.0G	/mnt/ssd-raid0/sysbench/datadir/#rocksdb

@@ -1,0 +1,2 @@
+PRERUN="rm dump_status.sh; ln -s dump_status.sh.innodb dump_status.sh"
+ENGINE=InnoDB
