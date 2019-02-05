@@ -1,0 +1,7 @@
+01 ... 1G buffer pool
+02 ... 2G buffer pool
+03 ... 4G buffer pool
+04 ... 8G buffer pool
+05 ... 16G buffer pool
+06 ... 32G buffer pool
+07 ... RocksDB, 16G buffer

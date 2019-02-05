@@ -1,0 +1,22 @@
+#!/bin/bash
+set -e
+set -u
+#set -x
+
+#determine run number for selecting an output directory
+RUN_NUMBER=${1:?"run number not given!"}
+ii=`printf "%02d" $RUN_NUMBER`
+
+. config.sh
+test -e config.${ii} && . config.${ii}
+
+OUTDIR="res${ii}"
+mkdir -p $OUTDIR
+
+mysql -S $SOCKET -u root -e "call do_warmup($WARMUP)"       dcdev >$OUTDIR/queries.txt
+mysql -S $SOCKET -u root -e "call do_benchmark($BENCHMARK)" dcdev >$OUTDIR/queries.txt
+
+mysql -S $SOCKET -u root -e "call show_results()"  dcdev >$OUTDIR/timing_long.txt
+mysql -S $SOCKET -u root -e "call short_results()" dcdev >$OUTDIR/timing_short.txt
+
+
