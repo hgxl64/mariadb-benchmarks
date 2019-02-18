@@ -1,0 +1,109 @@
+Installing MySQL system tables...2019-02-14 23:06:19 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defaults_for_timestamp server option (see documentation for more details).
+2019-02-14 23:06:19 0 [Note] Ignoring --secure-file-priv value as server is running with --bootstrap.
+2019-02-14 23:06:19 0 [Note] /home/axel/mariadb-install/mysql-5.6.43/libexec/mysqld (mysqld 5.6.43-log) starting as process 32129 ...
+2019-02-14 23:06:19 32129 [Note] InnoDB: Using atomics to ref count buffer pool pages
+2019-02-14 23:06:19 32129 [Note] InnoDB: The InnoDB memory heap is disabled
+2019-02-14 23:06:19 32129 [Note] InnoDB: Mutexes and rw_locks use GCC atomic builtins
+2019-02-14 23:06:19 32129 [Note] InnoDB: Memory barrier is not used
+2019-02-14 23:06:19 32129 [Note] InnoDB: Compressed tables use zlib 1.2.11
+2019-02-14 23:06:19 32129 [Note] InnoDB: Using Linux native AIO
+2019-02-14 23:06:19 32129 [Note] InnoDB: Using CPU crc32 instructions
+2019-02-14 23:06:19 32129 [Note] InnoDB: Initializing buffer pool, size = 16.0G
+2019-02-14 23:06:20 32129 [Note] InnoDB: Completed initialization of buffer pool
+2019-02-14 23:06:20 32129 [Note] InnoDB: The first specified data file ./ibdata1 did not exist: a new database to be created!
+2019-02-14 23:06:20 32129 [Note] InnoDB: Setting file ./ibdata1 size to 12 MB
+2019-02-14 23:06:20 32129 [Note] InnoDB: Database physically writes the file full: wait...
+2019-02-14 23:06:20 32129 [Note] InnoDB: Setting log file ./ib_logfile101 size to 2048 MB
+InnoDB: Progress in MB: 100 200 300 400 500 600 700 800 900 1000 1100 1200 1300 1400 1500 1600 1700 1800 1900 2000
+2019-02-14 23:06:25 32129 [Note] InnoDB: Setting log file ./ib_logfile1 size to 2048 MB
+InnoDB: Progress in MB: 100 200 300 400 500 600 700 800 900 1000 1100 1200 1300 1400 1500 1600 1700 1800 1900 2000
+2019-02-14 23:06:30 32129 [Note] InnoDB: Renaming log file ./ib_logfile101 to ./ib_logfile0
+2019-02-14 23:06:30 32129 [Warning] InnoDB: New log files created, LSN=45781
+2019-02-14 23:06:30 32129 [Note] InnoDB: Doublewrite buffer not found: creating new
+2019-02-14 23:06:30 32129 [Note] InnoDB: Doublewrite buffer created
+2019-02-14 23:06:30 32129 [Note] InnoDB: 128 rollback segment(s) are active.
+2019-02-14 23:06:30 32129 [Warning] InnoDB: Creating foreign key constraint system tables.
+2019-02-14 23:06:30 32129 [Note] InnoDB: Foreign key constraint system tables created
+2019-02-14 23:06:30 32129 [Note] InnoDB: Creating tablespace and datafile system tables.
+2019-02-14 23:06:30 32129 [Note] InnoDB: Tablespace and datafile system tables created.
+2019-02-14 23:06:30 32129 [Note] InnoDB: Waiting for purge to start
+2019-02-14 23:06:30 32129 [Note] InnoDB: 5.6.43 started; log sequence number 0
+2019-02-14 23:06:30 32129 [Note] Binlog end
+2019-02-14 23:06:30 32129 [Note] InnoDB: FTS optimize thread exiting.
+2019-02-14 23:06:30 32129 [Note] InnoDB: Starting shutdown...
+2019-02-14 23:06:32 32129 [Note] InnoDB: Shutdown completed; log sequence number 1625977
+OK
+
+Filling help tables...2019-02-14 23:06:32 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defaults_for_timestamp server option (see documentation for more details).
+2019-02-14 23:06:32 0 [Note] Ignoring --secure-file-priv value as server is running with --bootstrap.
+2019-02-14 23:06:32 0 [Note] /home/axel/mariadb-install/mysql-5.6.43/libexec/mysqld (mysqld 5.6.43-log) starting as process 32186 ...
+2019-02-14 23:06:32 32186 [Note] InnoDB: Using atomics to ref count buffer pool pages
+2019-02-14 23:06:32 32186 [Note] InnoDB: The InnoDB memory heap is disabled
+2019-02-14 23:06:32 32186 [Note] InnoDB: Mutexes and rw_locks use GCC atomic builtins
+2019-02-14 23:06:32 32186 [Note] InnoDB: Memory barrier is not used
+2019-02-14 23:06:32 32186 [Note] InnoDB: Compressed tables use zlib 1.2.11
+2019-02-14 23:06:32 32186 [Note] InnoDB: Using Linux native AIO
+2019-02-14 23:06:32 32186 [Note] InnoDB: Using CPU crc32 instructions
+2019-02-14 23:06:32 32186 [Note] InnoDB: Initializing buffer pool, size = 16.0G
+2019-02-14 23:06:33 32186 [Note] InnoDB: Completed initialization of buffer pool
+2019-02-14 23:06:33 32186 [Note] InnoDB: Highest supported file format is Barracuda.
+2019-02-14 23:06:34 32186 [Note] InnoDB: 128 rollback segment(s) are active.
+2019-02-14 23:06:34 32186 [Note] InnoDB: Waiting for purge to start
+2019-02-14 23:06:34 32186 [Note] InnoDB: 5.6.43 started; log sequence number 1625977
+2019-02-14 23:06:38 32186 [Note] Binlog end
+2019-02-14 23:06:38 32186 [Note] InnoDB: FTS optimize thread exiting.
+2019-02-14 23:06:38 32186 [Note] InnoDB: Starting shutdown...
+2019-02-14 23:06:41 32186 [Note] InnoDB: Shutdown completed; log sequence number 1625987
+OK
+
+To start mysqld at boot time you have to copy
+support-files/mysql.server to the right place for your system
+
+PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !
+To do so, start the server, then issue the following commands:
+
+  /home/axel/mariadb-install/mysql-5.6.43/bin/mysqladmin -u root password 'new-password'
+  /home/axel/mariadb-install/mysql-5.6.43/bin/mysqladmin -u root -h cheetah02 password 'new-password'
+
+Alternatively you can run:
+
+  /home/axel/mariadb-install/mysql-5.6.43/bin/mysql_secure_installation
+
+which will also give you the option of removing the test
+databases and anonymous user created by default.  This is
+strongly recommended for production servers.
+
+See the manual for more instructions.
+
+You can start the MySQL daemon with:
+
+  cd /home/axel/mariadb-install/mysql-5.6.43 ; /home/axel/mariadb-install/mysql-5.6.43/bin/mysqld_safe &
+
+You can test the MySQL daemon with mysql-test-run.pl
+
+  cd mysql-test ; perl mysql-test-run.pl
+
+Please report any problems at http://bugs.mysql.com/
+
+The latest information about MySQL is available on the web at
+
+  http://www.mysql.com
+
+Support MySQL by buying support/licenses at http://shop.mysql.com
+
+WARNING: Found existing config file /home/axel/mariadb-install/mysql-5.6.43/my.cnf on the system.
+Because this file might be in use, it was not replaced,
+but was used in bootstrap (unless you used --defaults-file)
+and when you later start the server.
+The new default config file was created as /home/axel/mariadb-install/mysql-5.6.43/my-new.cnf,
+please compare it with your file and take the changes you need.
+
+WARNING: Default config file /etc/mysql/my.cnf exists on the system
+This file will be read by default by the MySQL server
+If you do not want to use this, either remove it, or use the
+--defaults-file argument to mysqld_safe when starting the server
+
+190214 23:06:41 mysqld_safe Logging to '/mnt/ssd-raid0/sysbench/writes/cheetah02.err'.
+190214 23:06:41 mysqld_safe Starting mysqld daemon with databases from /mnt/ssd-raid0/sysbench/writes
+190214 23:36:13 mysqld_safe mysqld from pid file /tmp/mysqld.pid.sysbench ended
+mysql-5.6.43 stopped

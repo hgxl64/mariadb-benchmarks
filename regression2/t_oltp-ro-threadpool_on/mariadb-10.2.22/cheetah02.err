@@ -1,0 +1,38 @@
+2019-02-16  0:41:26 139981632591680 [Note] InnoDB: Mutexes and rw_locks use GCC atomic builtins
+2019-02-16  0:41:26 139981632591680 [Note] InnoDB: Uses event mutexes
+2019-02-16  0:41:26 139981632591680 [Note] InnoDB: Compressed tables use zlib 1.2.11
+2019-02-16  0:41:26 139981632591680 [Note] InnoDB: Using Linux native AIO
+2019-02-16  0:41:26 139981632591680 [Note] InnoDB: Number of pools: 1
+2019-02-16  0:41:26 139981632591680 [Note] InnoDB: Using SSE2 crc32 instructions
+2019-02-16  0:41:26 139981632591680 [Note] InnoDB: Initializing buffer pool, total size = 16G, instances = 8, chunk size = 128M
+2019-02-16  0:41:27 139981632591680 [Note] InnoDB: Completed initialization of buffer pool
+2019-02-16  0:41:27 139962860513024 [Note] InnoDB: If the mysqld execution user is authorized, page cleaner thread priority can be changed. See the man page of setpriority().
+2019-02-16  0:41:27 139981632591680 [Note] InnoDB: Highest supported file format is Barracuda.
+2019-02-16  0:41:27 139981632591680 [Note] InnoDB: 128 out of 128 rollback segments are active.
+2019-02-16  0:41:27 139981632591680 [Note] InnoDB: Creating shared tablespace for temporary tables
+2019-02-16  0:41:27 139981632591680 [Note] InnoDB: Setting file './ibtmp1' size to 12 MB. Physically writing the file full; Please wait ...
+2019-02-16  0:41:27 139981632591680 [Note] InnoDB: File './ibtmp1' size is now 12 MB.
+2019-02-16  0:41:27 139981632591680 [Note] InnoDB: Waiting for purge to start
+2019-02-16  0:41:27 139981632591680 [Note] InnoDB: 5.7.25 started; log sequence number 1619987
+2019-02-16  0:41:27 139963119171328 [Note] InnoDB: Loading buffer pool(s) from /mnt/ssd-raid0/sysbench/writes/ib_buffer_pool
+2019-02-16  0:41:27 139963119171328 [Note] InnoDB: Buffer pool(s) load completed at 190216  0:41:27
+2019-02-16  0:41:27 139981632591680 [Note] Plugin 'FEEDBACK' is disabled.
+2019-02-16  0:41:27 139981632591680 [Note] Reading of all Master_info entries succeded
+2019-02-16  0:41:27 139981632591680 [Note] Added new Master_info '' to hash table
+2019-02-16  0:41:27 139981632591680 [Note] /home/axel/mariadb-install/mariadb-10.2.22/libexec/mysqld: ready for connections.
+Version: '10.2.22-MariaDB'  socket: '/tmp/mysqld.sock.sysbench'  port: 0  Source distribution
+2019-02-16  0:41:46 139963254052608 [Warning] Aborted connection 11 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2019-02-16  0:55:34 139962703517440 [Note] InnoDB: Number of pools: 2
+2019-02-16  0:57:16 139962283157248 [Note] InnoDB: Number of pools: 3
+2019-02-16  0:59:00 139949226407680 [Note] InnoDB: Number of pools: 4
+2019-02-16  0:59:01 139949221799680 [Note] InnoDB: Number of pools: 5
+2019-02-16  1:00:44 139962654877440 [Note] /home/axel/mariadb-install/mariadb-10.2.22/libexec/mysqld (initiated by: root[root] @ localhost []): Normal shutdown
+2019-02-16  1:00:44 139962654877440 [Note] Event Scheduler: Purging the queue. 0 events
+2019-02-16  1:00:44 139963312105216 [Note] InnoDB: FTS optimize thread exiting.
+2019-02-16  1:00:44 139962654877440 [Note] InnoDB: Starting shutdown...
+2019-02-16  1:00:44 139963119171328 [Note] InnoDB: Dumping buffer pool(s) to /mnt/ssd-raid0/sysbench/writes/ib_buffer_pool
+2019-02-16  1:00:44 139963119171328 [Note] InnoDB: Buffer pool(s) dump completed at 190216  1:00:44
+2019-02-16  1:00:46 139962654877440 [Note] InnoDB: Shutdown completed; log sequence number 279995416
+2019-02-16  1:00:46 139962654877440 [Note] InnoDB: Removed temporary tablespace data file: "ibtmp1"
+2019-02-16  1:00:46 139962654877440 [Note] /home/axel/mariadb-install/mariadb-10.2.22/libexec/mysqld: Shutdown complete
+

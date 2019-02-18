@@ -1,0 +1,27 @@
+190216 01:01:13 mysqld_safe Starting mysqld daemon with databases from /mnt/ssd-raid0/sysbench/writes
+190216  1:01:13 [Note] /home/axel/mariadb-install/mariadb-10.0.38/libexec/mysqld (mysqld 10.0.38-MariaDB) starting as process 29941 ...
+190216  1:01:13 [Note] InnoDB: Using mutexes to ref count buffer pool pages
+190216  1:01:13 [Note] InnoDB: The InnoDB memory heap is disabled
+190216  1:01:13 [Note] InnoDB: Mutexes and rw_locks use GCC atomic builtins
+190216  1:01:13 [Note] InnoDB: GCC builtin __atomic_thread_fence() is used for memory barrier
+190216  1:01:13 [Note] InnoDB: Compressed tables use zlib 1.2.11
+190216  1:01:13 [Note] InnoDB: Using Linux native AIO
+190216  1:01:13 [Note] InnoDB: Using CPU crc32 instructions
+190216  1:01:13 [Note] InnoDB: Initializing buffer pool, size = 16.0G
+190216  1:01:14 [Note] InnoDB: Completed initialization of buffer pool
+190216  1:01:14 [Note] InnoDB: Highest supported file format is Barracuda.
+190216  1:01:14 [Note] InnoDB: 128 rollback segment(s) are active.
+190216  1:01:14 [Note] InnoDB: Waiting for purge to start
+190216  1:01:14 [Note] InnoDB:  Percona XtraDB (http://www.percona.com) 5.6.42-84.2 started; log sequence number 1616707
+190216  1:01:14 [Warning] /home/axel/mariadb-install/mariadb-10.0.38/libexec/mysqld: unknown variable 'loose-innodb_adaptive_hash_index_parts=16'
+190216  1:01:14 [Note] /home/axel/mariadb-install/mariadb-10.0.38/libexec/mysqld: ready for connections.
+Version: '10.0.38-MariaDB'  socket: '/tmp/mysqld.sock.sysbench'  port: 0  Source distribution
+190216  1:23:07 [Note] /home/axel/mariadb-install/mariadb-10.0.38/libexec/mysqld: Normal shutdown
+190216  1:23:07 [Note] Event Scheduler: Purging the queue. 0 events
+190216  1:23:07 [Note] InnoDB: FTS optimize thread exiting.
+190216  1:23:07 [Note] InnoDB: Starting shutdown...
+190216  1:23:08 [Note] InnoDB: Waiting for page_cleaner to finish flushing of buffer pool
+190216  1:23:10 [Note] InnoDB: Shutdown completed; log sequence number 7296648495
+190216  1:23:10 [Note] /home/axel/mariadb-install/mariadb-10.0.38/libexec/mysqld: Shutdown complete
+
+190216 01:23:10 mysqld_safe mysqld from pid file /tmp/mysqld.pid.sysbench ended

@@ -1,0 +1,13 @@
+2019-02-14T03:08:58.011559Z mysqld_safe Logging to '/mnt/ssd-raid0/sysbench/datadir/cheetah02.err'.
+2019-02-14T03:08:58.054647Z mysqld_safe Starting mysqld daemon with databases from /mnt/ssd-raid0/sysbench/datadir
+2019-02-14T03:08:58.366351Z 0 [Warning] [MY-010101] [Server] Insecure configuration for --secure-file-priv: Location is accessible to all OS users. Consider choosing a different directory.
+2019-02-14T03:08:58.366387Z 0 [System] [MY-010116] [Server] /home/axel/mariadb-install/mysql-8.0.15/libexec/mysqld (mysqld 8.0.15) starting as process 28515
+2019-02-14T03:08:59.732182Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2019-02-14T03:08:59.780348Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/tmp' in the path is accessible to all OS users. Consider choosing a different directory.
+2019-02-14T03:08:59.783613Z 0 [Warning] [MY-000067] [Server] unknown variable 'loose-query_cache_type=0'.
+2019-02-14T03:08:59.783619Z 0 [Warning] [MY-000067] [Server] unknown variable 'loose-innodb_adaptive_hash_index_partitions=16'.
+2019-02-14T03:08:59.802180Z 0 [System] [MY-010931] [Server] /home/axel/mariadb-install/mysql-8.0.15/libexec/mysqld: ready for connections. Version: '8.0.15'  socket: '/tmp/mysqld.sock.sysbench'  port: 0  Source distribution.
+2019-02-14T03:08:59.855515Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Socket: '/tmp/mysqlx.sock'
+2019-02-14T03:21:31.687775Z 522 [System] [MY-013172] [Server] Received SHUTDOWN from user root. Shutting down mysqld (Version: 8.0.15).
+2019-02-14T03:21:34.488867Z 0 [System] [MY-010910] [Server] /home/axel/mariadb-install/mysql-8.0.15/libexec/mysqld: Shutdown complete (mysqld 8.0.15)  Source distribution.
+2019-02-14T03:21:34.606867Z mysqld_safe mysqld from pid file /tmp/mysqld.pid.sysbench ended

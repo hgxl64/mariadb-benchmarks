@@ -1,0 +1,38 @@
+2019-02-13 22:44:33 140121578460992 [Note] InnoDB: Mutexes and rw_locks use GCC atomic builtins
+2019-02-13 22:44:33 140121578460992 [Note] InnoDB: Uses event mutexes
+2019-02-13 22:44:33 140121578460992 [Note] InnoDB: Compressed tables use zlib 1.2.11
+2019-02-13 22:44:33 140121578460992 [Note] InnoDB: Using Linux native AIO
+2019-02-13 22:44:33 140121578460992 [Note] InnoDB: Number of pools: 1
+2019-02-13 22:44:33 140121578460992 [Note] InnoDB: Using SSE2 crc32 instructions
+2019-02-13 22:44:33 140121578460992 [Note] InnoDB: Initializing buffer pool, total size = 16G, instances = 8, chunk size = 128M
+2019-02-13 22:44:34 140121578460992 [Note] InnoDB: Completed initialization of buffer pool
+2019-02-13 22:44:34 140102813099776 [Note] InnoDB: If the mysqld execution user is authorized, page cleaner thread priority can be changed. See the man page of setpriority().
+2019-02-13 22:44:34 140121578460992 [Note] InnoDB: Highest supported file format is Barracuda.
+2019-02-13 22:44:34 140121578460992 [Note] InnoDB: 128 out of 128 rollback segments are active.
+2019-02-13 22:44:34 140121578460992 [Note] InnoDB: Creating shared tablespace for temporary tables
+2019-02-13 22:44:34 140121578460992 [Note] InnoDB: Setting file './ibtmp1' size to 12 MB. Physically writing the file full; Please wait ...
+2019-02-13 22:44:34 140121578460992 [Note] InnoDB: File './ibtmp1' size is now 12 MB.
+2019-02-13 22:44:34 140121578460992 [Note] InnoDB: Waiting for purge to start
+2019-02-13 22:44:34 140121578460992 [Note] InnoDB: 5.7.25 started; log sequence number 1619987
+2019-02-13 22:44:34 140103217301248 [Note] InnoDB: Loading buffer pool(s) from /mnt/ssd-raid0/sysbench/datadir/ib_buffer_pool
+2019-02-13 22:44:34 140103217301248 [Note] InnoDB: Buffer pool(s) load completed at 190213 22:44:34
+2019-02-13 22:44:34 140121578460992 [Note] Plugin 'FEEDBACK' is disabled.
+2019-02-13 22:44:34 140121578460992 [Note] Reading of all Master_info entries succeded
+2019-02-13 22:44:34 140121578460992 [Note] Added new Master_info '' to hash table
+2019-02-13 22:44:34 140121578460992 [Note] /home/axel/mariadb-install/mariadb-10.2.22/libexec/mysqld: ready for connections.
+Version: '10.2.22-MariaDB'  socket: '/tmp/mysqld.sock.sysbench'  port: 0  Source distribution
+2019-02-13 22:44:53 140103311955712 [Warning] Aborted connection 11 to db: 'sbtest' user: 'root' host: 'localhost' (Got an error reading communication packets)
+2019-02-13 22:50:10 140103088097024 [Note] Detected table cache mutex contention at instance 1: 29% waits. Additional table cache instance activated. Number of instances after activation: 2.
+2019-02-13 22:50:11 140103091169024 [Note] Detected table cache mutex contention at instance 2: 22% waits. Additional table cache instance activated. Number of instances after activation: 3.
+2019-02-13 22:50:40 140103090247424 [Note] Detected table cache mutex contention at instance 3: 21% waits. Additional table cache instance activated. Number of instances after activation: 4.
+2019-02-13 22:51:28 140103310112512 [Note] Detected table cache mutex contention at instance 3: 24% waits. Additional table cache instance activated. Number of instances after activation: 5.
+2019-02-13 22:56:58 140102392260352 [Note] /home/axel/mariadb-install/mariadb-10.2.22/libexec/mysqld (initiated by: root[root] @ localhost []): Normal shutdown
+2019-02-13 22:56:58 140102392260352 [Note] Event Scheduler: Purging the queue. 0 events
+2019-02-13 22:56:58 140103320987392 [Note] InnoDB: FTS optimize thread exiting.
+2019-02-13 22:56:58 140102392260352 [Note] InnoDB: Starting shutdown...
+2019-02-13 22:56:58 140103217301248 [Note] InnoDB: Dumping buffer pool(s) to /mnt/ssd-raid0/sysbench/datadir/ib_buffer_pool
+2019-02-13 22:56:58 140103217301248 [Note] InnoDB: Buffer pool(s) dump completed at 190213 22:56:58
+2019-02-13 22:57:00 140102392260352 [Note] InnoDB: Shutdown completed; log sequence number 283300296
+2019-02-13 22:57:00 140102392260352 [Note] InnoDB: Removed temporary tablespace data file: "ibtmp1"
+2019-02-13 22:57:00 140102392260352 [Note] /home/axel/mariadb-install/mariadb-10.2.22/libexec/mysqld: Shutdown complete
+

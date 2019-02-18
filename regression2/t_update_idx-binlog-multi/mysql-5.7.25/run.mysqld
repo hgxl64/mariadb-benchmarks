@@ -1,0 +1,13 @@
+2019-02-14T23:36:15.935683Z 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defaults_for_timestamp server option (see documentation for more details).
+ 100 200 300 400 500 600 700 800 900 1000 1100 1200 1300 1400 1500 1600 1700 1800 1900 2000
+ 100 200 300 400 500 600 700 800 900 1000 1100 1200 1300 1400 1500 1600 1700 1800 1900 2000
+2019-02-14T23:36:26.002757Z 0 [Warning] InnoDB: New log files created, LSN=45790
+2019-02-14T23:36:26.068035Z 0 [Warning] InnoDB: Creating foreign key constraint system tables.
+2019-02-14T23:36:26.130917Z 0 [Warning] unknown variable 'loose-innodb_adaptive_hash_index_partitions=16'
+2019-02-14T23:36:26.133026Z 0 [Warning] No existing UUID has been found, so we assume that this is the first time that this server has been started. Generating a new UUID: 585cc4cc-30b1-11e9-8517-0cc47a34f5d2.
+2019-02-14T23:36:26.133628Z 0 [Warning] Gtid table is not ready to be used. Table 'mysql.gtid_executed' cannot be opened.
+2019-02-14T23:36:26.136271Z 1 [Warning] root@localhost is created with an empty password ! Please consider switching off the --initialize-insecure option.
+2019-02-14T23:36:28.979939Z mysqld_safe Logging to '/mnt/ssd-raid0/sysbench/writes/cheetah02.err'.
+2019-02-14T23:36:29.024178Z mysqld_safe Starting mysqld daemon with databases from /mnt/ssd-raid0/sysbench/writes
+2019-02-14T23:59:18.139226Z mysqld_safe mysqld from pid file /tmp/mysqld.pid.sysbench ended
+mysql-5.7.25 stopped

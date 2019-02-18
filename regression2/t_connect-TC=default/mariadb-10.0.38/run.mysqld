@@ -1,0 +1,93 @@
+Installing MariaDB/MySQL system tables in '/tmp/datadir' ...
+190214  5:30:16 [Note] /home/axel/mariadb-install/mariadb-10.0.38/libexec/mysqld (mysqld 10.0.38-MariaDB) starting as process 31905 ...
+190214  5:30:17 [Note] InnoDB: innodb_empty_free_list_algorithm has been changed to legacy because of small buffer pool size. In order to use backoff, increase buffer pool at least up to 20MB.
+
+190214  5:30:17 [Note] InnoDB: Using mutexes to ref count buffer pool pages
+190214  5:30:17 [Note] InnoDB: The InnoDB memory heap is disabled
+190214  5:30:17 [Note] InnoDB: Mutexes and rw_locks use GCC atomic builtins
+190214  5:30:17 [Note] InnoDB: GCC builtin __atomic_thread_fence() is used for memory barrier
+190214  5:30:17 [Note] InnoDB: Compressed tables use zlib 1.2.11
+190214  5:30:17 [Note] InnoDB: Using Linux native AIO
+190214  5:30:17 [Note] InnoDB: Using CPU crc32 instructions
+190214  5:30:17 [Note] InnoDB: Initializing buffer pool, size = 128.0M
+190214  5:30:17 [Note] InnoDB: Completed initialization of buffer pool
+190214  5:30:17 [Note] InnoDB: The first specified data file ./ibdata1 did not exist: a new database to be created!
+190214  5:30:17 [Note] InnoDB: Setting file ./ibdata1 size to 12 MB
+190214  5:30:17 [Note] InnoDB: Database physically writes the file full: wait...
+190214  5:30:17 [Note] InnoDB: Setting log file ./ib_logfile101 size to 48 MB
+190214  5:30:17 [Note] InnoDB: Setting log file ./ib_logfile1 size to 48 MB
+190214  5:30:18 [Note] InnoDB: Renaming log file ./ib_logfile101 to ./ib_logfile0
+190214  5:30:18 [Warning] InnoDB: New log files created, LSN=45781
+190214  5:30:18 [Note] InnoDB: Doublewrite buffer not found: creating new
+190214  5:30:18 [Note] InnoDB: Doublewrite buffer created
+190214  5:30:18 [Note] InnoDB: 128 rollback segment(s) are active.
+190214  5:30:18 [Warning] InnoDB: Creating foreign key constraint system tables.
+190214  5:30:18 [Note] InnoDB: Foreign key constraint system tables created
+190214  5:30:18 [Note] InnoDB: Creating tablespace and datafile system tables.
+190214  5:30:18 [Note] InnoDB: Tablespace and datafile system tables created.
+190214  5:30:18 [Note] InnoDB: Waiting for purge to start
+190214  5:30:18 [Note] InnoDB:  Percona XtraDB (http://www.percona.com) 5.6.42-84.2 started; log sequence number 0
+190214  5:30:20 [Note] InnoDB: FTS optimize thread exiting.
+190214  5:30:20 [Note] InnoDB: Starting shutdown...
+190214  5:30:21 [Note] InnoDB: Waiting for page_cleaner to finish flushing of buffer pool
+190214  5:30:23 [Note] InnoDB: Shutdown completed; log sequence number 1616697
+OK
+Filling help tables...
+190214  5:30:23 [Note] /home/axel/mariadb-install/mariadb-10.0.38/libexec/mysqld (mysqld 10.0.38-MariaDB) starting as process 31944 ...
+190214  5:30:23 [Note] InnoDB: innodb_empty_free_list_algorithm has been changed to legacy because of small buffer pool size. In order to use backoff, increase buffer pool at least up to 20MB.
+
+190214  5:30:23 [Note] InnoDB: Using mutexes to ref count buffer pool pages
+190214  5:30:23 [Note] InnoDB: The InnoDB memory heap is disabled
+190214  5:30:23 [Note] InnoDB: Mutexes and rw_locks use GCC atomic builtins
+190214  5:30:23 [Note] InnoDB: GCC builtin __atomic_thread_fence() is used for memory barrier
+190214  5:30:23 [Note] InnoDB: Compressed tables use zlib 1.2.11
+190214  5:30:23 [Note] InnoDB: Using Linux native AIO
+190214  5:30:23 [Note] InnoDB: Using CPU crc32 instructions
+190214  5:30:23 [Note] InnoDB: Initializing buffer pool, size = 128.0M
+190214  5:30:23 [Note] InnoDB: Completed initialization of buffer pool
+190214  5:30:23 [Note] InnoDB: Highest supported file format is Barracuda.
+190214  5:30:23 [Note] InnoDB: 128 rollback segment(s) are active.
+190214  5:30:23 [Note] InnoDB: Waiting for purge to start
+190214  5:30:23 [Note] InnoDB:  Percona XtraDB (http://www.percona.com) 5.6.42-84.2 started; log sequence number 1616697
+190214  5:30:23 [Note] InnoDB: FTS optimize thread exiting.
+190214  5:30:23 [Note] InnoDB: Starting shutdown...
+190214  5:30:24 [Note] InnoDB: Waiting for page_cleaner to finish flushing of buffer pool
+190214  5:30:26 [Note] InnoDB: Shutdown completed; log sequence number 1616707
+OK
+
+To start mysqld at boot time you have to copy
+support-files/mysql.server to the right place for your system
+
+PLEASE REMEMBER TO SET A PASSWORD FOR THE MariaDB root USER !
+To do so, start the server, then issue the following commands:
+
+'/home/axel/mariadb-install/mariadb-10.0.38/bin/mysqladmin' -u root password 'new-password'
+'/home/axel/mariadb-install/mariadb-10.0.38/bin/mysqladmin' -u root -h cheetah02 password 'new-password'
+
+Alternatively you can run:
+'/home/axel/mariadb-install/mariadb-10.0.38/bin/mysql_secure_installation'
+
+which will also give you the option of removing the test
+databases and anonymous user created by default.  This is
+strongly recommended for production servers.
+
+See the MariaDB Knowledgebase at http://mariadb.com/kb or the
+MySQL manual for more instructions.
+
+You can start the MariaDB daemon with:
+cd '/home/axel/mariadb-install/mariadb-10.0.38' ; /home/axel/mariadb-install/mariadb-10.0.38/bin/mysqld_safe --datadir='/tmp/datadir'
+
+You can test the MariaDB daemon with mysql-test-run.pl
+cd '/home/axel/mariadb-install/mariadb-10.0.38/mysql-test' ; perl mysql-test-run.pl
+
+Please report any problems at http://mariadb.org/jira
+
+The latest information about MariaDB is available at http://mariadb.org/.
+You can find additional information about the MySQL part at:
+http://dev.mysql.com
+Consider joining MariaDB's strong and vibrant community:
+https://mariadb.org/get-involved/
+
+190214 05:30:26 mysqld_safe Logging to '/tmp/datadir/cheetah02.err'.
+190214 05:30:26 mysqld_safe Starting mysqld daemon with databases from /tmp/datadir
+mariadb-10.0.38 stopped
