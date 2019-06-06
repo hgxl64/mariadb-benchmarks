@@ -22,13 +22,13 @@ do
   OUTDIR=$(basename $SERVER)
   if [ -d $OUTDIR ]
   then
-    echo "skipping $OUTDIR"
+#    echo "skipping $OUTDIR"
     continue
   fi
 
   if [[ ! ( $OUTDIR =~ ^mariadb-5\.5 || $OUTDIR =~ ^mariadb-10\.0 || $OUTDIR =~ ^mariadb-10\.1 ) ]]
   then
-    echo "skipping $OUTDIR - XtraDB not available"
+#    echo "skipping $OUTDIR - XtraDB not available"
     continue
   fi
 
@@ -72,7 +72,7 @@ do
   ./run.sysbench $OUTDIR
 
   echo "stopping server"
-  mysqladmin  -S ${SOCKET} -u root shutdown
+  mysqladmin -S ${SOCKET} -u root shutdown
 
   wait $runner
  

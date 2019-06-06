@@ -26,9 +26,9 @@ do
     continue
   fi
 
-  if [[ ! $SERVER =~ ^mariadb ]]
+  if [[ ! ($OUTDIR =~ ^mariadb- || $OUTDIR =~ ^mysql- ) ]]
   then
-#    echo "skipping $OUTDIR - threadpool not available"
+    echo "skipping $OUTDIR - utf8mb4 not available"
     continue
   fi
 

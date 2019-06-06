@@ -36,9 +36,10 @@ then
 elif [[ $SERVER =~ ^mysql-8\. ]]
 then
   #this is MySQL-8.x
-  ${INST_DIR}/${SERVER}/libexec/mysqld --defaults-file=${HERE}/${CONFIG} --basedir=${INST_DIR}/${SERVER} --datadir=${DATADIR} --initialize-insecure
+  ${INST_DIR}/${SERVER}/libexec/mysqld --defaults-file=${HERE}/${CONFIG} --basedir=${INST_DIR}/${SERVER} --datadir=${DATADIR} --initialize-insecure  --default-authentication-plugin=mysql_native_password
 else
   MY_INST_DB=""
+  EXTRA=""
   for SUBDIR in bin scripts
   do
     if [ -x ${INST_DIR}/${SERVER}/$SUBDIR/mysql_install_db ]
@@ -54,7 +55,12 @@ else
     exit 1
   fi
 
-  $MY_INST_DB --defaults-file=${HERE}/${CONFIG} --basedir=${INST_DIR}/${SERVER} --datadir=${DATADIR} --verbose
+  if [[ $SERVER =~ ^mariadb-10\.4 ]]
+  then
+    EXTRA="--auth-root-authentication-method=normal"
+  fi
+
+  $MY_INST_DB --defaults-file=${HERE}/${CONFIG} --basedir=${INST_DIR}/${SERVER} --datadir=${DATADIR} --verbose $EXTRA
 fi
 
 #start the server

@@ -22,7 +22,7 @@ do
   OUTDIR=$(basename $SERVER)
   if [ -d $OUTDIR ]
   then
-    echo "skipping $OUTDIR"
+#    echo "skipping $OUTDIR"
     continue
   fi
 
@@ -48,6 +48,11 @@ do
   echo " (pid=$runner)"
 
   timeo=99
+  if [[ $SERVER =~ ^mysql-8\. ]]
+  then
+    #MySQL-8.0 need longer to start (initially)
+    timeo=300
+  fi
   echo -n "waiting for server to come up "
   while [ $timeo -gt 0 ]
   do
@@ -66,7 +71,7 @@ do
   ./run.sysbench $OUTDIR
 
   echo "stopping server"
-  mysqladmin  -S ${SOCKET} -u root shutdown
+  mysqladmin -S ${SOCKET} -u root shutdown
 
   wait $runner
  
