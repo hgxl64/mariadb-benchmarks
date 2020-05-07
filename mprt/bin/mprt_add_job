@@ -1,0 +1,11 @@
+#!/bin/bash
+
+NOW=`date +%s.%N`
+PREFIX=/home/axel/mprt/jobs/incoming
+
+test -f $PREFIX/new && exit 1
+
+cat > $PREFIX/new
+mv $PREFIX/new $PREFIX/$NOW
+
+exit 0
