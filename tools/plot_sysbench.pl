@@ -43,7 +43,7 @@ if ($opt_pdf) {
     print PLOT "set terminal png medium nocrop enhanced size 960,500 background '#F0F0F0'\n\n";
 }
 print PLOT "set xrange [0:*]\nset xtics border nomirror\nunset x2tics\nset xlabel 'kqps'\n\n";
-print PLOT "set yrange [0:*]\nset ytics border nomirror\nunset y2tics\nset ylabel 'trx time [ms]'\n\n";
+print PLOT "set logscale y 2\nset ytics border nomirror\nunset y2tics\nset ylabel 'trx time [ms]'\n\n";
 
 for (my $i = 1; $i <= scalar keys %set; $i++) {
     print PLOT "set style line $i linewidth 2\n";
