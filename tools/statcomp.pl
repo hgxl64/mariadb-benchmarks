@@ -38,9 +38,11 @@ my %data = ();
 my $heading = "variable";
 my $varlen = length $heading;
 my %datlen = ();
+my @files = ();
 
 while (my $f= shift) {
     process_file($f);
+    push @files, $f;
 }
 
 filter_data();
@@ -82,7 +84,6 @@ sub process_file
 
 sub filter_data
 {
-    my @files = sort keys %datlen;
     my %vars = ();
     map { map { $vars{$_} = 1 unless defined $vars{$_} } keys %{$data{$_}} } @files;
 
@@ -102,7 +103,6 @@ sub filter_data
 
 sub calculate_lengths
 {
-    my @files = sort keys %datlen;
     my %vars = ();
     map { map { $vars{$_} = 1 unless defined $vars{$_} } keys %{$data{$_}} } @files;
 
@@ -117,7 +117,6 @@ sub calculate_lengths
 
 sub dump_data
 {
-    my @files = sort keys %datlen;
     my $count= 0;
     my %vars = ();
     map { map { $vars{$_} = 1 unless defined $vars{$_} } keys %{$data{$_}} } @files;
@@ -154,7 +153,6 @@ sub dump_data
 
 sub dump_data_tsv
 {
-    my @files = sort keys %datlen;
     my %vars = ();
     map { map { $vars{$_} = 1 unless defined $vars{$_} } keys %{$data{$_}} } @files;
 
@@ -180,7 +178,6 @@ sub all_unset_or_zero
 {
     my $key = shift;
     my $same = 1;
-    my @files = sort keys %datlen;
     my $val;
 
     map {
@@ -209,7 +206,6 @@ sub all_same
 {
     my $key = shift;
     my $same = 1;
-    my @files = sort keys %datlen;
     my $val;
 
     map {
