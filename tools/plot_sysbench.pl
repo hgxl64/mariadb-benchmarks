@@ -38,12 +38,12 @@ open PLOT, ">sysbench.gnuplot" or die;
 
 print PLOT "#!/usr/bin/gnuplot\n\nreset\n\n";
 if ($opt_pdf) {
-    print PLOT "set terminal pdf size 7, 5\nset output 'sysbench.pdf'\n\n";
+    print PLOT "set terminal pdf size 8, 5\nset output 'sysbench.pdf'\n\n";
 } else {
     print PLOT "set terminal png medium nocrop enhanced size 960,500 background '#F0F0F0'\n\n";
 }
-print PLOT "set xrange [0:*]\nset xtics border nomirror\nunset x2tics\nset xlabel 'kqps'\n\n";
-print PLOT "set logscale y 2\nset ytics border nomirror\nunset y2tics\nset ylabel 'trx time [ms]'\n\n";
+print PLOT "set xrange [0:*]\nset xtics border nomirror\nunset x2tics\nset xlabel 'Throughput [kqps]'\n\n";
+print PLOT "set logscale y 2\nset ytics border nomirror\nunset y2tics\nset ylabel 'Latency [ms]'\n\n";
 
 for (my $i = 1; $i <= scalar keys %set; $i++) {
     print PLOT "set style line $i linewidth 2\n";
@@ -81,6 +81,8 @@ for my $w (sort keys %wl) {
         if ($num_in_set == 1) {
             print PLOT "plot 'sysbench.data' index $idx using (\$2/1000):3 with linespoints ";
             print PLOT "linestyle $num_in_set title '", $set{$i}, "'";
+            print PLOT ",\\\n     '' index $idx using (\$2/1000):3:1 with labels ";
+            print PLOT "center offset 1.5, 0.5 notitle";
         } else {
             print PLOT ",\\\n     '' index $idx using (\$2/1000):3 with linespoints ";
             print PLOT "linestyle $num_in_set title '", $set{$i}, "'";
@@ -112,6 +114,8 @@ sub get_run_info
 	next if /^#/;
 	next if /^\s*$/;
         my ($n, $d) = split /\s*\.{2,}\s*/o;
+        $d =~ s/(?<!\\)_/\\_/g;
+        $d =~ s/(?<!\\)@/\\@/g;
 	$res{$n}= $d;
     }
     close F;
