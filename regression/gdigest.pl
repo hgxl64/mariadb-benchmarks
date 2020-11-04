@@ -10,6 +10,7 @@
 #configuration
 my @QPSFILES=     qw{QPS.dat TPS.dat};
 my @RTFILES=      qw{RT_avg.dat};
+my $BASENAME=     'gdigest';
 my $TESTFILTER=   '.*';
 my $SERVERFILTER= '.*';
 my $TAIL=         0;
@@ -18,10 +19,11 @@ my $TAIL=         0;
 use Getopt::Long;
 
 GetOptions(
-  "test=s"   => \$TESTFILTER,
-  "server=s" => \$SERVERFILTER,
-  "tail=i"   => \$TAIL
-) or die "usage: $0 [--test=<regex>] [--server=<regex>] [--tail=<number>]\n";
+  "basename=s" => \$BASENAME,
+  "test=s"     => \$TESTFILTER,
+  "server=s"   => \$SERVERFILTER,
+  "tail=i"     => \$TAIL
+) or die "usage: $0 [--test=<regex>] [--server=<regex>] [--tail=<number>] [--basename=<s>]\n";
 
 
 opendir D, ".";
@@ -30,23 +32,24 @@ closedir D;
 
 my $idx = 0;
 
-open DATA, ">gdigest.data" or die;
-open PLOT, ">gdigest.gnuplot" or die;
+open DATA, ">$BASENAME.data" or die;
+open PLOT, ">$BASENAME.gnuplot" or die;
 
 print PLOT "#!/usr/bin/gnuplot\n\nreset\n\n";
-print PLOT "set terminal pdf size 7, 5\nset output 'gdigest.pdf'\n\n";
+print PLOT "set terminal pdf size 8, 5\nset output '$BASENAME.pdf'\n\n";
 
 for (my $i = 1; $i <= 10; $i++) {
     print PLOT "set style line $i linewidth 2\n";
 }
 
-print PLOT "set xrange [0:*]\nset xtics border nomirror\nunset x2tics\nset xlabel 'kqps'\n\n";
-print PLOT "set yrange [0:*]\nset ytics border nomirror\nunset y2tics\nset ylabel 'trx time [ms]'\n\n";
+print PLOT "set xrange [0:*]\nset xtics border nomirror\nunset x2tics\nset xlabel 'Throughput [kqps]'\n\n";
+print PLOT "set logscale y 2\nset ytics border nomirror\nunset y2tics\nset ylabel 'Latency [ms]'\n\n";
 print PLOT "set key left top\n\n";
 
 
 for my $test (@TESTS) {
   next unless ($test =~ $TESTFILTER);
+  my @thdcnt= ();
   my @qpsdata= ();
   my @rtdata= ();
 
@@ -54,6 +57,10 @@ for my $test (@TESTS) {
     if (-f "$test/$result") {
       open F, "<$test/$result";
       while (<F>) {
+          if (/^#thread count/) {
+            s/^#thread count\s*//;
+            @thdcnt = split " ";
+          }
           next if (/^#/);
           chomp;
           push(@qpsdata, $_) if (/$SERVERFILTER/);
@@ -84,15 +91,15 @@ for my $test (@TESTS) {
     }
   }
 
-  process_test($test, \@qpsdata, \@rtdata);
+  process_test($test, \@qpsdata, \@rtdata, \@thdcnt);
 
 }
 
 close PLOT;
 close DATA;
 
-chmod 0755, "gdigest.gnuplot";
-exec "gnuplot", "gdigest.gnuplot";
+chmod 0755, "$BASENAME.gnuplot";
+exec "gnuplot", "$BASENAME.gnuplot";
 
 #not reached
 exit 0;
@@ -100,7 +107,7 @@ exit 0;
 
 sub process_test
 {
-    my ($title, $qps, $rt)= @_;
+    my ($title, $qps, $rt, $cnt)= @_;
     my $num_in_set = 1;
 
     print DATA "## ", $title, "\n";
@@ -122,17 +129,19 @@ sub process_test
         next if (scalar @qpsdata == 1);
 
         print DATA "# ", $server, "\n";
+        my $i= 0;
         while (scalar @qpsdata && scalar @rtdata) {
             my $qps= shift @qpsdata;
             my $rt=  shift @rtdata;
             next if ($qps eq "---");
-            printf DATA "%f\t%f\n", $qps, $rt;
+            printf DATA "%f\t%f\t%d\n", $qps, $rt, $cnt->[$i++];
         }
         print DATA "\n\n";
 
         if ($num_in_set == 1) {
-            print PLOT "plot 'gdigest.data' index $idx using (\$1/1000):2 with linespoints ";
+            print PLOT "plot '$BASENAME.data' index $idx using (\$1/1000):2 with linespoints ";
             print PLOT "linestyle $num_in_set title '", $server, "'";
+            print PLOT ",\\\n     '' index $idx using (\$1/1000):2:3 with labels center offset 1,1 notitle ";
         } else {
             print PLOT ",\\\n     '' index $idx using (\$1/1000):2 with linespoints ";
             print PLOT "linestyle $num_in_set title '", $server, "'";
