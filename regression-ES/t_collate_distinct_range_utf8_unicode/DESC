@@ -1,0 +1,4 @@
+sysbench OLTP readonly
+selecting distinct rows from short range, collation utf8_unicode_ci
+1 table, 1 mio rows, engine InnoDB/XtraDB (builtin)
+numbers are queries per second

@@ -1,0 +1,80 @@
+#!/bin/bash
+#
+# (w) Axel XL Schwenke for MariaDB Services AB
+
+set -e
+set -u
+#set -x
+
+. config.sh
+
+if [ ${1-unset} != "unset" ]
+then
+  SERVERS="$@"
+else
+  SERVERS=$(find $INST_DIR -maxdepth 1 -type d -name mariadb\* -printf "%P\n" | sort -nr)
+fi
+
+OLDPATH=$PATH
+
+for SERVER in $SERVERS
+do
+  OUTDIR=$(basename $SERVER)
+  if [ -d $OUTDIR ]
+  then
+#    echo "skipping $OUTDIR"
+    continue
+  fi
+
+  mkdir $OUTDIR
+
+  if [ -d $SERVER/bin ]
+  then
+    PATH=$SERVER/bin:$OLDPATH
+    hash -r
+  fi
+
+  if [ -d $INST_DIR/$SERVER/bin ]
+  then
+    PATH=$INST_DIR/$SERVER/bin:$OLDPATH
+    hash -r
+  fi
+
+  test -n "${PRERUN:-''}" && eval ${PRERUN}
+
+  echo -n "starting server $OUTDIR ..."
+  ./run.mysqld $SERVER >$OUTDIR/run.mysqld 2>&1 &
+  runner=$!
+  echo " (pid=$runner)"
+
+  timeo=99
+  if [[ $SERVER =~ ^mysql-8\. ]]
+  then
+    #MySQL-8.0 need longer to start (initially)
+    timeo=300
+  fi
+  echo -n "waiting for server to come up "
+  while [ $timeo -gt 0 ]
+  do
+    mysqladmin -S ${SOCKET} -u root -b -s ping && break
+    echo -n "."
+    timeo=$(($timeo - 1))
+    sleep 1
+  done
+  if [ $timeo -eq 0 ]
+  then
+    echo " server not starting! Abort!"
+    break
+  fi
+
+  echo "starting sysbench"
+  ./run.sysbench $OUTDIR
+
+  echo "stopping server"
+  mysqladmin -S ${SOCKET} -u root shutdown
+
+  wait $runner
+ 
+  test -n "${POSTRUN:-''}" && eval ${POSTRUN}
+
+done
