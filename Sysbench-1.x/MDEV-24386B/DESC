@@ -1,0 +1,6 @@
+01 ... mariadb-10.6 @ 92abdcca5a5, sync_binlog=0 (baseline)
+02 ... sync_binlog = 1
+#03 ... sync_binlog = 1, commit_wait_count = 1
+04 ... sync_binlog = 1, commit_wait_count = 8
+05 ... sync_binlog = 1, commit_wait_count = 8, commit_wait_usec = 5000
+06 ... sync_binlog = 1, innodb_flush_log_at_trx_commit = 0

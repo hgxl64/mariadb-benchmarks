@@ -1,0 +1,40 @@
+[mysqld]
+
+#general settings
+secure-file-priv = /tmp
+
+# Higher Concurrency
+max_prepared_stmt_count = 1048576
+max_connections = 2048
+table_open_cache = 4096
+
+#MySQL compatibility
+loose-default-authentication-plugin=mysql_native_password
+
+#####performance-schema
+performance-schema = false
+
+# Innodb
+default_storage_engine = InnoDB
+innodb_buffer_pool_size = 64G
+innodb_log_file_size = 32G
+innodb_log_buffer_size = 32M
+
+# SSD Tuning
+innodb_flush_neighbors = 0
+innodb_io_capacity = 5000
+
+innodb_adaptive_flushing = 1
+innodb_max_dirty_pages_pct = 80
+innodb_max_dirty_pages_pct_lwm = 10
+
+loose-innodb_lru_scan_depth = 16K
+loose-innodb_lru_flush_size = 32
+
+
+# parameters for this test
+server-id = 1
+log-bin = binlog
+sync-binlog = 1
+binlog_commit_wait_count = 8
+
