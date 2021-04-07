@@ -1,0 +1,4 @@
+sysbench OLTP write-only
+9 index-update, 9 non-index-update, 1 delete, 1 insert
+16 tables, 10 mio rows total, engine InnoDB, big redo log
+numbers are queries per second
