@@ -1,0 +1,28 @@
+#!/bin/bash
+#
+# (w) Axel XL Schwenke for MariaDB Services AB
+
+set -e
+set -u
+
+. config.sh
+
+echo "stopping MaxScale"
+ssh $MAXNODE "cd $(pwd); ./stop.maxscale"
+
+for i in ${1:-$RUNSPEC}                                                                                                            
+do                                                                                                                                 
+  ii=`printf "%02d" $i`                                                                                                            
+  if [ ! -e "server.$ii" ]                                                                                                         
+  then                                                                                                                             
+    echo "missing server.$ii - skip"                                                                                               
+    continue                                                                                                                       
+  fi                                                                                                                               
+  read SERVER <server.$ii
+  echo "stopping cluster"
+  for n in $NODES
+  do
+    ssh $n "${INST_DIR}/${SERVER}/bin/mysqladmin -S ${SOCKET} -u root shutdown || true"
+  done	
+done
+

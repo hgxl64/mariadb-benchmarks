@@ -1,0 +1,76 @@
+#!/bin/bash
+set -e
+set -u
+#set -x
+#ulimit -n 8000
+
+#determine run number for selecting an output directory
+RUN_NUMBER=${1:?"run number not given!"}
+ii=`printf "%02d" $RUN_NUMBER`
+
+. config.sh
+test -e config.${ii} && . config.${ii}
+
+OUTDIR="res${ii}"
+mkdir -p $OUTDIR
+
+#setup
+ROWS=$(($TOTAL_ROWS / $TABLES))
+
+
+#prepare database
+if [ "$CREATEDB" != "0" ]
+then
+
+  date "+[%c] start loading database" >> $OUTDIR/load.sysbench.txt
+  t1=$(date +%s)
+
+  #create and fill oltp table(s)
+  for n in $NODES
+  do
+    $SYSBENCH $LUA $LUA_ARGS_PREPARE --tables=$TABLES --threads=$TABLES --table-size=$ROWS --mysql-storage-engine=$ENGINE $MYSQL_LOAD prepare
+    break
+  done
+
+  date "+[%c] end loading database" >> $OUTDIR/load.sysbench.txt
+  t2=$(date +%s)
+
+  echo "loading time:     $(($t2-$t1)) sec" >> $OUTDIR/load.sysbench.txt
+
+else
+
+  if [ ${WARMUP:-0} -ne 0 ]
+  then
+    echo "fixme"
+    exit 1
+  fi
+
+fi
+
+echo "warmup ..."
+$SYSBENCH $LUA $LUA_ARGS_RUN --tables=$TABLES --table-size=$ROWS --threads=64 --report-interval=10 --time=300 --forced-shutdown=60 --events=0 ${CONNECTION["node3"]} --mysql-user=sbtest --mysql-password=sbtest run
+
+#run the benchmark
+for wl in $WORKLOADS
+do
+  w=$(echo $wl | sed 's/@.*$//')
+  c=$(echo $wl | sed 's/^.*@//')
+
+  for thread in $THREADS
+  do
+    iostat -mx $REPORT $((${RUNTIME[$w]}/$REPORT+1)) > $OUTDIR/iostat.$wl.$thread.txt &
+    PIDLIST=$!
+
+    for n in $NODES $MAXNODE
+    do
+      ssh $n "iostat -mx $REPORT $((${RUNTIME[$w]}/$REPORT+1))" > $OUTDIR/iostat@$n.$wl.$thread.txt &
+      PIDLIST="$PIDLIST $!"
+    done
+
+    $SYSBENCH $LUA $LUA_ARGS_RUN ${WORKLOAD[$w]} --tables=$TABLES --table-size=$ROWS --threads=$thread --report-interval=$REPORT --time=${RUNTIME[$w]} --forced-shutdown=60 --events=0 ${CONNECTION[$c]} --mysql-user=sbtest --mysql-password=sbtest run | tee -a $OUTDIR/$wl.$thread.res
+
+    sleep 10
+    wait $PIDLIST
+
+  done
+done

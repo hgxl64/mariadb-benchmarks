@@ -1,0 +1,106 @@
+#!/bin/bash
+#
+# usage: $0 run-number
+#
+# (w) Axel XL Schwenke for MariaDB Services AB
+
+set -e
+set -u
+#set -x
+
+. config.sh
+
+ii=${1:?"no run number given!"}
+shift
+
+test -e config.${ii} && .  config.${ii}
+
+HERE=$(pwd)
+
+CONFIG="my.cnf.$ii"
+test -e ${CONFIG} || { echo "${CONFIG} does not exist!"; exit 1; }
+
+test -e server.$ii || { echo "server.$ii does not exist!"; exit 1; }
+read SERVER <server.$ii
+
+#test if server exists
+if [ ! -d ${INST_DIR}/${SERVER} ]
+then
+  #exist the downloaded tar.gz package?
+  if [ -f ${DOWNLOADS}/${SERVER}.tar.gz ]
+  then
+    echo "unpacking ${DOWNLOADS}/${SERVER}.tar.gz"
+    test -d ${INST_DIR} || mkdir -p ${INST_DIR}
+    tar xfz ${DOWNLOADS}/${SERVER}.tar.gz -C ${INST_DIR}
+  else
+    echo "${DOWNLOADS}/${SERVER}.tar.gz does not exist!"
+    echo "Make sure it exists on the master node and is synced"
+    exit 1
+  fi
+fi	
+
+#add bindir to path
+if [ -d ${INST_DIR}/${SERVER}/bin ]                                                 
+then                                                                          
+  PATH=${INST_DIR}/${SERVER}/bin:$PATH                                           
+  hash -r                                                                     
+fi    
+
+#create the datadir
+if [ "$CREATEDB" != "0" ]
+then
+  test -d ${DATADIR} && rm -rf ${DATADIR}
+  mkdir -p ${DATADIR}
+
+  if [ ${IS_MYSQL:-0} != 0 ]
+  then
+    #this is MySQL
+    ${INST_DIR}/${SERVER}/libexec/mysqld --defaults-file=${HERE}/${CONFIG} --basedir=${INST_DIR}/${SERVER} --datadir=${DATADIR} --initialize-insecure >run.mysqld.$ii 2>&1 || { cat run.mysqld.$ii; exit 1; }
+  else
+    MY_INST_DB=""
+    for SUBDIR in bin scripts
+    do
+      if [ -x ${INST_DIR}/${SERVER}/$SUBDIR/mysql_install_db ]
+      then
+        MY_INST_DB=${INST_DIR}/${SERVER}/$SUBDIR/mysql_install_db
+        break
+      fi
+    done
+
+    if [ "$MY_INST_DB" = "" ]
+    then
+      echo "no mysql_install_db in ${INST_DIR}/${SERVER}/{bin,scripts}"
+      exit 1
+    fi
+
+    $MY_INST_DB --defaults-file=${HERE}/${CONFIG} --basedir=${INST_DIR}/${SERVER} --datadir=${DATADIR} --verbose --auth-root-authentication-method=normal >run.mysqld.$ii 2>&1 || { cat run.mysqld.$ii; exit 1; }
+  fi
+else
+  test -d ${DATADIR} || { echo "${DATADIR} does not exist and CREATEDB=0, cannot continue"; exit 1; }
+fi
+
+#start the server
+PARAMS="--defaults-file=${HERE}/${CONFIG} --datadir=${DATADIR} --pid-file=/tmp/mysqld.pid.sysbench --socket=${SOCKET} --wsrep_provider=${INST_DIR}/${SERVER}/lib/galera/libgalera_smm.so"
+
+cd ${INST_DIR}/${SERVER}
+
+./bin/mysqld_safe $PARAMS "$@" &
+
+sleep 2
+
+timeo=600
+echo -n "waiting for server to come up "
+while [ $timeo -gt 0 ]
+do
+  mysqladmin -S ${SOCKET} -u root -b -s ping && break
+  echo -n "."
+  timeo=$(($timeo - 1))
+  sleep 1
+done
+
+if [ $timeo -eq 0 ]
+then
+  echo " server not starting! Abort!"
+  exit 1
+fi
+

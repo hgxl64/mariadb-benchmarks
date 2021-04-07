@@ -1,0 +1,38 @@
+#!/bin/bash
+#
+# (w) Axel XL Schwenke for MariaDB Services AB
+
+set -e
+set -u
+#set -x
+
+. config.sh
+
+CONN=${1:?"connection number not given!"}
+ii=`printf "%02d" $CONN`
+
+test -e maxscale.$ii     || { echo "maxscale.$ii does not exist!"; exit; }
+test -e maxscale.cnf.$ii || { echo "maxscale.cnf.$ii does not exist!"; exit; }
+
+HERE=$(pwd)
+
+MAXSCALE=$(cat maxscale.$ii)
+
+if [ ! -d ${INST_DIR}/$MAXSCALE ]
+then
+  if [ -f ${DOWNLOADS}/${MAXSCALE}.tar.gz ]
+  then
+    echo "unpacking ${DOWNLOADS}/${MAXSCALE}.tar.gz"
+    test -d ${INST_DIR} || mkdir -p ${INST_DIR}
+    tar xfz ${DOWNLOADS}/${MAXSCALE}.tar.gz -C ${INST_DIR}
+  else
+    echo "${DOWNLOADS}/${MAXSCALE}.tar.gz does not exist!"
+    echo "Make sure it exists on the master node and is synced"
+    exit 1
+  fi
+fi
+
+echo "starting maxscale ($MAXSCALE)"
+cd ${INST_DIR}/$MAXSCALE
+LD_LIBRARY_PATH=${INST_DIR}/$MAXSCALE/lib/x86_64-linux-gnu/maxscale ./bin/maxscale -d -f $HERE/maxscale.cnf.$ii --basedir=${INST_DIR}/$MAXSCALE &
+
