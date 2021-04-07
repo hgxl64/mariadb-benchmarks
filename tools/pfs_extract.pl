@@ -3,6 +3,8 @@
 # (w) Axel XL Schwenke for MariaDB AB
 #
 # extract time series data from PERFORMANCE_SCHEMA dumps
+#
+# $Id$
 
 use strict;
 

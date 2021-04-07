@@ -4,6 +4,8 @@
 # and compare them side-by-side
 #
 # (w) Axel (XL) Schwenke for MariaDB.org
+#
+# $Id$
 
 use strict;
 

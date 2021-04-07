@@ -3,6 +3,8 @@
 # (w) Axel XL Schwenke for MariaDB AB
 #
 # extract time series data from SHOW GLOBAL STATUS dumps
+#
+# $Id$
 
 use strict;
 use Getopt::Long;

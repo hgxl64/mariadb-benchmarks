@@ -1,1 +1,11 @@
+iostat_extract.pl ident
+mv_average.pl ident
+mv_average3.pl ident
+pfs_extract.pl ident
+plot_sysbench.pl ident
+plot_sysbench_galera.pl ident
+profile_diff.pl ident
 statcomp.pl ident
+statdiff.pl ident
+status_extract.pl ident
+ts_extract.pl ident

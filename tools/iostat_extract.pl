@@ -3,6 +3,8 @@
 # (w) Axel XL Schwenke for MariaDB AB
 #
 # extract time series data from iostat -mx dumps
+#
+# $Id$
 
 #defaults
 my $opt_disk = undef;
@@ -42,8 +44,8 @@ elsif (defined $opt_disk) {
     while (<>) {
         if (/^$opt_disk/) {
             chomp;
-            tr/ /\t/s;
-            print $stamp, "\t", $_, "\n";
+            my @d= split ' ';
+            print $stamp, "\t", $d[5], "\t", $d[6], "\n";
             $stamp += $step;
         }
     }

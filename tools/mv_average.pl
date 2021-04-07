@@ -3,6 +3,8 @@
 # (w) Axel XL Schwenke for MariaDB AB
 #
 # read a 2-column TSV file and calculate a moving average on column 2
+#
+# $Id$
 
 #defaults
 my $avgcnt = 10;
