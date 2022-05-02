@@ -38,11 +38,22 @@ for query in `seq 22`
 do
   for pass in `seq $RUNS`
   do
-    printf 'SET @start:=NOW();\n'
+    printf 'SET @start:=NOW(6);\n'
     printf 'source query_%02d.sql\n' $query
     printf 'INSERT INTO dbt3_runs (batch, query, pass, start_ts, end_ts)\n'
-    printf ' VALUES (@batch, %d, %d, @start, NOW());\n\n' $query $pass
+    printf ' VALUES (@batch, %d, %d, @start, NOW(6));\n\n' $query $pass
   done
 done
 ) > $DSS_PATH/dbt3_run.sql
 
+echo "\
+SELECT query, 
+       min(duration) as min, 
+       max(duration) as max, 
+       avg(duration) as avg, 
+       std(duration) as sigma, 
+       std(duration)/avg(duration)*100 as 'sigma/avg %' 
+FROM (
+       SELECT query, pass, UNIX_TIMESTAMP(end_ts)-UNIX_TIMESTAMP(start_ts) AS duration FROM dbt3_runs
+     ) xxx 
+GROUP BY query;" >> $DSS_PATH/dbt3_run.sql

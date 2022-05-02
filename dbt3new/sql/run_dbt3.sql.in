@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS dbt3_runs (
   batch    INT UNSIGNED,
   query    TINYINT UNSIGNED,
   pass     TINYINT UNSIGNED,
-  start_ts TIMESTAMP,
-  end_ts   TIMESTAMP,
+  start_ts TIMESTAMP(6),
+  end_ts   TIMESTAMP(6),
   UNIQUE (batch, query, pass)
 );
 
