@@ -6,7 +6,7 @@
 
 SCALE=${1:-1}
 ENGINE=${2:-"InnoDB"}
-RUNS=${3:-3}
+RUNS=${3:-1}
 
 HERE=`pwd`
 
@@ -38,6 +38,7 @@ for query in `seq 22`
 do
   for pass in `seq $RUNS`
   do
+    printf 'source explain_%02d.sql\n\n' $query
     printf 'SET @start:=NOW(6);\n'
     printf 'source query_%02d.sql\n' $query
     printf 'INSERT INTO dbt3_runs (batch, query, pass, start_ts, end_ts)\n'
