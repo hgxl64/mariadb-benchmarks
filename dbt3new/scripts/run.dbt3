@@ -427,7 +427,7 @@ do
         if [[ ${EXPLAIN} != "" ]]
         then
             EXP=$(cat ${DIR}/explain_${QNUM}.sql | sed "s/EXPLAIN/${EXPLAIN}/")
-            timeout ${TIMEOUT} mysql -vnt -S ${SOCKET} -u root -e "${EXP}" dbt3 | 2>&1 tee --append ${RESULTSDIR}/${DIR}/${Q2}.explains
+            timeout ${TIMEOUT} mysql -nt -S ${SOCKET} -u root -e "${EXP}" dbt3 | 2>&1 tee --append ${RESULTSDIR}/${DIR}/${Q2}.explains
         fi
 
         # run query
