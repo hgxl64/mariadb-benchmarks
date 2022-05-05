@@ -3,7 +3,7 @@
 # (w) Axel XL Schwenke for MariaDB
 
 set -e
-#set -u
+set -u
 #set -x
 
 . config.sh
@@ -11,15 +11,19 @@ set -e
 USAGE="usage: $0
 
   mandatory arguments
-    --scale N ...... run DBT3 with scale factor N
-    --instance N ... run database instance N
+    --scale N ........ run DBT3 with scale factor N
+    --instance N ..... run database instance N
 
   optional arguments
-    --timeout N .... query execution timeout in seconds (default: 7200)
-    --repeats N .... query repetitions with restart inbetween (default: 1)
-    --engine S ..... use storage engine S to create the tables (default: InnoDB)
-    --explain S .... explain query (ex. --explain 'EXPLAIN EXTENDED', default: none)
-    --noexec ....... don't executed any query
+    --timeout N ...... query execution timeout in seconds (default: 7200)
+    --repeats N ...... query repetitions with restart inbetween (default: 1)
+    --engine S ....... use storage engine S to create the tables (default: InnoDB)
+    --explain S ...... explain query (ex. --explain 'EXPLAIN EXTENDED', default: none)
+    --analyzesql S ... load ANALYZE TABLE statements from given file
+    --createsql S .... load CREATE TABLE statements from given file
+    --loadsql S ...... load LOAD DATA statements from given file
+    --indexsql S ..... load CREATE INDEX statements from givel file
+    --noexec ......... don't executed any query
 "
 
 COMMAND_LINE="$@"
@@ -62,6 +66,18 @@ do
         --engine )    ENGINE="$1"; shift
                       ;;
 
+        --createsql)  CREATESQL="$1"; shift
+                      ;;
+
+        --loadsql)    LOADSQL="$1"; shift
+                      ;;
+
+        --indexsql)   INDEXSQL="$1"; shift
+                      ;;
+
+        --analyzesql) ANALYZESQL="$1"; shift
+                      ;;
+
         -h|--help)    echo -e "$USAGE"
                       exit 1
                       ;;
@@ -74,271 +90,104 @@ do
     esac
 done
 
+# check mandatory options
+[[ ${SCALE:-""} ]] || { echo -e "--scale option not set!"; echo -e "$USAGE"; exit 1; }
+[[ ${I:-""} ]]     || { echo -e "--instance option not set!"; echo -e "$USAGE"; exit 1; }
 
-[[ $SCALE ]] || { echo -e "--scale option not set!"; echo -e "$USAGE"; exit 1; }
-[[ $I ]]     || { echo -e "--instance option not set!"; echo -e "$USAGE"; exit 1; }
+# defaults
+[[ ${TIMEOUT:-""} ]]  || TIMEOUT=7200
+[[ ${REPEATS:-""} ]]  || REPEATS=1
+[[ ${EXPLAIN:-""} ]]  || EXPLAIN=""
+[[ ${ENGINE:-""} ]]   || ENGINE="InnoDB"
+[[ ${NOEXEC:-""} ]]   || NOEXEC=FALSE
+[[ ${SKIPLOAD:-""} ]] || SKIPLOAD=FALSE
 
-[[ $TIMEOUT ]]  || TIMEOUT=7200
-[[ $REPEATS ]]  || REPEATS=1
-[[ $EXPLAIN ]]  || EXPLAIN=""
-[[ $ENGINE ]]   || ENGINE="InnoDB"
-[[ $NOEXEC ]]   || NOEXEC=FALSE
-[[ $SKIPLOAD ]] || SKIPLOAD=FALSE
+[[ ${ANALYZESQL:-""} ]]  || INDEXSQL="analyze_tables.sql"
+[[ ${CREATESQL:-""} ]]   || CREATESQL="create_tables.sql"
+[[ ${LOADSQL:-""} ]]     || LOADSQL="load_tables.sql"
+[[ ${INDEXSQL:-""} ]]    || INDEXSQL="index_tables.sql"
 
-[[ -d $RESULTSDIR ]] || mkdir $RESULTSDIR
-[[ -d ${RESULTSDIR}/${DIR} ]] || mkdir ${RESULTSDIR}/${DIR}
+
+# work starts here
+[[ -d ${RESULTSDIR}/${DIR} ]] || mkdir -p ${RESULTSDIR}/${DIR}
 
 HERE=$(pwd)
 
-if [[ ${SKIPLOAD} != TRUE ]]
+if [[ ${SKIPLOAD} == TRUE ]]
 then
+    echo "skip loading the server, using existing DATADIR"
+else
+    # initially start the server
+    read ss <server.$II
+    echo -n "starting MySQL server ($ss) initially ..."
+    ./run.mysqld $II initial >> ${RESULTSDIR}/run.mysqld.log 2>&1 &
+    runner=$!
+    echo " (pid=$runner)"
 
-	# initially start the server
+    timeo=99
+    echo -n "waiting for server to come up "
+    while [ $timeo -gt 0 ]
+    do
+        mysqladmin -S ${SOCKET} -u root -b -s ping && break
+        echo -n "."
+        timeo=$(($timeo - 1))
+        sleep 1
+    done
 
-	read ss <server.$II
-	echo -n "starting MySQL server ($ss) initially ..."
-	./run.mysqld $II initial >> ${RESULTSDIR}/run.mysqld.log 2>&1 &
-	runner=$!
-	echo " (pid=$runner)"
+    if [ $timeo -eq 0 ]
+    then
+        echo " server not starting! Abort!"
+        exit 2
+    fi
 
-	timeo=99
-	echo -n "waiting for server to come up "
-	while [ $timeo -gt 0 ]
-	do
-	    mysqladmin -S ${SOCKET} -u root -b -s ping && break
-	    echo -n "."
-	    timeo=$(($timeo - 1))
-	    sleep 1
-	done
+    # create the tables
+    echo "Creating Tables using '${CREATESQL}' ..."
+    LOG=${RESULTSDIR}/${DIR}/$(date +%y%m%d.%H%M%S).dbt3_load.log
+    CMD=$(echo "DROP DATABASE IF EXISTS dbt3;
+    CREATE DATABASE dbt3;
+    USE dbt3;
 
-	if [ $timeo -eq 0 ]
-	then
-	    echo " server not starting! Abort!"
-	    exit 2
-	fi
+    CREATE TABLE load_time_statistics (
+            idx INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            task_name VARCHAR(40),
+            timest TIMESTAMP(6)
+    );
 
+    CREATE TABLE dbt3_runs (
+      idx      INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      query    CHAR(5),
+      pass     TINYINT UNSIGNED,
+      start_ts TIMESTAMP(6),
+      end_ts   TIMESTAMP(6)
+    );
 
-	# create the tables
+    "; envsubst < ${CREATESQL})
+    mysql -vnt -S ${SOCKET} -u root -e "$CMD" 2>&1 | tee --append $LOG
 
-	echo "Creating Tables using engine ${ENGINE} ..."
-	LOG=${RESULTSDIR}/${DIR}/$(date +%y%m%d.%H%M%S).dbt3_load.log
+    # load the tables
+    echo "Loading Tables using '${LOADSQL}' ..."
+    CMD=$(envsubst < ${LOADSQL})
+    mysql -nt -S ${SOCKET} -u root -e "$CMD" dbt3 2>&1 | tee --append $LOG
 
-	mysql -t -S ${SOCKET} -u root -e "
-	DROP DATABASE IF EXISTS dbt3;
-	CREATE DATABASE dbt3;
-	USE dbt3;
+    # add indexes
+    echo "Creating Indexes using '${INDEXSQL}' ..."
+    CMD=$(envsubst < ${INDEXSQL})
+    mysql -nt -S ${SOCKET} -u root -e "CMD" dbt3 2>&1 | tee --append $LOG
 
-	CREATE TABLE supplier (
-	  s_suppkey  INTEGER PRIMARY KEY,
-	  s_name CHAR(25),
-	  s_address VARCHAR(40),
-	  s_nationkey INTEGER,
-	  s_phone CHAR(15),
-	  s_acctbal REAL,
-	  s_comment VARCHAR(101)
-	) Engine ${ENGINE};
+    # generate load time statistics
+    LOG=${RESULTSDIR}/${DIR}/$(date +%y%m%d.%H%M%S).dbt3_load.stats
+    mysql -t -S ${SOCKET} -u root -e "
+    SELECT @start:=MIN(timest) FROM load_time_statistics;
+    SELECT UNIX_TIMESTAMP(timest)-UNIX_TIMESTAMP(@start) AS duration,
+    @start:=timest AS time, task_name
+    FROM load_time_statistics ORDER BY idx;
+    SELECT version()
+    " dbt3 2>&1 | tee --append $LOG
 
-	CREATE TABLE part (
-	  p_partkey INTEGER PRIMARY KEY,
-	  p_name VARCHAR(55),
-	  p_mfgr CHAR(25),
-	  p_brand CHAR(10),
-	  p_type VARCHAR(25),
-	  p_size INTEGER,
-	  p_container CHAR(10),
-	  p_retailprice REAL,
-	  p_comment VARCHAR(23)
-	) Engine ${ENGINE};
-
-	CREATE TABLE partsupp (
-	  ps_partkey INTEGER,
-	  ps_suppkey INTEGER,
-	  ps_availqty INTEGER,
-	  ps_supplycost REAL,
-	  ps_comment VARCHAR(199),
-	  PRIMARY KEY (ps_partkey, ps_suppkey)
-	) Engine ${ENGINE};
-
-	CREATE TABLE customer (
-	  c_custkey INTEGER primary key,
-	  c_name VARCHAR(25),
-	  c_address VARCHAR(40),
-	  c_nationkey INTEGER,
-	  c_phone CHAR(15),
-	  c_acctbal REAL,
-	  c_mktsegment CHAR(10),
-	  c_comment VARCHAR(117)
-	) Engine ${ENGINE};
-
-	CREATE TABLE orders (
-	  o_orderkey INTEGER primary key,
-	  o_custkey INTEGER,
-	  o_orderstatus CHAR(1),
-	  o_totalprice REAL,
-	  o_orderDATE DATE,
-	  o_orderpriority CHAR(15),
-	  o_clerk CHAR(15),
-	  o_shippriority INTEGER,
-	  o_comment VARCHAR(79)
-	) Engine ${ENGINE};
-
-	CREATE TABLE lineitem (
-	  l_orderkey INTEGER,
-	  l_partkey INTEGER,
-	  l_suppkey INTEGER,
-	  l_linenumber INTEGER,
-	  l_quantity REAL,
-	  l_extendedprice REAL,
-	  l_discount REAL,
-	  l_tax REAL,
-	  l_returnflag CHAR(1),
-	  l_linestatus CHAR(1),
-	  l_shipDATE DATE,
-	  l_commitDATE DATE,
-	  l_receiptDATE DATE,
-	  l_shipinstruct CHAR(25),
-	  l_shipmode CHAR(10),
-	  l_comment VARCHAR(44),
-	  PRIMARY KEY (l_orderkey, l_linenumber)
-	) Engine ${ENGINE};
-
-	CREATE TABLE nation (
-	  n_nationkey INTEGER primary key,
-	  n_name CHAR(25),
-	  n_regionkey INTEGER,
-	  n_comment VARCHAR(152)
-	) Engine ${ENGINE};
-
-	CREATE TABLE region (
-	  r_regionkey INTEGER primary key,
-	  r_name CHAR(25),
-	  r_comment VARCHAR(152)
-	) Engine ${ENGINE};
-
-	CREATE TABLE load_time_statistics (
-		idx INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-		task_name VARCHAR(40),
-		timest TIMESTAMP(6)
-	);
-
-	CREATE TABLE dbt3_runs (
-	  idx      INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-	  query    CHAR(5),
-	  pass     TINYINT UNSIGNED,
-	  start_ts TIMESTAMP(6),
-	  end_ts   TIMESTAMP(6)
-	);
-
-	" 2>&1 | tee --append $LOG
-
-
-	# load the tables
-
-	echo "Loading Tables ..."
-
-	mysql -nt -S ${SOCKET} -u root -e "
-	USE dbt3;
-
-	INSERT INTO load_time_statistics (task_name, timest) VALUES ('loading database started', now(6));
-
-	SELECT 'loading table nation.tbl' AS progress;
-	LOAD DATA INFILE '${HERE}/${DIR}/nation.tbl' into table nation fields terminated by '|';
-	INSERT INTO load_time_statistics (task_name, timest) VALUES ('load nation table', now(6));
-
-	SELECT 'loading table region.tbl' AS progress;
-	LOAD DATA INFILE '${HERE}/${DIR}/region.tbl' into table region fields terminated by '|';
-	INSERT INTO load_time_statistics (task_name, timest) VALUES ('load region table', now(6));
-
-	SELECT 'loading table supplier.tbl' AS progress;
-	LOAD DATA INFILE '${HERE}/${DIR}/supplier.tbl' into table supplier fields terminated by '|';
-	INSERT INTO load_time_statistics (task_name, timest) VALUES ('load supplier table', now(6));
-
-	SELECT 'loading table part.tbl' AS progress;
-	LOAD DATA INFILE '${HERE}/${DIR}/part.tbl' into table part fields terminated by '|';
-	INSERT INTO load_time_statistics (task_name, timest) VALUES ('load part table', now(6));
-
-	SELECT 'loading table customer.tbl' AS progress;
-	LOAD DATA INFILE '${HERE}/${DIR}/customer.tbl' into table customer fields terminated by '|';
-	INSERT INTO load_time_statistics (task_name, timest) VALUES ('load customer table', now(6));
-
-	SELECT 'loading table orders.tbl' AS progress;
-	LOAD DATA INFILE '${HERE}/${DIR}/orders.tbl' into table orders fields terminated by '|';
-	INSERT INTO load_time_statistics (task_name, timest) VALUES ('load orders table', now(6));
-
-	SELECT 'loading table partsupp.tbl' AS progress;
-	LOAD DATA INFILE '${HERE}/${DIR}/partsupp.tbl' into table partsupp fields terminated by '|';
-	INSERT INTO load_time_statistics (task_name, timest) VALUES ('load partsupp table', now(6));
-
-	SELECT 'loading table lineitem.tbl' AS progress;
-	LOAD DATA INFILE '${HERE}/${DIR}/lineitem.tbl' into table lineitem fields terminated by '|';
-	INSERT INTO load_time_statistics (task_name, timest) VALUES ('load lineitem table', now(6));
-	" 2>&1 | tee --append $LOG
-
-
-	# add indexes
-
-	echo "Creating Indexes ..."
-
-	mysql -nt -S ${SOCKET} -u root -e "
-	USE dbt3;
-
-	SELECT 'indexing linitem' AS progress;
-	ALTER TABLE lineitem
-	   ADD INDEX i_l_shipdate(l_shipdate),
-	   ADD INDEX i_l_suppkey_partkey (l_partkey, l_suppkey),
-	   ADD INDEX i_l_partkey (l_partkey),
-	   ADD INDEX i_l_suppkey (l_suppkey),
-	   ADD INDEX i_l_receiptdate (l_receiptdate),
-	   ADD INDEX i_l_orderkey (l_orderkey),
-	   ADD INDEX i_l_orderkey_quantity (l_orderkey, l_quantity),
-	   ADD INDEX i_l_commitdate (l_commitdate);
-	INSERT INTO load_time_statistics (task_name, timest) VALUES ('added lineitem indexes', now(6));
-
-	SELECT 'indexing customer' AS progress;
-	CREATE INDEX i_c_nationkey ON customer (c_nationkey);
-	INSERT INTO load_time_statistics (task_name, timest) VALUES ('added customer indexes', now(6));
-
-	SELECT 'indexing orders' AS progress;
-	ALTER TABLE orders
-	  ADD INDEX i_o_orderdate (o_orderdate),
-	  ADD INDEX i_o_custkey (o_custkey);
-	INSERT INTO load_time_statistics (task_name, timest) VALUES ('added orders indexes', now(6));
-
-	SELECT 'indexing supplier' AS progress;
-	CREATE INDEX i_s_nationkey ON supplier (s_nationkey);
-	INSERT INTO load_time_statistics (task_name, timest) VALUES ('added supplier indexes', now(6));
-
-	SELECT 'indexing partsupp' AS progress;
-	ALTER TABLE partsupp
-	  ADD INDEX i_ps_partkey (ps_partkey),
-	  ADD INDEX i_ps_suppkey (ps_suppkey);
-	INSERT INTO load_time_statistics (task_name, timest) VALUES ('added partsupp indexes', now(6));
-
-	SELECT 'indexing nation' AS progress;
-	CREATE INDEX i_n_regionkey ON nation (n_regionkey);
-	INSERT INTO load_time_statistics (task_name, timest) VALUES ('added nation indexes', now(6));
-	" 2>&1 | tee --append $LOG
-
-
-	# generate load time statistics
-
-	LOG=${RESULTSDIR}/${DIR}/$(date +%y%m%d.%H%M%S).dbt3_load.stats
-
-	mysql -t -S ${SOCKET} -u root -e "
-	USE dbt3;
-	SELECT @start:=MIN(timest) FROM load_time_statistics;
-	SELECT UNIX_TIMESTAMP(timest)-UNIX_TIMESTAMP(@start) AS duration,
-	@start:=timest AS time, task_name
-	FROM load_time_statistics ORDER BY idx;
-	SELECT version()
-	" 2>&1 | tee --append $LOG
-
-
-	# shutdown server
-
-	echo -n "stopping MySQL server ... "
-	mysqladmin -S ${SOCKET} -u root shutdown
-	wait $runner
+    # shutdown server
+    echo -n "stopping MySQL server ... "
+    mysqladmin -S ${SOCKET} -u root shutdown
+    wait $runner
 
 fi
 
@@ -346,7 +195,6 @@ for RUN in $(seq $REPEATS)
 do
 
     # start the server
-
     echo -n "restarting MySQL server for run ${RUN} ..."
     ./run.mysqld $II >> ${RESULTSDIR}/run.mysqld.log 2>&1 &
     runner=$!
@@ -368,55 +216,21 @@ do
         exit 2
     fi
 
-
     # run analyze tables
-
-    echo "Analyzing Tables ..."
-
+    echo "Analyzing Tables using '${ANALYZESQL}' ..."
     LOG=${RESULTSDIR}/${DIR}/$(date +%y%m%d.%H%M%S).dbt3_analyze.log
-
-    mysql -nt -S ${SOCKET} -u root -e "
-    USE dbt3;
-
-    DELETE FROM load_time_statistics;
-    INSERT INTO load_time_statistics (task_name, timest) VALUES ('analyze tables started', now(6));
-
-    ANALYZE TABLE supplier;
-    INSERT INTO load_time_statistics (task_name, timest) VALUES ('analyzed supplier table', now(6));
-
-    ANALYZE TABLE part;
-    INSERT INTO load_time_statistics (task_name, timest) VALUES ('analyzed part table', now(6));
-
-    ANALYZE TABLE partsupp;
-    INSERT INTO load_time_statistics (task_name, timest) VALUES ('analyzed partsupp table', now(6));
-
-    ANALYZE TABLE customer;
-    INSERT INTO load_time_statistics (task_name, timest) VALUES ('analyzed customer table', now(6));
-
-    ANALYZE TABLE orders;
-    INSERT INTO load_time_statistics (task_name, timest) VALUES ('analyzed orders table', now(6));
-
-    ANALYZE TABLE lineitem;
-    INSERT INTO load_time_statistics (task_name, timest) VALUES ('analyzed lineitem table', now(6));
-
-    ANALYZE TABLE nation;
-    INSERT INTO load_time_statistics (task_name, timest) VALUES ('analyzed nation table', now(6));
-
-    ANALYZE TABLE region;
-    INSERT INTO load_time_statistics (task_name, timest) VALUES ('analyzed region table', now(6));
-
+    CMD=$(envsubst < ${ANALYZESQL}; echo "
     SELECT @start:=MIN(timest) FROM load_time_statistics;
     SELECT UNIX_TIMESTAMP(timest)-UNIX_TIMESTAMP(@start) AS duration,
     @start:=timest AS time, task_name
     FROM load_time_statistics ORDER BY idx;
 
     SHOW TABLE STATUS;
-    SHOW GLOBAL VARIABLES;
-    " 2>&1 | tee --append $LOG
+    SHOW GLOBAL VARIABLES;")
+    mysql -nt -S ${SOCKET} -u root -e "$CMD" dbt3 2>&1 | tee --append $LOG
 
-
+    # execute DBT3 queries
     LOG=${RESULTSDIR}/${DIR}/$(date +%y%m%d.%H%M%S).dbt3_exec.log
-
     for QUERY in ${DIR}/query_*.sql
     do
 	Q1=$(basename $QUERY)
@@ -433,24 +247,22 @@ do
         # run query
         if [[ ${NOEXEC} != TRUE ]]
         then
-            CMD=$(echo "SELECT 'running query ${Q2}' AS progress;"; echo "SET @start:=NOW(6);"; cat $QUERY; 
+            CMD=$(echo "SELECT 'running query ${Q2}' AS progress;"; echo "SET @start:=NOW(6);"; cat $QUERY;
 	          echo "INSERT INTO dbt3_runs (query, pass, start_ts, end_ts) VALUES ('${QNUM}', ${RUN}, @start, NOW(6));")
             timeout ${TIMEOUT} mysql -vvvnt -S ${SOCKET} -u root -e "${CMD}" dbt3 | 2>&1 tee --append $LOG
         fi
     done
 
-    # generate exec time statistics
-
+    # generate exec time statistics on last run
     if [[ $RUN == $REPEATS ]]
     then
         LOG=${RESULTSDIR}/${DIR}/$(date +%y%m%d.%H%M%S).dbt3_exec.long.stats
-
         mysql -t -S ${SOCKET} -u root -e "\
-	SELECT query, pass, UNIX_TIMESTAMP(end_ts)-UNIX_TIMESTAMP(start_ts) AS duration 
+	SELECT query, pass, UNIX_TIMESTAMP(end_ts)-UNIX_TIMESTAMP(start_ts) AS duration
 	FROM dbt3_runs ORDER BY query, pass;
-		
+
 	SELECT query, COUNT(*) FROM dbt3_runs GROUP BY query;
-        
+
 	SELECT query,
           min(duration) as min,
           max(duration) as max,
@@ -474,9 +286,7 @@ do
         " dbt3 2>&1 | tee --append $LOG
     fi
 
-
-    # shutdown server
-
+    # finally shutdown server
     echo -n "stopping MySQL server ... "
     mysqladmin -S ${SOCKET} -u root shutdown
     wait $runner
