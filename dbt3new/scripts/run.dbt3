@@ -108,11 +108,15 @@ done
 [[ ${LOADSQL:-""}    ]] || LOADSQL="load_tables.sql"
 [[ ${INDEXSQL:-""}   ]] || INDEXSQL="index_tables.sql"
 
+HERE=$(pwd)
 
 # work starts here
+
+export ENGINE
+export DATAFILEDIR=${HERE}/${DIR}
+
 [[ -d ${RESULTSDIR}/${DIR} ]] || mkdir -p ${RESULTSDIR}/${DIR}
 
-HERE=$(pwd)
 
 if [[ ${SKIPLOAD} == TRUE ]]
 then
@@ -173,7 +177,7 @@ else
     # add indexes
     echo "Creating Indexes using '${INDEXSQL}' ..."
     CMD=$(envsubst < ${INDEXSQL})
-    mysql -nt -S ${SOCKET} -u root -e "CMD" dbt3 2>&1 | tee --append $LOG
+    mysql -nt -S ${SOCKET} -u root -e "$CMD" dbt3 2>&1 | tee --append $LOG
 
     # generate load time statistics
     LOG=${RESULTSDIR}/${DIR}/$(date +%y%m%d.%H%M%S).dbt3_load.stats
