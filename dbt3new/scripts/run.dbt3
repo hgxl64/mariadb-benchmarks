@@ -151,7 +151,7 @@ else
 
     # create the tables
     echo "Creating Tables using '${CREATESQL}' ..."
-    LOG=${RESULTSDIR}/${DIR}/$(date +%y%m%d.%H%M%S).dbt3_load.log
+    LOG=${LOGDIR}/$(date +%y%m%d.%H%M%S).dbt3_load.log
     CMD=$(echo "DROP DATABASE IF EXISTS dbt3;
     CREATE DATABASE dbt3;
     USE dbt3;
@@ -184,7 +184,7 @@ else
     mysql -nt -S ${SOCKET} -u root -e "$CMD" dbt3 2>&1 | tee --append $LOG
 
     # generate load time statistics
-    LOG=${RESULTSDIR}/${DIR}/$(date +%y%m%d.%H%M%S).dbt3_load.stats
+    LOG=${LOGDIR}/$(date +%y%m%d.%H%M%S).dbt3_load.stats
     mysql -t -S ${SOCKET} -u root -e "
     SELECT @start:=MIN(timest) FROM load_time_statistics;
     SELECT UNIX_TIMESTAMP(timest)-UNIX_TIMESTAMP(@start) AS duration,
@@ -227,7 +227,7 @@ do
 
     # run analyze tables
     echo "Analyzing Tables using '${ANALYZESQL}' ..."
-    LOG=${RESULTSDIR}/${DIR}/$(date +%y%m%d.%H%M%S).dbt3_analyze.log
+    LOG=${LOGDIR}/$(date +%y%m%d.%H%M%S).dbt3_analyze.log
     CMD=$(envsubst < ${ANALYZESQL}; echo "
     SELECT @start:=MIN(timest) FROM load_time_statistics;
     SELECT UNIX_TIMESTAMP(timest)-UNIX_TIMESTAMP(@start) AS duration,
@@ -239,7 +239,7 @@ do
     mysql -nt -S ${SOCKET} -u root -e "$CMD" dbt3 2>&1 | tee --append $LOG
 
     # execute DBT3 queries
-    LOG=${RESULTSDIR}/${DIR}/$(date +%y%m%d.%H%M%S).dbt3_exec.log
+    LOG=${LOGDIR}/$(date +%y%m%d.%H%M%S).dbt3_exec.log
     for QUERY in ${DIR}/query_*.sql
     do
 	Q1=$(basename $QUERY)
@@ -250,7 +250,7 @@ do
         if [[ ${EXPLAIN} != "" ]]
         then
             EXP=$(cat ${DIR}/explain_${QNUM}.sql | sed "s/EXPLAIN/${EXPLAIN}/")
-            timeout ${TIMEOUT} mysql -nt -S ${SOCKET} -u root -e "${EXP}" dbt3 | 2>&1 tee --append ${RESULTSDIR}/${DIR}/${Q2}.explains
+            timeout ${TIMEOUT} mysql -nt -S ${SOCKET} -u root -e "${EXP}" dbt3 | 2>&1 tee --append ${LOGDIR}/${Q2}.explains
         fi
 
         # run query
@@ -265,7 +265,7 @@ do
     # generate exec time statistics on last run
     if [[ $RUN == $REPEATS ]]
     then
-        LOG=${RESULTSDIR}/${DIR}/$(date +%y%m%d.%H%M%S).dbt3_exec.long.stats
+        LOG=${LOGDIR}/$(date +%y%m%d.%H%M%S).dbt3_exec.long.stats
         mysql -t -S ${SOCKET} -u root -e "\
 	SELECT query, pass, UNIX_TIMESTAMP(end_ts)-UNIX_TIMESTAMP(start_ts) AS duration
 	FROM dbt3_runs ORDER BY query, pass;
@@ -284,7 +284,7 @@ do
         GROUP BY query;
         " dbt3 2>&1 | tee --append $LOG
 
-        LOG=${RESULTSDIR}/${DIR}/$(date +%y%m%d.%H%M%S).dbt3_exec.stats
+        LOG=${LOGDIR}/$(date +%y%m%d.%H%M%S).dbt3_exec.stats
 
         mysql -t -S ${SOCKET} -u root -e "\
 	SELECT query, avg(duration) as average_execution_time
@@ -296,7 +296,7 @@ do
     fi
 
     # finally shutdown server
-    echo -n "stopping MySQL server ... "
+    echo "stopping MySQL server ... "
     mysqladmin -S ${SOCKET} -u root shutdown
     wait $runner
 
