@@ -64,6 +64,9 @@ do
         --skipload)   SKIPLOAD=TRUE
                       ;;
 
+        --force)      FORCE=TRUE
+                      ;;
+
         --engine )    ENGINE="$1"; shift
                       ;;
 
@@ -105,6 +108,7 @@ done
 [[ ${ENGINE:-""}     ]] || ENGINE="InnoDB"
 [[ ${NOEXEC:-""}     ]] || NOEXEC=FALSE
 [[ ${SKIPLOAD:-""}   ]] || SKIPLOAD=FALSE
+[[ ${FORCE:-""}      ]] || FORCE=FALSE
 
 [[ ${ANALYZESQL:-""} ]] || ANALYZESQL="analyze_tables.sql"
 [[ ${CREATESQL:-""}  ]] || CREATESQL="create_tables.sql"
@@ -116,17 +120,19 @@ HERE=$(pwd)
 
 # work starts here
 
+# exports for envsubst
 export ENGINE
 export DATAFILEDIR=${HERE}/${DIR}
 
+[[ -d ${LOGDIR} && ${FORCE} != TRUE ]] && { echo "results exist in ${LOGDIR}, use --force to override this check"; exit 1; }
 [[ -d ${LOGDIR} ]] || mkdir -p ${LOGDIR}
 
 
+# initially start the server
 if [[ ${SKIPLOAD} == TRUE ]]
 then
     echo "skip loading the server, using existing DATADIR"
 else
-    # initially start the server
     read ss <server.$II
     echo -n "starting MySQL server ($ss) initially ..."
     ./run.mysqld $II initial >> ${RESULTSDIR}/run.mysqld.log 2>&1 &
