@@ -79,6 +79,9 @@ do
         --analyzesql) ANALYZESQL="$1"; shift
                       ;;
 
+        --logdir)     LOGDIR="$1"; shift
+                      ;;
+
         -h|--help)    echo -e "$USAGE"
                       exit 1
                       ;;
@@ -107,6 +110,7 @@ done
 [[ ${CREATESQL:-""}  ]] || CREATESQL="create_tables.sql"
 [[ ${LOADSQL:-""}    ]] || LOADSQL="load_tables.sql"
 [[ ${INDEXSQL:-""}   ]] || INDEXSQL="index_tables.sql"
+[[ ${LOGDIR}:-""}    ]] || LOGDIR=${RESULTSDIR}/${DIR}
 
 HERE=$(pwd)
 
@@ -115,7 +119,7 @@ HERE=$(pwd)
 export ENGINE
 export DATAFILEDIR=${HERE}/${DIR}
 
-[[ -d ${RESULTSDIR}/${DIR} ]] || mkdir -p ${RESULTSDIR}/${DIR}
+[[ -d ${LOGDIR} ]] || mkdir -p ${LOGDIR}
 
 
 if [[ ${SKIPLOAD} == TRUE ]]
