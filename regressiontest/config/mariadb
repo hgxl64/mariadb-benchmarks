@@ -1,0 +1,15 @@
+#
+# MariaDB specific
+#
+
+# Marker
+export IS_MARIADB=1
+
+# Command Line Tools
+export MYSQL="mariadb"
+export MYSQLD="mariadbd"
+export MYSQLADMIN="mariadb-admin"
+export MYSQLD_SAFE="mariadbd-safe"
+export MYSQL_INSTALL_DB=mariadb-install-db
+
+

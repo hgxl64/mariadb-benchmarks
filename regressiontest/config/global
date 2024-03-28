@@ -1,0 +1,12 @@
+#
+# global settings
+#
+
+# source host-specific config if it exists
+[[ -e ${RT_HOME}/config/$(hostname) ]] && source ${RT_HOME}/config/$(hostname)
+
+config_variable INSTALLDIR ${HOME}/mariadb-install
+config_variable DATADIR    ${HOME}/var/regression
+config_variable SOCKET     /tmp/mysqld.sock.sysbench
+
+

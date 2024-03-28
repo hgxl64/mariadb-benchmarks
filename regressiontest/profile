@@ -1,0 +1,8 @@
+#
+# minimum environment
+#
+
+export RT_HOME=$PWD
+export PATH=${RT_HOME}/bin:${PATH}
+export LUA_PATH=${RT_HOME}/lua/?.lua
+export RT_LOG_HOME=${RT_HOME}/log
