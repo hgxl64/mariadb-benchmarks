@@ -263,6 +263,17 @@ collect_server_stats() {
 }
 
 
+# return number of cpu cores, either from config variable or system
+n_cpu() {
+    if [[ -n ${NCPU} ]]
+    then
+        echo ${NCPU}
+    else
+        cat /proc/cpuinfo | grep -c "^processor"
+    fi
+}
+
+
 # create sequence of exponentially (factor 2) growing numbers
 # starting from $1 and not exceeding $2
 thread_range() {

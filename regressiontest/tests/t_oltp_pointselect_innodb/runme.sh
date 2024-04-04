@@ -13,7 +13,7 @@ LUA_PREPARE=rt_read_write.lua
 LUA_ARGS_PREPARE=""
 LUA_RUN=rt_point_select.lua
 LUA_ARGS_RUN=""
-THREADS=$(thread_range 1 $(($NCPU*4)) )
+THREADS=$(thread_range 1 $(($(n_cpu) * 4)))
 RUNTIME=100
 REPORT=2
 POSTPROCESS="performancecurve"
@@ -38,10 +38,10 @@ mkdir -p ${LOGDIRECTORY}
 # -------------------
 
 {
-    info $(date --utc "+%F %T starting server from '${TARGETDIR}'")
+    info $(date --utc "+%F %T   starting server from '${TARGETDIR}'")
     start_server > ${LOGDIRECTORY}/start.server.log 2>&1
 
-    info $(date --utc "+%F %T loading data set")
+    info $(date --utc "+%F %T   loading data set")
     {
         $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
         $MYSQL -S $SOCKET -u root -e "CREATE DATABASE sbtest"
@@ -57,7 +57,7 @@ mkdir -p ${LOGDIRECTORY}
     #run benchmark
     echo -e "thds \ttps \tmin \tavg \tmax \t95th \t25th \tmedian \t75th" > ${LOGDIRECTORY}/summary.log
 
-    info -n $(date --utc "+%F %T running sysbench (${THREADS} thds):")
+    info -n $(date --utc "+%F %T   running sysbench (${THREADS} thds):")
     for thread in $THREADS
     do
        info -n " ${thread} ..."
@@ -87,7 +87,7 @@ mkdir -p ${LOGDIRECTORY}
 
     collect_server_stats > ${LOGDIRECTORY}/stats.after.log 2>&1
 
-    info $(date --utc "+%F %T stopping server")
+    info $(date --utc "+%F %T   stopping server")
     stop_server > ${LOGDIRECTORY}/stop.server.log 2>&1
 
 } 2>&1 | tee ${LOGDIRECTORY}/${TEST_NAME}.log
