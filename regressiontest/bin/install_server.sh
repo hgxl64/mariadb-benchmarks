@@ -8,18 +8,19 @@ source ${RT_HOME}/config/global
 # -------------------
 
 USAGE="usage: $0
-    Installs MariaDB server from various sources
-    Options:
-        [ --database mariadb-enterprise|mariadb-community ]
-        [ --source jenkins|git ]
-        [ --buildtype ... ]
-        [ --branch ... ]
-        [ --commit ... ]
-        [ -h|--help ]
-    Examples:
-        $0 --source jenkins --buildtype release --release 10.6.16-11
-        $0 --source jenkins --buildtype snapshot --branch 10.6-enterprise --build latest
-        $0 --source git --branch 10.6-enterprise --commit 0815badc0de
+
+Installs MariaDB server from various sources
+Options:
+    --database mariadb-enterprise|mariadb-community
+    --source jenkins|git
+    --buildtype ...
+    --branch ...
+    --commit ...
+    -h|--help
+Examples:
+    $0 --source jenkins --buildtype release --release 10.6.16-11
+    $0 --source jenkins --buildtype snapshot --branch 10.6-enterprise --build latest
+    $0 --source git --branch 10.6-enterprise --commit 0815badc0de
 "
 
 COMMAND_LINE="$@"
@@ -35,14 +36,9 @@ while [[ $# > 0 ]] ; do
         --branch)                       BRANCH="$1"; shift;;
         --commit)                       COMMIT="$1"; shift;;
         -h|--help)                      echo -e "$USAGE"; exit 1;;
-        *)  echo "Invalid input switch: $key"; echo -e "COMMAND_LINE = ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
+        *)  msg "Invalid input switch: $key"; msg "COMMAND_LINE = ${COMMAND_LINE}"; error "${USAGE}";;
     esac
 done
-
-# -------------------
-# set default values
-# -------------------
-
 
 
 # -------------------
@@ -76,13 +72,13 @@ fi
                 if [[ -d ${TARGETDIR} ]]
                 then
                     msg "${TARGETDIR} exists, assuming it's already there"
-                    export $TARGETDIR
+                    set_targetdir ${TARGETDIR}
                     exit 2
                 fi
 
                 msg "downloading release '${RELEASE}' from Jenkins"
                 BASE_URL="${JENKINS_URL}/RELEASES/ES/${RELEASE}"
-                BINTAR_URL="${BASEURL}/bintar/${JENKINS_OS}/RelWithDebInfo/mariadb-enterprise-${RELEASE}-${JENKINS_ARCH}.tar.gz"
+                BINTAR_URL="${BASE_URL}/bintar/${JENKINS_OS}/RelWithDebInfo/mariadb-enterprise-${RELEASE}-${JENKINS_ARCH}.tar.gz"
                 HERE=$PWD
                 TMP=$(mktemp -d --tmpdir)
                 cd $TMP
@@ -119,7 +115,7 @@ fi
                 msg "download to ${TARGETDIR} succeeded"
                 cd $HERE
                 rm -rf $TMP
-                export $TARGETDIR
+                set_targetdir ${TARGETDIR}
                 exit 0
 
             elif [[ ${BUILDTYPE} == 'snapshot' ]]
@@ -139,6 +135,7 @@ fi
                 then
                     cd $HERE
                     rm -rf $TMP
+                    unset TARGETDIR
                     error "failed to download '${BASE_URL}/build.properties'"
                 fi
 
@@ -146,15 +143,15 @@ fi
 
                 COMMIT=$(fgrep GIT_COMMIT build.properties | sed 's/GIT_COMMIT=//' | head -c 11)
                 VERSION=$(fgrep FULL_VERSION build.properties | sed 's/FULL_VERSION=//')
-                BINTAR_URL="${BASEURL}/bintar/${JENKINS_OS}/RelWithDebInfo/mariadb-enterprise-${VERSION}-${JENKINS_ARCH}.tar.gz"
+                BINTAR_URL="${BASE_URL}/bintar/${JENKINS_OS}/RelWithDebInfo/mariadb-enterprise-${VERSION}-${JENKINS_ARCH}.tar.gz"
                 TARGETDIR="${INSTALLDIR}/mariadb-enterprise-${BRANCH}-${COMMIT}"
 
                 if [[ -d ${TARGETDIR} ]]
                 then
                     msg "${TARGETDIR} exists, assuming it's already there"
                     cd $HERE
-                    rm -f $TMP
-                    export TARGETDIR
+                    rm -rf $TMP
+                    set_targetdir ${TARGETDIR}
                     exit 2
                 fi
 
@@ -172,15 +169,15 @@ fi
                     error "failed to download '${BINTAR_URL}'"
                 fi
 
-                info "unpacking bintar package 'mariadb-enterprise-${RELEASE}-${JENKINS_ARCH}.tar.gz'"
-                tar xfz mariadb-enterprise-${RELEASE}-${JENKINS_ARCH}.tar.gz
-                info "moving 'mariadb-enterprise-${RELEASE}-${JENKINS_ARCH}' to '${TARGETDIR}'"
-                mv -t ${TARGETDIR} mariadb-enterprise-${RELEASE}-${JENKINS_ARCH}/*
+                info "unpacking bintar package 'mariadb-enterprise-${VERSION}-${JENKINS_ARCH}.tar.gz'"
+                tar xfz mariadb-enterprise-${VERSION}-${JENKINS_ARCH}.tar.gz
+                info "moving 'mariadb-enterprise-${VERSION}-${JENKINS_ARCH}' to '${TARGETDIR}'"
+                mv -t ${TARGETDIR} mariadb-enterprise-${VERSION}-${JENKINS_ARCH}/*
 
                 msg "download to ${TARGETDIR} succeeded"
                 cd $HERE
                 rm -rf $TMP
-                export TARGETDIR
+                set_targetdir ${TARGETDIR}
                 exit 0
 
             else
@@ -189,8 +186,56 @@ fi
 
         elif [[ ${SOURCE} = 'git' ]]
         then
-            #FIXME implement source git for mariadb-enterprise
-            error "$0: source '${SOURCE}' not implemented for database '${DATABASE}'"
+            #safeguard: make sure git repo is cloned locally
+            if [[ ! -d ${LOCAL_GIT_REPO} ]]
+            then
+                msg "cloning ${GIT_REPO} into ${LOCAL_GIT_REPO}"
+                mkdir -p $(dirname ${LOCAL_GIT_REPO})
+                cd $(dirname ${LOCAL_GIT_REPO})
+                git clone ${GIT_REPO} $(basename ${LOCAL_GIT_REPO}) >> ${LOGDIRECTORY}/git.log 2>&1
+            fi
+
+            cd ${LOCAL_GIT_REPO}
+            git fetch >> ${LOGDIRECTORY}/git.log 2>&1
+
+            # if commit is given, it is checked out and that's it
+            # commit can be a hash but also a tag
+            # ottherwise if branch is given, we checkout the head
+
+            if [[ ${COMMIT} ]]
+            then
+                msg "checking out commit ${COMMIT}"
+                git checkout ${COMMIT}  >> ${LOGDIRECTORY}/git.log 2>&1
+            elif [[ ${BRANCH} ]]
+            then
+                msg "checking out branch ${BRANCH}"
+                git checkout ${BRANCH}  >> ${LOGDIRECTORY}/git.log 2>&1
+                git pull                >> ${LOGDIRECTORY}/git.log 2>&1
+                git checkout --detach   >> ${LOGDIRECTORY}/git.log 2>&1
+                git branch -d ${BRANCH} >> ${LOGDIRECTORY}/git.log 2>&1
+                COMMIT=$(git log -n 1 --oneline | cut -d ' ' -f 1)
+                info "HEAD of branch ${BRANCH} is commit ${COMMIT}"
+            else
+                error "$0: neither commit nor branch given for source 'git'"
+            fi
+
+            TARGETDIR="${INSTALLDIR}/mariadb-enterprise-${BRANCH}-${COMMIT}"
+            if [[ -d ${TARGETDIR} ]]
+            then
+                msg "${TARGETDIR} exists, assuming it's already there"
+                set_targetdir ${TARGETDIR}
+                exit 2
+            fi
+
+            msg "building MariaDB Enterprise Server branch '${BRANCH}' commit '${COMMIT}'"
+            if ( ! build_enterprise_from_git.sh ${TARGETDIR} )
+            then
+                error "build failure, check log in ${LOGDIRECTORY}"
+            fi
+
+            msg "building to ${TARGETDIR} succeeded"
+            set_targetdir ${TARGETDIR}
+            exit 0
 
         else
             error "$0: unknown source '${SOURCE}' for database '${DATABASE}'"
@@ -240,7 +285,7 @@ fi
             if [[ -d ${TARGETDIR} ]]
             then
                 msg "${TARGETDIR} exists, assuming it's already there"
-                export TARGETDIR
+                set_targetdir ${TARGETDIR}
                 exit 2
             fi
 
@@ -251,9 +296,8 @@ fi
             fi
 
             msg "building to ${TARGETDIR} succeeded"
-            export TARGETDIR
+            set_targetdir ${TARGETDIR}
             exit 0
-
 
         else
             error "$0: source '${SOURCE}' not implemented for database '${DATABASE}'"
@@ -263,5 +307,6 @@ fi
         error "$0: unknown database '${DATABASE}'"
     fi
 
-} 2>&1 | tee ${LOGDIRECTORY}/${TEST_NAME}.log
+} 2>&1 > ${LOGDIRECTORY}/${TEST_NAME}.log
 
+exit

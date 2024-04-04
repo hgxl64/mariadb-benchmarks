@@ -7,4 +7,3 @@ source ${RT_HOME}/config/mariadb
 config_variable GIT_REPO        https://github.com/MariaDB/server.git
 config_variable LOCAL_GIT_REPO  ${HOME}/versioned/MariaDB-Server
 
-config_variable TESTS "t_oltp_pointselect_innodb"

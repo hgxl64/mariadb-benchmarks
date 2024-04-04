@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source rt_functions.sh
+source ${RT_HOME}/config/global
 
 # -------------------
 # configuration
@@ -11,10 +13,10 @@ LUA_PREPARE=rt_read_write.lua
 LUA_ARGS_PREPARE=""
 LUA_RUN=rt_point_select.lua
 LUA_ARGS_RUN=""
-#THREADS="1 2 4 8 16 32 64 128"
-THREADS="1 8 16"
+THREADS=$(thread_range 1 $(($NCPU*4)) )
 RUNTIME=100
 REPORT=2
+POSTPROCESS="performancecurve"
 
 
 # -------------------
@@ -35,38 +37,30 @@ mkdir -p ${LOGDIRECTORY}
 # main script
 # -------------------
 
-source rt_functions.sh
-source ${RT_HOME}/config/global
-
-
-time {
-    msg "starting server from ${TARGETDIR}"
+{
+    info $(date --utc "+%F %T starting server from '${TARGETDIR}'")
     start_server > ${LOGDIRECTORY}/start.server.log 2>&1
 
-    echo "loading data set"
-    time {
+    info $(date --utc "+%F %T loading data set")
+    {
         $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
         $MYSQL -S $SOCKET -u root -e "CREATE DATABASE sbtest"
         $SYSBENCH ${RT_HOME}/lua/${LUA_PREPARE} ${LUA_ARGS_PREPARE} \
           --tables=$TABLES --table-size=$ROWS --threads=$TABLES \
           --mysql-storage-engine=$ENGINE --bulk-load=true \
           --mysql-socket=$SOCKET --mysql-user=root prepare
-    } 2>&1 | tee ${LOGDIRECTORY}/prepare.log
+        [[ ${ENGINE} == "InnoDB" ]] && checkpoint_innodb
+    } 2>&1 > ${LOGDIRECTORY}/prepare.log
 
-    msg "forcing an innodb checkpoint"
-    time {
-        checkpoint_innodb
-    } 2>&1 | tee ${LOGDIRECTORY}/checkpoint.log
-
-    #collect extra info
-    du -s -BM ${DATADIR}/* > ${LOGDIRECTORY}/data.size.log 2>&1
-    $MYSQL -S $SOCKET -u root -t -e "SHOW GLOBAL VARIABLES" > ${LOGDIRECTORY}/global.variables.log 2>&1
+    collect_server_stats > ${LOGDIRECTORY}/stats.before.log 2>&1
 
     #run benchmark
     echo -e "thds \ttps \tmin \tavg \tmax \t95th \t25th \tmedian \t75th" > ${LOGDIRECTORY}/summary.log
 
+    info -n $(date --utc "+%F %T running sysbench (${THREADS} thds):")
     for thread in $THREADS
     do
+       info -n " ${thread} ..."
        numactl ${CPU_MASK_SYSBENCH:-"--all"} iostat -mx $REPORT $(($RUNTIME/$REPORT+1))  >> ${LOGDIRECTORY}/iostat.$thread.log &
        PIDLIST=$!
        if [[ -x ./dump_status.sh ]]
@@ -81,20 +75,21 @@ time {
        fi
 
        numactl ${CPU_MASK_SYSBENCH:-"--all"} ${SYSBENCH} ${RT_HOME}/lua/${LUA_RUN} ${LUA_ARGS_RUN} \
-         --tables=$TABLES --table-size=$ROWS --threads=$thread --report-interval=$REPORT \
-         --time=$RUNTIME --forced-shutdown=60 --events=0 \
-         --mysql-socket=$SOCKET --mysql-user=root run | tee -a ${LOGDIRECTORY}/sysbench.$thread.log
+         --tables=$TABLES --table-size=$ROWS --threads=$thread \
+         --report-interval=$REPORT --time=$RUNTIME --forced-shutdown=60 --events=0 \
+         --mysql-socket=$SOCKET --mysql-user=root run 2>&1 > ${LOGDIRECTORY}/sysbench.$thread.log
 
        wait $PIDLIST
        summarize_sysbench ${LOGDIRECTORY}/sysbench.$thread.log >> ${LOGDIRECTORY}/summary.log
-
-       #echo "forcing an innodb checkpoint"
-       #checkpoint_innodb
-
+       #checkpoint_innodb > ${LOGDIRECTORY}/checkpoint.$thread.log
     done
+    info "sysbench finished"
 
-    #
+    collect_server_stats > ${LOGDIRECTORY}/stats.after.log 2>&1
+
+    info $(date --utc "+%F %T stopping server")
     stop_server > ${LOGDIRECTORY}/stop.server.log 2>&1
 
 } 2>&1 | tee ${LOGDIRECTORY}/${TEST_NAME}.log
 
+echo ${POSTPROCESS} > ${LOGDIRECTORY}/POSTPROCESS

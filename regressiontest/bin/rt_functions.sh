@@ -1,34 +1,36 @@
 #!/bin/bash
 
-
-PARENT_PID=$$
-
 #
 # Common Functions
 #
 
 
+# unconditional message
 msg() {
     echo "$@"
 }
 
 
+# message ist only displayed when $VERBOSE >= 1
 info() {
+    [[ ${VERBOSE:-0} -gt 0 ]] && echo "$@"
+}
+
+
+# message ist only displayed when $VERBOSE >= 2
+debug() {
     [[ ${VERBOSE:-0} -gt 1 ]] && echo "$@"
 }
 
 
-debug() {
-    [[ ${VERBOSE:-0} -gt 2 ]] && echo "$@"
-}
-
-
+# message and exiting the script/block
 error() {
     echo "$@"
     exit 1
 }
 
 
+# read properties from ~/.vault.yaml
 vault() {
     local key=$1
     local value=$(fgrep "${key}:" ~/.vault.yaml | sed "s/.*: //")
@@ -52,45 +54,55 @@ config_variable() {
 }
 
 
+# get a global server variable by name
 get_server_variable() {
     echo $($MYSQL -S $SOCKET -u root -e "SHOW GLOBAL VARIABLES LIKE '$1'" | tail -1 | cut -f 2)
 }
 
 
+# set a global server variable
 set_server_variable() {
    $MYSQL -S $SOCKET -u root -e "SET GLOBAL ${1}=${2}"
 }
 
 
+# set a global server variable, ignoring errors
 set_server_variable_failsafe() {
    $MYSQL -S $SOCKET -u root -e "SET GLOBAL ${1}=${2}" 2> /dev/null || true
 }
 
 
+# get a global server status variable by name
+get_server_status() {
+    echo $($MYSQL -S $SOCKET -u root -e "SHOW GLOBAL STATUS LIKE '$1'" | tail -1 | cut -f 2)
+}
+
+
+# do an InnoDB checkpoint
 checkpoint_innodb() {
     info "forcing an InnoDB checkpoint"
 
-    local mdp=$(get_server_variable "innodb_max_dirty_pages_pct")
-    local lwm=$(get_server_variable "innodb_max_dirty_pages_pct_lwm")
-    local ioc=$(get_server_variable "innodb_io_capacity")
-    local prg=$(get_server_variable "innodb_purge_threads")
+    local mdp=$(get_server_variable innodb_max_dirty_pages_pct)
+    local lwm=$(get_server_variable innodb_max_dirty_pages_pct_lwm)
+    local ioc=$(get_server_variable innodb_io_capacity)
+    local prg=$(get_server_variable innodb_purge_threads)
     local dirty
     local hsize
     local dirty_old=0
     local repeat=10
     local t1=$(date +%s)
 
-    set_server_variable_failsafe "innodb_purge_threads"  32
-    set_server_variable "innodb_io_capacity"             40000
-    set_server_variable "innodb_max_dirty_pages_pct_lwm" 0
-    set_server_variable "innodb_max_dirty_pages_pct"     0
+    set_server_variable_failsafe innodb_purge_threads  32
+    set_server_variable innodb_io_capacity             40000
+    set_server_variable innodb_max_dirty_pages_pct_lwm 0
+    set_server_variable innodb_max_dirty_pages_pct     0
 
-    echo -n "(dirty pages);(history list length):"
+    info -n "(dirty pages);(history list length):"
     while true
     do
-        dirty=$(get_server_variable "innodb_buffer_pool_pages_dirty")
-        hsize=$(get_server_variable "innodb_history_list_length")
-        echo -n " ${dirty};${hsize}"
+        dirty=$(get_server_status innodb_buffer_pool_pages_dirty)
+        hsize=$(get_server_status innodb_history_list_length)
+        info -n " ${dirty};${hsize}"
 
         if [[ $dirty -lt 100 ]] || [[ $repeat -le 0 ]]
         then
@@ -99,7 +111,7 @@ checkpoint_innodb() {
 
         if [[ $dirty -eq $dirty_old ]]
         then
-            echo -n "($repeat)"
+            info -n "($repeat)"
             repeat=$(($repeat - 1))
         else
             repeat=10
@@ -108,17 +120,17 @@ checkpoint_innodb() {
         dirty_old=$dirty
         sleep ${REPORT:-2}
     done
-    echo
+    info " stop"
 
-    dirty=$(get_server_variable "innodb_buffer_pool_pages_dirty")
+    dirty=$(get_server_status innodb_buffer_pool_pages_dirty)
     info "stopped with $dirty dirty pages left"
     t2=$(date +%s)
     info "checkpoint time:  $(($t2-$t1)) sec"
 
-    set_server_variable_failsafe "innodb_purge_threads"  $prg
-    set_server_variable "innodb_io_capacity"             $ioc
-    set_server_variable "innodb_max_dirty_pages_pct"     $mdp
-    set_server_variable "innodb_max_dirty_pages_pct_lwm" $lwm
+    set_server_variable_failsafe innodb_purge_threads  $prg
+    set_server_variable innodb_io_capacity             $ioc
+    set_server_variable innodb_max_dirty_pages_pct     $mdp
+    set_server_variable innodb_max_dirty_pages_pct_lwm $lwm
 }
 
 
@@ -145,7 +157,6 @@ summarize_sysbench() {
 start_server() {
     local subdir
     local my_inst_db
-    info "starting server from '${TARGETDIR}'"
     [[ ! $TARGETDIR ]] && error "\$TARGETDIR not set!"
 
     #put ${TARGETDIR}/bin into $PATH
@@ -201,8 +212,8 @@ start_server() {
 }
 
 
+# stop a running MariaDB/MySQL server
 stop_server() {
-    info "stopping server listening at ${SOCKET}"
     $MYSQLADMIN -S ${SOCKET} -u root shutdown
     wait $MYSQLD_SAFE_PID
     unset MYSQLD_SAFE_PID
@@ -216,4 +227,58 @@ stop_server() {
 }
 
 
+# target dir (binary install dir) handling with temporary file
+# this is ugly but it works :-/
+set_targetdir() {
+    echo $1 > /tmp/targetdir
+}
+
+get_targetdir() {
+    if [[ -e /tmp/targetdir ]]
+    then
+        cat /tmp/targetdir
+    else
+        error "/tmp/targetdir : file does not exist"
+    fi
+}
+
+remove_targetdir() {
+    rm -f /tmp/targetdir
+}
+
+
+# pre- and post-collecting server stats
+# extend as needed
+collect_server_stats() {
+    echo "datadir size:"
+    du -s -BM ${DATADIR}/*
+
+    echo
+    echo "global variables"
+    $MYSQL -S $SOCKET -u root -t -e "SHOW GLOBAL VARIABLES"
+
+    echo
+    echo "global status"
+    $MYSQL -S $SOCKET -u root -t -e "SHOW GLOBAL STATUS"
+}
+
+
+# create sequence of exponentially (factor 2) growing numbers
+# starting from $1 and not exceeding $2
+thread_range() {
+    local start=$1
+    local end=$2
+    local retval
+    while [[ $start -le $end ]]
+    do
+        if [[ -z $retval ]]
+        then
+            retval=$start
+        else
+            retval="$retval $start"
+        fi
+        start=$(($start * 2))
+    done
+    echo $retval
+}
 

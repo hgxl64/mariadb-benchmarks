@@ -4,6 +4,7 @@
 
 config_variable CPU_MASK_SYSBENCH --physcpubind=8-11
 config_variable CPU_MASK_MYSQLD   --physcpubind=0-7
+config_variable NCPU              8
 config_variable SYSBENCH          sysbench-eh
 config_variable JENKINS_OS        ubuntu-2004
 config_variable JENKINS_ARCH      Linux-x86_64
