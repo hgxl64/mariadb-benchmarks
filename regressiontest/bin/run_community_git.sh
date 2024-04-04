@@ -58,7 +58,7 @@ do
         date --utc "+%F %T" > $LOGDIRECTORY/start
         echo "TIMESTAMP: $(date '+%s')" >  $LOGDIRECTORY/desc.yaml
         echo "DATABASE: ${DATABASE}"    >> $LOGDIRECTORY/desc.yaml
-        echo "BRANCH: ${BRANCH}"        >> $LOGDIRECTORY/desc.yaml
+        echo "BRANCH: ${branch}"        >> $LOGDIRECTORY/desc.yaml
 
         msg $(date --utc "+%F %T running regression tests for ${DATABASE} branch ${branch}")
         CMD="install_server.sh --database $DATABASE --source git --branch $branch"
