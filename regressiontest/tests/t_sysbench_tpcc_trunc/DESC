@@ -1,0 +1,2 @@
+sysbench TPC-C
+scale 16x5 (nominal 8G), InnoDB, 16G buffer pool, 8G redo log, innodb_undo_log_truncate = ON
