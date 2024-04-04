@@ -83,7 +83,7 @@ mkdir -p ${LOGDIRECTORY}
        summarize_sysbench ${LOGDIRECTORY}/sysbench.$thread.log >> ${LOGDIRECTORY}/summary.log
        #checkpoint_innodb > ${LOGDIRECTORY}/checkpoint.$thread.log
     done
-    info "sysbench finished"
+    info " sysbench finished"
 
     collect_server_stats > ${LOGDIRECTORY}/stats.after.log 2>&1
 
@@ -93,3 +93,9 @@ mkdir -p ${LOGDIRECTORY}
 } 2>&1 | tee ${LOGDIRECTORY}/${TEST_NAME}.log
 
 echo ${POSTPROCESS} > ${LOGDIRECTORY}/POSTPROCESS
+
+for f in DESC my.cnf runme.sh
+do
+    [[ -e $f ]] && cp $f ${LOGDIRECTORY}/
+done
+
