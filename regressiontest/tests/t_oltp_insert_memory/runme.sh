@@ -6,7 +6,7 @@ source ${RT_HOME}/config/global
 # -------------------
 # configuration
 # -------------------
-ENGINE=InnoDB
+ENGINE=MEMORY
 TABLES=16
 ROWS=0
 LUA_PREPARE=rt_read_write.lua

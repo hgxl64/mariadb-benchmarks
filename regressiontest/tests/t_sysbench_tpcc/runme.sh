@@ -7,16 +7,14 @@ source ${RT_HOME}/config/global
 # configuration
 # -------------------
 ENGINE=InnoDB
-TABLES=16
-ROWS=0
-LUA_PREPARE=rt_read_write.lua
-LUA_ARGS_PREPARE=""
-LUA_RUN=rt_insert.lua
-LUA_ARGS_RUN="--rand-type=uniform --histogram --skip-trx=true"
-THREADS=$(thread_range 1 $(($(n_cpu) * 8)))
-RUNTIME=100
-REPORT=2
-POSTPROCESS="performancecurve"
+SCALE=16
+TABLES=5
+LUA_ARGS_PREPARE="--use-fk=0 --insert-default=yes --mysql-db=sbt"
+LUA_ARGS_RUN="--use-fk=0 --mysql-db=sbt --histogram"
+THREADS="$(n_cpu) $(($(n_cpu) * 2))"
+RUNTIME=1800
+REPORT=10
+POSTPROCESS="performancecurve timeseries"
 
 
 # -------------------
@@ -43,8 +41,13 @@ mkdir -p ${LOGDIRECTORY}
 
     info $(date --utc "+%F %T   loading data set")
     {
-        $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
-        $MYSQL -S $SOCKET -u root -e "CREATE DATABASE sbtest"
+        $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbt"
+        $MYSQL -S $SOCKET -u root -e "CREATE DATABASE sbt"
+        $SYSBENCH ${RT_HOME}/lua/tpcc.lua ${LUA_ARGS_PREPARE} \
+          --scale=$SCALE --tables=$TABLES --threads=$(($(n_cpu)*2)) \
+          --mysql-storage-engine=$ENGINE \
+          --mysql-socket=$SOCKET --mysql-user=root prepare
+        [[ ${ENGINE} == "InnoDB" ]] && checkpoint_innodb
     } 2>&1 > ${LOGDIRECTORY}/prepare.log
 
     collect_server_stats before
@@ -56,11 +59,6 @@ mkdir -p ${LOGDIRECTORY}
     for thread in $THREADS
     do
        info -n " ${thread} ..."
-
-       $SYSBENCH ${RT_HOME}/lua/${LUA_PREPARE} ${LUA_ARGS_PREPARE} \
-         --tables=$TABLES --table-size=$ROWS --mysql-storage-engine=$ENGINE \
-         --mysql-socket=$SOCKET --mysql-user=root prepare 2>&1 > ${LOGDIRECTORY}/prepare.$thread.log
-
        numactl ${CPU_MASK_SYSBENCH:-"--all"} iostat -mx $REPORT $(($RUNTIME/$REPORT+1))  >> ${LOGDIRECTORY}/iostat.$thread.log &
        PIDLIST=$!
        if [[ -x ./dump_status.sh ]]
@@ -74,17 +72,14 @@ mkdir -p ${LOGDIRECTORY}
            PIDLIST="$PIDLIST $!"
        fi
 
-       numactl ${CPU_MASK_SYSBENCH:-"--all"} ${SYSBENCH} ${RT_HOME}/lua/${LUA_RUN} ${LUA_ARGS_RUN} \
-         --tables=$TABLES --table-size=$ROWS --threads=$thread \
+       numactl ${CPU_MASK_SYSBENCH:-"--all"} ${SYSBENCH} ${RT_HOME}/lua/tpcc.lua ${LUA_ARGS_RUN} \
+         --scale=$SCALE --tables=$TABLES --threads=$thread \
          --report-interval=$REPORT --time=$RUNTIME --forced-shutdown=60 --events=0 \
          --mysql-socket=$SOCKET --mysql-user=root run 2>&1 > ${LOGDIRECTORY}/sysbench.$thread.log
 
        wait $PIDLIST
        summarize_sysbench ${LOGDIRECTORY}/sysbench.$thread.log >> ${LOGDIRECTORY}/summary.log
-
-       $SYSBENCH ${RT_HOME}/lua/${LUA_PREPARE} ${LUA_ARGS_PREPARE} --tables=$TABLES \
-         --mysql-socket=$SOCKET --mysql-user=root cleanup 2>&1 > ${LOGDIRECTORY}/cleanup.$thread.log
-
+       checkpoint_innodb > ${LOGDIRECTORY}/checkpoint.$thread.log
     done
     info " sysbench finished"
 

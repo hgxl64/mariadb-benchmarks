@@ -12,7 +12,7 @@ ROWS=0
 LUA_PREPARE=rt_read_write.lua
 LUA_ARGS_PREPARE=""
 LUA_RUN=rt_insert.lua
-LUA_ARGS_RUN="--rand-type=uniform --histogram --skip-trx=true"
+LUA_ARGS_RUN="--rand-type=uniform --histogram --batch-size=10"
 THREADS=$(thread_range 1 $(($(n_cpu) * 8)))
 RUNTIME=100
 REPORT=2
