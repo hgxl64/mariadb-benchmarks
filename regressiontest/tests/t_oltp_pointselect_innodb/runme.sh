@@ -52,7 +52,7 @@ mkdir -p ${LOGDIRECTORY}
         [[ ${ENGINE} == "InnoDB" ]] && checkpoint_innodb
     } 2>&1 > ${LOGDIRECTORY}/prepare.log
 
-    collect_server_stats > ${LOGDIRECTORY}/stats.before.log 2>&1
+    collect_server_stats before
 
     #run benchmark
     echo -e "thds \ttps \tmin \tavg \tmax \t95th \t25th \tmedian \t75th" > ${LOGDIRECTORY}/summary.log
@@ -85,7 +85,7 @@ mkdir -p ${LOGDIRECTORY}
     done
     info " sysbench finished"
 
-    collect_server_stats > ${LOGDIRECTORY}/stats.after.log 2>&1
+    collect_server_stats after
 
     info $(date --utc "+%F %T   stopping server")
     stop_server > ${LOGDIRECTORY}/stop.server.log 2>&1
