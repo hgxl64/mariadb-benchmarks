@@ -1,0 +1,2 @@
+sysbench OLTP write-only
+16 InnoDB tables with 1 mio rows each, 4 writes per TRX

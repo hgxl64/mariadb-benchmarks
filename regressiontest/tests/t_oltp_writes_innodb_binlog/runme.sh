@@ -11,10 +11,10 @@ TABLES=16
 ROWS=1000000
 LUA_PREPARE=rt_read_write.lua
 LUA_ARGS_PREPARE=""
-LUA_RUN=rt_point_select.lua
+LUA_RUN=rt_write_only.lua
 LUA_ARGS_RUN="--rand-type=uniform --histogram"
-THREADS=$(thread_range 1 $(($(n_cpu) * 4)))
-RUNTIME=100
+THREADS=$(thread_range 1 $(($(n_cpu) * 8)))
+RUNTIME=180
 REPORT=2
 POSTPROCESS="performancecurve"
 
@@ -47,7 +47,7 @@ mkdir -p ${LOGDIRECTORY}
         $MYSQL -S $SOCKET -u root -e "CREATE DATABASE sbtest"
         $SYSBENCH ${RT_HOME}/lua/${LUA_PREPARE} ${LUA_ARGS_PREPARE} \
           --tables=$TABLES --table-size=$ROWS --threads=$TABLES \
-          --mysql-storage-engine=$ENGINE --bulk-load=true \
+          --mysql-storage-engine=$ENGINE --bulk-load=true --skip-binlog=true \
           --mysql-socket=$SOCKET --mysql-user=root prepare
         [[ ${ENGINE} == "InnoDB" ]] && checkpoint_innodb
     } 2>&1 > ${LOGDIRECTORY}/prepare.log
@@ -81,6 +81,7 @@ mkdir -p ${LOGDIRECTORY}
 
        wait $PIDLIST
        summarize_sysbench ${LOGDIRECTORY}/sysbench.$thread.log >> ${LOGDIRECTORY}/summary.log
+       checkpoint_innodb > ${LOGDIRECTORY}/checkpoint.$thread.log
     done
     info " sysbench finished"
 

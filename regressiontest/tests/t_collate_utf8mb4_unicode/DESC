@@ -1,0 +1,2 @@
+OLTP short distinct ranges
+16 InnoDB tables, 16 mio rows total, collation utf8mb4_unicode_ci

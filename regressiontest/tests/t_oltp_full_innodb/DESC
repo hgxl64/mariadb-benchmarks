@@ -1,0 +1,2 @@
+sysbench OLTP read/write
+16 InnoDB tables with 1 mio rows each, 10 reads + 4 writes, standard mix

@@ -1,0 +1,2 @@
+OLTP inserts into empty tables
+16 InnoDB tables, big redo, no trx (auto commit)

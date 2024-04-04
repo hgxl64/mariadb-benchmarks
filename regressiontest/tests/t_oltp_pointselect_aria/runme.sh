@@ -6,7 +6,7 @@ source ${RT_HOME}/config/global
 # -------------------
 # configuration
 # -------------------
-ENGINE=InnoDB
+ENGINE="ARIA TRANSACTIONAL=0"
 TABLES=16
 ROWS=1000000
 LUA_PREPARE=rt_read_write.lua
@@ -47,7 +47,7 @@ mkdir -p ${LOGDIRECTORY}
         $MYSQL -S $SOCKET -u root -e "CREATE DATABASE sbtest"
         $SYSBENCH ${RT_HOME}/lua/${LUA_PREPARE} ${LUA_ARGS_PREPARE} \
           --tables=$TABLES --table-size=$ROWS --threads=$TABLES \
-          --mysql-storage-engine=$ENGINE --bulk-load=true \
+          --mysql-storage-engine=$ENGINE \
           --mysql-socket=$SOCKET --mysql-user=root prepare
         [[ ${ENGINE} == "InnoDB" ]] && checkpoint_innodb
     } 2>&1 > ${LOGDIRECTORY}/prepare.log

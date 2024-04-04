@@ -1,0 +1,2 @@
+sysbench simplified OLTP read/write
+16 InnoDB tables with 1 mio rows each, 9 point selects + 1 update

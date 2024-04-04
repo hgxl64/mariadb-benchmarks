@@ -1,0 +1,2 @@
+OLTP point-selects
+16 ARIA TRANSACTIONAL=0 tables, 16 mio rows total, 8G ARIA page cache

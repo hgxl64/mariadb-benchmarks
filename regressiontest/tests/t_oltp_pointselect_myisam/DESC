@@ -1,0 +1,2 @@
+OLTP point-selects
+16 MyISAM tables, 16 mio rows total, 1G key buffer

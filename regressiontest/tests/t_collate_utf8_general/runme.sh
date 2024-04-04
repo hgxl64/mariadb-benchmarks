@@ -11,7 +11,7 @@ TABLES=16
 ROWS=1000000
 LUA_PREPARE=rt_read_write.lua
 LUA_ARGS_PREPARE=""
-LUA_RUN=rt_point_select.lua
+LUA_RUN=rt_collate.lua
 LUA_ARGS_RUN="--rand-type=uniform --histogram"
 THREADS=$(thread_range 1 $(($(n_cpu) * 4)))
 RUNTIME=100

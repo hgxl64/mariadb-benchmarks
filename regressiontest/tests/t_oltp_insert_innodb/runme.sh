@@ -8,11 +8,11 @@ source ${RT_HOME}/config/global
 # -------------------
 ENGINE=InnoDB
 TABLES=16
-ROWS=1000000
+ROWS=0
 LUA_PREPARE=rt_read_write.lua
 LUA_ARGS_PREPARE=""
-LUA_RUN=rt_point_select.lua
-LUA_ARGS_RUN="--rand-type=uniform --histogram"
+LUA_RUN=rt_insert.lua
+LUA_ARGS_RUN="--rand-type=uniform --histogram --skip-trx=true"
 THREADS=$(thread_range 1 $(($(n_cpu) * 4)))
 RUNTIME=100
 REPORT=2
@@ -45,11 +45,6 @@ mkdir -p ${LOGDIRECTORY}
     {
         $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
         $MYSQL -S $SOCKET -u root -e "CREATE DATABASE sbtest"
-        $SYSBENCH ${RT_HOME}/lua/${LUA_PREPARE} ${LUA_ARGS_PREPARE} \
-          --tables=$TABLES --table-size=$ROWS --threads=$TABLES \
-          --mysql-storage-engine=$ENGINE --bulk-load=true \
-          --mysql-socket=$SOCKET --mysql-user=root prepare
-        [[ ${ENGINE} == "InnoDB" ]] && checkpoint_innodb
     } 2>&1 > ${LOGDIRECTORY}/prepare.log
 
     collect_server_stats before
@@ -61,6 +56,11 @@ mkdir -p ${LOGDIRECTORY}
     for thread in $THREADS
     do
        info -n " ${thread} ..."
+
+       $SYSBENCH ${RT_HOME}/lua/${LUA_PREPARE} ${LUA_ARGS_PREPARE} \
+         --tables=$TABLES --table-size=$ROWS --mysql-storage-engine=$ENGINE \
+         --mysql-socket=$SOCKET --mysql-user=root prepare 2>&1 > ${LOGDIRECTORY}/prepare.$thread.log
+
        numactl ${CPU_MASK_SYSBENCH:-"--all"} iostat -mx $REPORT $(($RUNTIME/$REPORT+1))  >> ${LOGDIRECTORY}/iostat.$thread.log &
        PIDLIST=$!
        if [[ -x ./dump_status.sh ]]
@@ -81,6 +81,10 @@ mkdir -p ${LOGDIRECTORY}
 
        wait $PIDLIST
        summarize_sysbench ${LOGDIRECTORY}/sysbench.$thread.log >> ${LOGDIRECTORY}/summary.log
+
+       $SYSBENCH ${RT_HOME}/lua/${LUA_PREPARE} ${LUA_ARGS_PREPARE} --tables=$TABLES \
+         --mysql-socket=$SOCKET --mysql-user=root cleanup 2>&1 > ${LOGDIRECTORY}/cleanup.$thread.log
+
     done
     info " sysbench finished"
 
