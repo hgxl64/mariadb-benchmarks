@@ -13,7 +13,7 @@ LUA_PREPARE=rt_read_write.lua
 LUA_ARGS_PREPARE=""
 LUA_RUN=rt_insert.lua
 LUA_ARGS_RUN="--rand-type=uniform --histogram --skip-trx=true"
-THREADS=$(thread_range 1 $(($(n_cpu) * 8)))
+THREADS=$(thread_range 1 $(($(n_cpu) * 16)))
 RUNTIME=100
 REPORT=2
 POSTPROCESS="performancecurve"

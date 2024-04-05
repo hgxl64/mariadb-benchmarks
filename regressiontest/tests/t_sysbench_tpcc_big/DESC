@@ -1,0 +1,2 @@
+sysbench TPC-C, IO-bound
+scale 32x10 (nominal 32G), InnoDB, 16G buffer pool, 8G redo log

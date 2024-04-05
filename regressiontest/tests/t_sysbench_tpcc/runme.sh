@@ -11,8 +11,8 @@ SCALE=16
 TABLES=5
 LUA_ARGS_PREPARE="--use-fk=0 --insert-default=yes --mysql-db=sbt"
 LUA_ARGS_RUN="--use-fk=0 --mysql-db=sbt --histogram"
-THREADS="$(n_cpu) $(($(n_cpu) * 2))"
-RUNTIME=1800
+THREADS=$(thread_range $(($(n_cpu) / 2)) $(($(n_cpu) * 4)))
+RUNTIME=900
 REPORT=10
 POSTPROCESS="performancecurve timeseries"
 
