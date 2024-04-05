@@ -206,6 +206,13 @@ fi
             then
                 msg "checking out commit ${COMMIT}"
                 git checkout ${COMMIT}  >> ${LOGDIRECTORY}/git.log 2>&1
+                COMMIT1=$(git log -n 1 --oneline | cut -d ' ' -f 1)
+                if [[ $COMMIT != $COMMIT1 ]]
+                then
+                    msg "checked out ${COMMIT} is really ${COMMIT1}"
+                    COMMIT=$COMMIT1
+                fi
+
             elif [[ ${BRANCH} ]]
             then
                 msg "checking out branch ${BRANCH}"
@@ -214,7 +221,7 @@ fi
                 git checkout --detach   >> ${LOGDIRECTORY}/git.log 2>&1
                 git branch -d ${BRANCH} >> ${LOGDIRECTORY}/git.log 2>&1
                 COMMIT=$(git log -n 1 --oneline | cut -d ' ' -f 1)
-                info "HEAD of branch ${BRANCH} is commit ${COMMIT}"
+                misg "HEAD of branch ${BRANCH} is commit ${COMMIT}"
             else
                 error "$0: neither commit nor branch given for source 'git'"
             fi
@@ -268,6 +275,13 @@ fi
             then
                 msg "checking out commit ${COMMIT}"
                 git checkout ${COMMIT}  >> ${LOGDIRECTORY}/git.log 2>&1
+                COMMIT1=$(git log -n 1 --oneline | cut -d ' ' -f 1)
+                if [[ $COMMIT != $COMMIT1 ]]
+                then
+                    msg "checked out ${COMMIT} is really ${COMMIT1}"
+                    COMMIT=$COMMIT1
+                fi
+
             elif [[ ${BRANCH} ]]
             then
                 msg "checking out branch ${BRANCH}"
@@ -276,7 +290,7 @@ fi
                 git checkout --detach   >> ${LOGDIRECTORY}/git.log 2>&1
                 git branch -d ${BRANCH} >> ${LOGDIRECTORY}/git.log 2>&1
                 COMMIT=$(git log -n 1 --oneline | cut -d ' ' -f 1)
-                info "HEAD of branch ${BRANCH} is commit ${COMMIT}"
+                msg "HEAD of branch ${BRANCH} is commit ${COMMIT}"
             else
                 error "$0: neither commit nor branch given for source 'git'"
             fi
