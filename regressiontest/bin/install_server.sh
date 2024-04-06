@@ -221,7 +221,7 @@ fi
                 git checkout --detach   >> ${LOGDIRECTORY}/git.log 2>&1
                 git branch -d ${BRANCH} >> ${LOGDIRECTORY}/git.log 2>&1
                 COMMIT=$(git log -n 1 --oneline | cut -d ' ' -f 1)
-                misg "HEAD of branch ${BRANCH} is commit ${COMMIT}"
+                msg "HEAD of branch ${BRANCH} is commit ${COMMIT}"
             else
                 error "$0: neither commit nor branch given for source 'git'"
             fi
