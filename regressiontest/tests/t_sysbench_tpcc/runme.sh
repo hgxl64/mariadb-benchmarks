@@ -13,7 +13,7 @@ LUA_ARGS_PREPARE="--use-fk=0 --insert-default=yes --mysql-db=sbt"
 LUA_ARGS_RUN="--use-fk=0 --mysql-db=sbt --histogram"
 THREADS=$(thread_range $(($(n_cpu) / 2)) $(($(n_cpu) * 4)))
 RUNTIME=900
-REPORT=10
+REPORT=5
 POSTPROCESS="performancecurve timeseries"
 
 
