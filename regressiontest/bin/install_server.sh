@@ -321,6 +321,6 @@ fi
         error "$0: unknown database '${DATABASE}'"
     fi
 
-} 2>&1 > ${LOGDIRECTORY}/${TEST_NAME}.log
+} > ${LOGDIRECTORY}/${TEST_NAME}.log 2>&1
 
 exit
