@@ -13,13 +13,14 @@ Installs MariaDB server from various sources
 Options:
     --database mariadb-enterprise|mariadb-community
     --source jenkins|git
-    --buildtype ...
     --branch ...
+    --buildtype ...
     --commit ...
+    --release ...
     -h|--help
 Examples:
     $0 --source jenkins --buildtype release --release 10.6.16-11
-    $0 --source jenkins --buildtype snapshot --branch 10.6-enterprise --build latest
+    $0 --source jenkins --buildtype snapshot --branch 10.6-enterprise --commit latest
     $0 --source git --branch 10.6-enterprise --commit 0815badc0de
 "
 
@@ -32,7 +33,6 @@ while [[ $# > 0 ]] ; do
         --source)                       SOURCE="$1"; shift;;
         --buildtype)                    BUILDTYPE="$1"; shift;;
         --release)                      RELEASE="$1"; shift;;
-        --build)                        BUILD="$1"; shift;;
         --branch)                       BRANCH="$1"; shift;;
         --commit)                       COMMIT="$1"; shift;;
         -h|--help)                      echo -e "$USAGE"; exit 1;;
@@ -68,17 +68,8 @@ fi
         then
             if [[ ${BUILDTYPE} == 'release' ]]
             then
-                TARGETDIR="${INSTALLDIR}/mariadb-enterprise-${RELEASE}"
-                if [[ -d ${TARGETDIR} ]]
-                then
-                    msg "${TARGETDIR} exists, assuming it's already there"
-                    set_targetdir ${TARGETDIR}
-                    exit 2
-                fi
-
                 msg "downloading release '${RELEASE}' from Jenkins"
                 BASE_URL="${JENKINS_URL}/RELEASES/ES/${RELEASE}"
-                BINTAR_URL="${BASE_URL}/bintar/${JENKINS_OS}/RelWithDebInfo/mariadb-enterprise-${RELEASE}-${JENKINS_ARCH}.tar.gz"
                 HERE=$PWD
                 TMP=$(mktemp -d --tmpdir)
                 cd $TMP
@@ -93,6 +84,17 @@ fi
                 fi
 
                 info "found ${BASE_URL}/build.properties"
+                COMMIT=$(fgrep GIT_COMMIT build.properties | sed 's/GIT_COMMIT=//' | head -c 11)
+                TARGETDIR="${INSTALLDIR}/mariadb-enterprise-${BRANCH}-${COMMIT}"
+
+                if [[ -d ${TARGETDIR} ]]
+                then
+                    msg "${TARGETDIR} exists, assuming it's already there"
+                    set_targetdir ${TARGETDIR}
+                    exit 2
+                fi
+
+                BINTAR_URL="${BASE_URL}/bintar/${JENKINS_OS}/RelWithDebInfo/mariadb-enterprise-${RELEASE}-${JENKINS_ARCH}.tar.gz"
                 mkdir -p ${TARGETDIR}
                 mv build.properties ${TARGETDIR}
 
@@ -121,10 +123,10 @@ fi
             elif [[ ${BUILDTYPE} == 'snapshot' ]]
             then
                 [[ ! ${BRANCH} ]] && error "$0 : branch not specified!"
-                [[ ! ${BUILD} ]]  && BUILD="latest"
+                [[ ! ${COMMIT} ]]  && COMMIT="latest"
 
-                msg "downloading shapshot '${BRANCH}'/'${BUILD}' from Jenkins"
-                BASE_URL="${JENKINS_URL}/ENTERPRISE/${BRANCH}/${BUILD}"
+                msg "downloading shapshot '${BRANCH}'/'${COMMIT}' from Jenkins"
+                BASE_URL="${JENKINS_URL}/ENTERPRISE/${BRANCH}/${COMMIT}"
                 TMP=$(mktemp -d --tmpdir)
                 HERE=$PWD
                 cd $TMP
