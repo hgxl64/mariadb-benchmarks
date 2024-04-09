@@ -1,4 +1,10 @@
 #!/bin/bash
+#
+#
+
+set -e
+set -u
+
 
 TARGETDIR=${1:?usage: $0 installdir, installdir not given, cannot continue}
 
@@ -51,5 +57,7 @@ cd build
     make install > ${LOGDIRECTORY}/make_install.log 2>&1
 
     date --utc "+[%F %T] finished"
+    exit 0
+
 } 2>&1 | tee ${LOGDIRECTORY}/${TEST_NAME}.log
 
