@@ -264,6 +264,15 @@ collect_server_stats() {
 }
 
 
+collect_host_info() {
+    uname -a           > ${LOGDIRECTORY}/uname.txt
+    numactl --hardware > ${LOGDIRECTORY}/numactl.txt
+    lscpu              > ${LOGDIRECTORY}/lscpu.txt
+    lsblk --tree --fs  > ${LOGDIRECTORY}/lsblk.txt
+    env | sort         > ${LOGDIRECTORY}/env.txt
+}
+
+
 # return number of cpu cores, either from config variable or system
 n_cpu() {
     if [[ -n ${NCPU} ]]

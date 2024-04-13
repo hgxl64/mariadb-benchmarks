@@ -59,6 +59,7 @@ do
     mkdir -p $LOGDIRECTORY
     {
         date --utc "+%F %T" > $LOGDIRECTORY/start
+        collect_host_info
         echo "TIMESTAMP: $(date '+%s')" >  $LOGDIRECTORY/desc.yaml
         echo "DATABASE: ${DATABASE}"    >> $LOGDIRECTORY/desc.yaml
         echo "BRANCH: ${branch}"        >> $LOGDIRECTORY/desc.yaml
