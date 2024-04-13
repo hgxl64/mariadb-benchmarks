@@ -6,15 +6,38 @@ source ${RT_HOME}/config/global
 # -------------------
 # configuration
 # -------------------
-ENGINE=InnoDB
+export ENGINE=InnoDB
 SCALE=32
-TABLES=10
-LUA_ARGS_PREPARE="--use-fk=0 --insert-default=yes --mysql-db=sbt"
-LUA_ARGS_RUN="--use-fk=0 --mysql-db=sbt --histogram"
-THREADS=$(thread_range $(($(n_cpu) / 2)) $(($(n_cpu) * 4)))
-RUNTIME=900
-REPORT=5
-POSTPROCESS="performancecurve timeseries"
+export TABLES=10
+export LUA_ARGS_PREPARE="--use-fk=0 --insert-default=yes"
+export LUA_ARGS_RUN="--use-fk=0 --histogram"
+export THREADS=$(thread_range $(($(n_cpu) / 2)) $(($(n_cpu) * 4)))
+export POSTPROCESS="performancecurve timeseries"
+export RUNTIME=900
+export REPORT=5
+
+
+# -------------------
+# command line processing
+# -------------------
+
+USAGE="usage: $0
+
+run regression test $(basename $PWD)'
+Options:
+    --installed
+"
+
+COMMAND_LINE="$@"
+
+while [[ $# > 0 ]] ; do
+    key="$1"; shift;
+    case ${key} in
+        --installed)    INSTALLED=1;;
+        -h|--help)      error "$USAGE"; exit 1;;
+        *)  msg "Invalid input switch: $key"; msg "COMMAND_LINE = ${COMMAND_LINE}"; error "${USAGE}";;
+    esac
+done
 
 
 # -------------------
@@ -36,13 +59,16 @@ mkdir -p ${LOGDIRECTORY}
 # -------------------
 
 {
-    info $(date --utc "+%F %T   starting server from '${TARGETDIR}'")
-    start_server > ${LOGDIRECTORY}/start.server.log 2>&1
+    if [[ ${INSTALLED} ne 1 ]]
+    then
+        info $(date --utc "+%F %T   starting server from '${TARGETDIR}'")
+        start_server > ${LOGDIRECTORY}/start.server.log 2>&1
+    fi
 
     info $(date --utc "+%F %T   loading data set")
     {
-        $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbt"
-        $MYSQL -S $SOCKET -u root -e "CREATE DATABASE sbt"
+        $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
+        $MYSQL -S $SOCKET -u root -e "CREATE DATABASE sbtest"
         $SYSBENCH ${RT_HOME}/lua/tpcc.lua ${LUA_ARGS_PREPARE} \
           --scale=$SCALE --tables=$TABLES --threads=$(($(n_cpu)*2)) \
           --mysql-storage-engine=$ENGINE \
@@ -61,14 +87,14 @@ mkdir -p ${LOGDIRECTORY}
        info -n " ${thread} ..."
        numactl ${CPU_MASK_SYSBENCH:-"--all"} iostat -mx $REPORT $(($RUNTIME/$REPORT+1))  >> ${LOGDIRECTORY}/iostat.$thread.log &
        PIDLIST=$!
-       if [[ -x ./dump_status.sh ]]
+       if [[ -x ./dump_status.sh]]
        then
-           numactl ${CPU_MASK_SYSBENCH:-"--all"} ./dump_status.sh $RUNTIME >> ${LOGDIRECTORY}/status.$thread.log &
+           numactl ${CPU_MASK_SYSBENCH:-"--all"} ./dump_status.sh >> ${LOGDIRECTORY}/status.$thread.log &
            PIDLIST="$PIDLIST $!"
        fi
        if [[ -x ./dump_pfs.sh ]]
        then
-           numactl ${CPU_MASK_SYSBENCH:-"--all"} ./dump_pfs.sh $(($RUNTIME+$EXTRATIME)) >> ${LOGDIRECTORY}/pfs.$thread.log &
+           numactl ${CPU_MASK_SYSBENCH:-"--all"} ./dump_pfs.sh >> ${LOGDIRECTORY}/pfs.$thread.log &
            PIDLIST="$PIDLIST $!"
        fi
 
@@ -81,12 +107,18 @@ mkdir -p ${LOGDIRECTORY}
        summarize_sysbench ${LOGDIRECTORY}/sysbench.$thread.log >> ${LOGDIRECTORY}/summary.log
        checkpoint_innodb > ${LOGDIRECTORY}/checkpoint.$thread.log
     done
-    info " sysbench finished"
+    info " end"
 
     collect_server_stats after
 
-    info $(date --utc "+%F %T   stopping server")
-    stop_server > ${LOGDIRECTORY}/stop.server.log 2>&1
+    if [[ ${INSTALLED} ne 1 ]]
+    then
+        info $(date --utc "+%F %T   stopping server")
+        stop_server > ${LOGDIRECTORY}/stop.server.log 2>&1
+    else
+        info $(date --utc "+%F %T   cleaning up")
+        $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
+    fi
 
 } 2>&1 | tee ${LOGDIRECTORY}/${TEST_NAME}.log
 

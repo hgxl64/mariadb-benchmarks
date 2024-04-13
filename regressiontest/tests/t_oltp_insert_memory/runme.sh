@@ -6,17 +6,40 @@ source ${RT_HOME}/config/global
 # -------------------
 # configuration
 # -------------------
-ENGINE=MEMORY
-TABLES=16
-ROWS=0
-LUA_PREPARE=rt_read_write.lua
-LUA_ARGS_PREPARE=""
-LUA_RUN=rt_insert.lua
-LUA_ARGS_RUN="--rand-type=uniform --histogram --skip-trx=true"
-THREADS=$(thread_range 1 $(($(n_cpu) * 4)))
-RUNTIME=100
-REPORT=2
-POSTPROCESS="performancecurve"
+export ENGINE=MEMORY
+export TABLES=16
+export ROWS=0
+export LUA_PREPARE=rt_read_write.lua
+export LUA_ARGS_PREPARE=""
+export LUA_RUN=rt_insert.lua
+export LUA_ARGS_RUN="--rand-type=uniform --histogram --skip-trx=true"
+export THREADS=$(thread_range 1 $(($(n_cpu) * 4)))
+export RUNTIME=100
+export REPORT=2
+export POSTPROCESS="performancecurve"
+
+
+# -------------------
+# command line processing
+# -------------------
+
+USAGE="usage: $0
+
+run regression test $(basename $PWD)'
+Options:
+    --installed
+"
+
+COMMAND_LINE="$@"
+
+while [[ $# > 0 ]] ; do
+    key="$1"; shift;
+    case ${key} in
+        --installed)    INSTALLED=1;;
+        -h|--help)      error "$USAGE"; exit 1;;
+        *)  msg "Invalid input switch: $key"; msg "COMMAND_LINE = ${COMMAND_LINE}"; error "${USAGE}";;
+    esac
+done
 
 
 # -------------------
@@ -38,8 +61,11 @@ mkdir -p ${LOGDIRECTORY}
 # -------------------
 
 {
-    info $(date --utc "+%F %T   starting server from '${TARGETDIR}'")
-    start_server > ${LOGDIRECTORY}/start.server.log 2>&1
+    if [[ ${INSTALLED} ne 1 ]]
+    then
+        info $(date --utc "+%F %T   starting server from '${TARGETDIR}'")
+        start_server > ${LOGDIRECTORY}/start.server.log 2>&1
+    fi
 
     info $(date --utc "+%F %T   loading data set")
     {
@@ -63,14 +89,14 @@ mkdir -p ${LOGDIRECTORY}
 
        numactl ${CPU_MASK_SYSBENCH:-"--all"} iostat -mx $REPORT $(($RUNTIME/$REPORT+1))  >> ${LOGDIRECTORY}/iostat.$thread.log &
        PIDLIST=$!
-       if [[ -x ./dump_status.sh ]]
+       if [[ -x ./dump_status.sh]]
        then
-           numactl ${CPU_MASK_SYSBENCH:-"--all"} ./dump_status.sh $RUNTIME >> ${LOGDIRECTORY}/status.$thread.log &
+           numactl ${CPU_MASK_SYSBENCH:-"--all"} ./dump_status.sh >> ${LOGDIRECTORY}/status.$thread.log &
            PIDLIST="$PIDLIST $!"
        fi
        if [[ -x ./dump_pfs.sh ]]
        then
-           numactl ${CPU_MASK_SYSBENCH:-"--all"} ./dump_pfs.sh $(($RUNTIME+$EXTRATIME)) >> ${LOGDIRECTORY}/pfs.$thread.log &
+           numactl ${CPU_MASK_SYSBENCH:-"--all"} ./dump_pfs.sh >> ${LOGDIRECTORY}/pfs.$thread.log &
            PIDLIST="$PIDLIST $!"
        fi
 
@@ -86,12 +112,18 @@ mkdir -p ${LOGDIRECTORY}
          --mysql-socket=$SOCKET --mysql-user=root cleanup 2>&1 > ${LOGDIRECTORY}/cleanup.$thread.log
 
     done
-    info " sysbench finished"
+    info " end"
 
     collect_server_stats after
 
-    info $(date --utc "+%F %T   stopping server")
-    stop_server > ${LOGDIRECTORY}/stop.server.log 2>&1
+    if [[ ${INSTALLED} ne 1 ]]
+    then
+        info $(date --utc "+%F %T   stopping server")
+        stop_server > ${LOGDIRECTORY}/stop.server.log 2>&1
+    else
+        info $(date --utc "+%F %T   cleaning up")
+        $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
+    fi
 
 } 2>&1 | tee ${LOGDIRECTORY}/${TEST_NAME}.log
 

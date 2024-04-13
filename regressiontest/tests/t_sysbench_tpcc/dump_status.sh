@@ -7,9 +7,6 @@ set -u
 
 trap exit 0
 
-. config.sh
-
-RUNTIME=${1:?"missing RUNTIME parameter!"}
 NRUN=$(($RUNTIME/$REPORT))
 
 QUERY="DO SLEEP($REPORT); SHOW GLOBAL STATUS;"
