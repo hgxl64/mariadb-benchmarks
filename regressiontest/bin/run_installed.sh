@@ -1,16 +1,18 @@
 #!/bin/bash
 
+DEFAULT_DATABASE="mariadb"
+
 # -------------------
 # command line processing
 # -------------------
 
 USAGE="usage: $0
 
-run regression tests on ${DATABASE}, default branches: '${DEFAULT_BRANCHES}'
+run regression tests
 Options:
     --branch ...
     --commit ...
-    --database ...
+    --database ... (default: $DEFAULT_DATABASE)
     -h|--help
 Examples:
     $0 --database mariadb --branch 10.6 ...
@@ -35,7 +37,7 @@ done
 # default options
 # -------------------
 
-[[ ${DATABASE} ]] || DATABASE="mariadb"
+[[ ${DATABASE} ]] || DATABASE=$DEFAULT_DATABASE
 
 
 # -------------------
