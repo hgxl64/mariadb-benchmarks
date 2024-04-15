@@ -59,7 +59,7 @@ mkdir -p ${LOGDIRECTORY}
 # -------------------
 
 {
-    if [[ ${INSTALLED} ne 1 ]]
+    if [[ ${INSTALLED} -ne 1 ]]
     then
         info $(date --utc "+%F %T   starting server from '${TARGETDIR}'")
         start_server > ${LOGDIRECTORY}/start.server.log 2>&1
@@ -111,7 +111,7 @@ mkdir -p ${LOGDIRECTORY}
 
     collect_server_stats after
 
-    if [[ ${INSTALLED} ne 1 ]]
+    if [[ ${INSTALLED} -ne 1 ]]
     then
         info $(date --utc "+%F %T   stopping server")
         stop_server > ${LOGDIRECTORY}/stop.server.log 2>&1
