@@ -264,12 +264,19 @@ collect_server_stats() {
 }
 
 
+# collect host info and write them to LOGDIR
 collect_host_info() {
     uname -a           > ${LOGDIRECTORY}/uname.txt
     numactl --hardware > ${LOGDIRECTORY}/numactl.txt
     lscpu              > ${LOGDIRECTORY}/lscpu.txt
     lsblk --tree --fs  > ${LOGDIRECTORY}/lsblk.txt
     env | sort         > ${LOGDIRECTORY}/env.txt
+}
+
+
+# log commit timestamp to LOGDIR
+commit_date() {
+    git show -s --pretty="format:%ct|%cD" $1 > ${LOGDIRECTORY}/commit_date.txt
 }
 
 

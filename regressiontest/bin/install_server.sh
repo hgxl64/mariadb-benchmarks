@@ -237,6 +237,7 @@ fi
             fi
 
             msg "building MariaDB Enterprise Server branch '${BRANCH}' commit '${COMMIT}'"
+            commit_date ${COMMIT}
             if ( ! build_enterprise_from_git.sh ${TARGETDIR} )
             then
                 error "build failure, check log in ${LOGDIRECTORY}"
@@ -306,6 +307,7 @@ fi
             fi
 
             msg "building MariaDB Community Server branch '${BRANCH}' commit '${COMMIT}'"
+            commit_date ${COMMIT}
             if ( ! build_community_from_git.sh ${TARGETDIR} )
             then
                 error "build failure, check log in ${LOGDIRECTORY}"
