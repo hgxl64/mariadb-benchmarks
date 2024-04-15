@@ -2,10 +2,6 @@
 #
 # (w) Axel XL Schwenke for MariaDB Services AB
 
-set -e
-set -u
-
-trap exit 0
 
 NRUN=$(($RUNTIME/$REPORT))
 

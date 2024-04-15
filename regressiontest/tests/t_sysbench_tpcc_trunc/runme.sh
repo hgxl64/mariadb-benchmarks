@@ -7,7 +7,7 @@ source ${RT_HOME}/config/global
 # configuration
 # -------------------
 export ENGINE=InnoDB
-SCALE=16
+export SCALE=16
 export TABLES=5
 export LUA_ARGS_PREPARE="--use-fk=0 --insert-default=yes"
 export LUA_ARGS_RUN="--use-fk=0 --histogram"
