@@ -227,6 +227,36 @@ stop_server() {
 }
 
 
+# kill a suspected hanging server
+kill_server() {
+    #try to normally shutdown server
+    TIMEOUT=300
+    SECONDS=0
+    timeout $TIMEOUT $MYSQLADMIN -S ${SOCKET} -u root shutdown
+
+    if [[ $SECONDS -lt $TIMEOUT ]]
+    then
+        wait $MYSQLD_SAFE_PID
+        unset MYSQLD_SAFE_PID
+    else
+        msg "'$MYSQLADMIN shutdown' timed out after ${TIMEOUT}s"
+        msg "killing ${MYSQLD_SAFE}, PID ${MYSQLD_SAFE_PID}"
+        kill -KILL $MYSQLD_SAFE_PID
+        sleep 1
+        MYSQLD_PID=$(cat /tmp/mysqld.pid.sysbench)
+        msg "killing ${MYSQLD}, PID ${MYSQLD_PID}"
+        kill -KILL $MYSQLD_PID
+        sleep 5
+    fi
+
+    #restore PATH
+    PATH=$OLDPATH
+    #copy server errorlog to log dir
+    ERRORLOG=${DATADIR}/$(hostname).err
+    [[ -f $ERRORLOG ]] && cp $ERRORLOG $LOGDIRECTORY/error.log
+}
+
+
 # target dir (binary install dir) handling with temporary file
 # this is ugly but it works :-/
 set_targetdir() {

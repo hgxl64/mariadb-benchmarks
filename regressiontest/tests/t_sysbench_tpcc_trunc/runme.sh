@@ -69,10 +69,21 @@ mkdir -p ${LOGDIRECTORY}
     {
         $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
         $MYSQL -S $SOCKET -u root -e "CREATE DATABASE sbtest"
-        $SYSBENCH ${RT_HOME}/lua/tpcc.lua ${LUA_ARGS_PREPARE} \
+        TIMEOUT=3600
+        SECONDS=0
+        timeout $TIMEOUT $SYSBENCH ${RT_HOME}/lua/tpcc.lua ${LUA_ARGS_PREPARE} \
           --scale=$SCALE --tables=$TABLES --threads=$(($(n_cpu)*2)) \
           --mysql-storage-engine=$ENGINE \
           --mysql-socket=$SOCKET --mysql-user=root prepare
+        if [[ $SECONDS -ge $TIMEOUT ]]
+        then
+            msg "loading data ran into timeout of ${TIMEOUT}s"
+            if [[ ${INSTALLED} -ne 1 ]]
+            then
+                kill_server
+                error "server killed"
+            fi
+        fi
         [[ ${ENGINE} == "InnoDB" ]] && checkpoint_innodb
     } 2>&1 > ${LOGDIRECTORY}/prepare.log
 
@@ -98,10 +109,22 @@ mkdir -p ${LOGDIRECTORY}
            PIDLIST="$PIDLIST $!"
        fi
 
-       numactl ${CPU_MASK_SYSBENCH:-"--all"} ${SYSBENCH} ${RT_HOME}/lua/tpcc.lua ${LUA_ARGS_RUN} \
-         --scale=$SCALE --tables=$TABLES --threads=$thread \
+       TIMEOUT=$((2 * $RUNTIME))
+       SECONDS=0
+       timeout $TIMEOUT numactl ${CPU_MASK_SYSBENCH:-"--all"} ${SYSBENCH} ${RT_HOME}/lua/tpcc.lua \
+         ${LUA_ARGS_RUN} --scale=$SCALE --tables=$TABLES --threads=$thread \
          --report-interval=$REPORT --time=$RUNTIME --forced-shutdown=60 --events=0 \
          --mysql-socket=$SOCKET --mysql-user=root run 2>&1 > ${LOGDIRECTORY}/sysbench.$thread.log
+
+       if [[ $SECONDS -ge $TIMEOUT ]]
+       then
+           msg "sysbench (@ ${thread} threads) ran into timeout of ${TIMEOUT}s"
+           if [[ ${INSTALLED} -ne 1 ]]
+           then
+               kill_server
+               error "server killed"
+           fi
+       fi
 
        wait $PIDLIST
        summarize_sysbench ${LOGDIRECTORY}/sysbench.$thread.log >> ${LOGDIRECTORY}/summary.log
