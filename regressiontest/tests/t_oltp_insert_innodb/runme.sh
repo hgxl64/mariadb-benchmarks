@@ -89,7 +89,7 @@ mkdir -p ${LOGDIRECTORY}
 
        numactl ${CPU_MASK_SYSBENCH:-"--all"} iostat -mx $REPORT $(($RUNTIME/$REPORT+1))  >> ${LOGDIRECTORY}/iostat.$thread.log &
        PIDLIST=$!
-       if [[ -x ./dump_status.sh]]
+       if [[ -x ./dump_status.sh ]]
        then
            numactl ${CPU_MASK_SYSBENCH:-"--all"} ./dump_status.sh >> ${LOGDIRECTORY}/status.$thread.log &
            PIDLIST="$PIDLIST $!"
