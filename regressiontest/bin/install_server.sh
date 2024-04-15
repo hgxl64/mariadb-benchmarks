@@ -229,6 +229,7 @@ fi
             fi
 
             TARGETDIR="${INSTALLDIR}/mariadb-enterprise-${BRANCH}-${COMMIT}"
+            commit_date ${COMMIT}
             if [[ -d ${TARGETDIR} ]]
             then
                 msg "${TARGETDIR} exists, assuming it's already there"
@@ -237,7 +238,6 @@ fi
             fi
 
             msg "building MariaDB Enterprise Server branch '${BRANCH}' commit '${COMMIT}'"
-            commit_date ${COMMIT}
             if ( ! build_enterprise_from_git.sh ${TARGETDIR} )
             then
                 error "build failure, check log in ${LOGDIRECTORY}"
@@ -299,6 +299,7 @@ fi
             fi
 
             TARGETDIR="${INSTALLDIR}/mariadb-community-${BRANCH}-${COMMIT}"
+            commit_date ${COMMIT}
             if [[ -d ${TARGETDIR} ]]
             then
                 msg "${TARGETDIR} exists, assuming it's already there"
@@ -307,7 +308,6 @@ fi
             fi
 
             msg "building MariaDB Community Server branch '${BRANCH}' commit '${COMMIT}'"
-            commit_date ${COMMIT}
             if ( ! build_community_from_git.sh ${TARGETDIR} )
             then
                 error "build failure, check log in ${LOGDIRECTORY}"
