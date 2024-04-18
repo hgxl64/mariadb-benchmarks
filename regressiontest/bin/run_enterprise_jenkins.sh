@@ -40,6 +40,7 @@ while [[ $# > 0 ]] ; do
         --release)      RELEASE="$1"; shift;;
         --commit)       COMMIT="$1"; shift;;
         --force)        FORCE=1;;
+        --keeplog)      KEEPLOG=1;;
         -h|--help)      error "$USAGE"; exit 1;;
         *)  msg "Invalid input switch: $key"; msg "COMMAND_LINE = ${COMMAND_LINE}"; error "${USAGE}";;
     esac
@@ -89,6 +90,10 @@ do
             error "installing server failed"
         elif [[ $status -eq 2 && ! ${FORCE} ]]
         then
+            if [[ ! ${KEEPLOG} ]]
+            then
+                rm -rf $LOGDIRECTORY
+            fi
             error "regression test already run, skipping"
         fi
 
