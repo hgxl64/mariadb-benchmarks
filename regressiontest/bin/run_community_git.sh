@@ -53,8 +53,15 @@ ALLTESTS=$(find ${RT_HOME}/tests -maxdepth 1 -type d -name t_\* -printf "%P\n" |
 
 for branch in ${BRANCHES:-$DEFAULT_BRANCHES}
 do
-    export LOGDIRECTORY=${RT_LOG_HOME}/$(date +%y%m%d.%H%M%S.${JOB}.${branch})
+    if [[ ${COMMIT} ]]
+    then
+        LOGDIRECTORY=${RT_LOG_HOME}/$(date +%y%m%d.%H%M%S.${JOB}.${COMMIT})
+    else
+        LOGDIRECTORY=${RT_LOG_HOME}/$(date +%y%m%d.%H%M%S.${JOB}.${branch})
+    fi
+    export LOGDIRECTORY
     mkdir -p $LOGDIRECTORY
+
     {
         date --utc "+%F %T" > $LOGDIRECTORY/start
         collect_host_info
