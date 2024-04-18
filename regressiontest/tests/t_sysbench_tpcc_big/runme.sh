@@ -85,17 +85,23 @@ mkdir -p ${LOGDIRECTORY}
     for thread in $THREADS
     do
        info -n " ${thread} ..."
-       numactl ${CPU_MASK_SYSBENCH:-"--all"} iostat -mx $REPORT $(($RUNTIME/$REPORT+1))  >> ${LOGDIRECTORY}/iostat.$thread.log &
+       numactl ${CPU_MASK_SYSBENCH:-"--all"} iostat -mx $REPORT $(($RUNTIME/$REPORT+1)) >> ${LOGDIRECTORY}/iostat.$thread.log &
        PIDLIST=$!
        if [[ -x ./dump_status.sh ]]
        then
+           debug -n " (dump_status.sh)"
            numactl ${CPU_MASK_SYSBENCH:-"--all"} ./dump_status.sh >> ${LOGDIRECTORY}/status.$thread.log &
            PIDLIST="$PIDLIST $!"
+       else
+           debug -n " (no dump_status.sh)"
        fi
        if [[ -x ./dump_pfs.sh ]]
        then
+           debug -n " (dump_pfs.sh)"
            numactl ${CPU_MASK_SYSBENCH:-"--all"} ./dump_pfs.sh >> ${LOGDIRECTORY}/pfs.$thread.log &
            PIDLIST="$PIDLIST $!"
+       else
+           debug -n " (no dump_pfs.sh)"
        fi
 
        numactl ${CPU_MASK_SYSBENCH:-"--all"} ${SYSBENCH} ${RT_HOME}/lua/tpcc.lua ${LUA_ARGS_RUN} \
