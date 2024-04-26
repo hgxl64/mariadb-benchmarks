@@ -69,12 +69,12 @@ mkdir -p ${LOGDIRECTORY}
 
     info $(date --utc "+%F %T   loading data set")
     {
-        $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
-        $MYSQL -S $SOCKET -u root -e "CREATE DATABASE sbtest"
+        $MYSQL $MYSQL_CONNECTION -e "DROP DATABASE IF EXISTS sbtest"
+        $MYSQL $MYSQL_CONNECTION -e "CREATE DATABASE sbtest"
         $SYSBENCH ${RT_HOME}/lua/${LUA_PREPARE} ${LUA_ARGS_PREPARE} \
           --tables=$TABLES --table-size=$ROWS --threads=$TABLES \
           --mysql-storage-engine=$ENGINE --bulk-load=true \
-          --mysql-socket=$SOCKET --mysql-user=root prepare
+          $SYSBENCH_CONNECTION prepare
         [[ ${ENGINE} == "InnoDB" ]] && checkpoint_innodb
     } 2>&1 > ${LOGDIRECTORY}/prepare.log
 
@@ -103,7 +103,7 @@ mkdir -p ${LOGDIRECTORY}
        numactl ${CPU_MASK_SYSBENCH:-"--all"} ${SYSBENCH} ${RT_HOME}/lua/${LUA_RUN} ${LUA_ARGS_RUN} \
          --tables=$TABLES --table-size=$ROWS --threads=$thread \
          --report-interval=$REPORT --time=$RUNTIME --forced-shutdown=60 --events=0 \
-         --mysql-socket=$SOCKET --mysql-user=root run 2>&1 > ${LOGDIRECTORY}/sysbench.$thread.log
+         $SYSBENCH_CONNECTION run 2>&1 > ${LOGDIRECTORY}/sysbench.$thread.log
 
        wait $PIDLIST
        summarize_sysbench ${LOGDIRECTORY}/sysbench.$thread.log >> ${LOGDIRECTORY}/summary.log
@@ -118,7 +118,7 @@ mkdir -p ${LOGDIRECTORY}
         stop_server > ${LOGDIRECTORY}/stop.server.log 2>&1
     else
         info $(date --utc "+%F %T   cleaning up")
-        $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
+        $MYSQL $MYSQL_CONNECTION -e "DROP DATABASE IF EXISTS sbtest"
     fi
 
 } 2>&1 | tee ${LOGDIRECTORY}/${TEST_NAME}.log
