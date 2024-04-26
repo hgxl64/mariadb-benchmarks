@@ -56,25 +56,25 @@ config_variable() {
 
 # get a global server variable by name
 get_server_variable() {
-    echo $($MYSQL -S $SOCKET -u root -e "SHOW GLOBAL VARIABLES LIKE '$1'" | tail -1 | cut -f 2)
+    echo $($MYSQL $MYSQL_CONNECTION -e "SHOW GLOBAL VARIABLES LIKE '$1'" | tail -1 | cut -f 2)
 }
 
 
 # set a global server variable
 set_server_variable() {
-   $MYSQL -S $SOCKET -u root -e "SET GLOBAL ${1}=${2}"
+   $MYSQL $MYSQL_CONNECTION -e "SET GLOBAL ${1}=${2}"
 }
 
 
 # set a global server variable, ignoring errors
 set_server_variable_failsafe() {
-   $MYSQL -S $SOCKET -u root -e "SET GLOBAL ${1}=${2}" 2> /dev/null || true
+   $MYSQL $MYSQL_CONNECTION -e "SET GLOBAL ${1}=${2}" 2> /dev/null || true
 }
 
 
 # get a global server status variable by name
 get_server_status() {
-    echo $($MYSQL -S $SOCKET -u root -e "SHOW GLOBAL STATUS LIKE '$1'" | tail -1 | cut -f 2)
+    echo $($MYSQL $MYSQL_CONNECTION -e "SHOW GLOBAL STATUS LIKE '$1'" | tail -1 | cut -f 2)
 }
 
 
@@ -282,25 +282,25 @@ remove_targetdir() {
 collect_server_stats() {
     local prefix=$1
 
-    du -s -BM ${DATADIR}/* > ${LOGDIRECTORY}/${prefix}_datadir_size.txt
-    $MYSQL -S $SOCKET -u root -e "SHOW GLOBAL VARIABLES" > ${LOGDIRECTORY}/${prefix}_global_variables.txt
-    $MYSQL -S $SOCKET -u root -e "SHOW GLOBAL STATUS" > ${LOGDIRECTORY}/${prefix}_global_status.txt
-    [[ $IS_MARIADB ]] && cat /proc/$(pidof mariadbd)/status > ${LOGDIRECTORY}/${prefix}_mariadbd_status.txt
-    [[ $IS_MYSQL ]]   && cat /proc/$(pidof mysqld)/status   > ${LOGDIRECTORY}/${prefix}_mysqld_status.txt
+    $REMOTE_SHELL "du -s -BM ${DATADIR}/*" > ${LOGDIRECTORY}/${prefix}_datadir_size.txt
+    $MYSQL $MYSQL_CONNECTION -e "SHOW GLOBAL VARIABLES" > ${LOGDIRECTORY}/${prefix}_global_variables.txt
+    $MYSQL $MYSQL_CONNECTION -e "SHOW GLOBAL STATUS" > ${LOGDIRECTORY}/${prefix}_global_status.txt
+    [[ $IS_MARIADB ]] && $REMOTE_SHELL "cat /proc/\$(pidof mariadbd)/status" > ${LOGDIRECTORY}/${prefix}_mariadbd_status.txt
+    [[ $IS_MYSQL ]]   && $REMOTE_SHELL "cat /proc/\$(pidof mysqld)/status"   > ${LOGDIRECTORY}/${prefix}_mysqld_status.txt
     for s in stat interrupts diskstats meminfo mdstat mounts
     do
-        cat /proc/${s} > ${LOGDIRECTORY}/${prefix}_${s}.txt
+        $REMOTE_SHELL "cat /proc/${s}" > ${LOGDIRECTORY}/${prefix}_${s}.txt
     done
 }
 
 
 # collect host info and write them to LOGDIR
 collect_host_info() {
-    uname -a           > ${LOGDIRECTORY}/uname.txt
-    numactl --hardware > ${LOGDIRECTORY}/numactl.txt
-    lscpu              > ${LOGDIRECTORY}/lscpu.txt
-    lsblk --tree --fs  > ${LOGDIRECTORY}/lsblk.txt
-    env | sort         > ${LOGDIRECTORY}/env.txt
+    $REMOTE_SHELL "uname -a"           > ${LOGDIRECTORY}/uname.txt
+    $REMOTE_SHELL "numactl --hardware" > ${LOGDIRECTORY}/numactl.txt
+    $REMOTE_SHELL "lscpu"              > ${LOGDIRECTORY}/lscpu.txt
+    $REMOTE_SHELL "lsblk --tree --fs"  > ${LOGDIRECTORY}/lsblk.txt
+    env | sort > ${LOGDIRECTORY}/driver_env.txt
 }
 
 
@@ -316,7 +316,7 @@ n_cpu() {
     then
         echo ${NCPU}
     else
-        cat /proc/cpuinfo | grep -c "^processor"
+        $REMOTE_SHELL "cat /proc/cpuinfo" | grep -c "^processor"
     fi
 }
 

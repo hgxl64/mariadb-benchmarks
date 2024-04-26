@@ -67,14 +67,14 @@ mkdir -p ${LOGDIRECTORY}
 
     info $(date --utc "+%F %T   loading data set")
     {
-        $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
-        $MYSQL -S $SOCKET -u root -e "CREATE DATABASE sbtest"
+        $MYSQL $MYSQL_CONNECTION -e "DROP DATABASE IF EXISTS sbtest"
+        $MYSQL $MYSQL_CONNECTION -e "CREATE DATABASE sbtest"
         TIMEOUT=3600
         SECONDS=0
         timeout $TIMEOUT $SYSBENCH ${RT_HOME}/lua/tpcc.lua ${LUA_ARGS_PREPARE} \
           --scale=$SCALE --tables=$TABLES --threads=$(($(n_cpu)*2)) \
           --mysql-storage-engine=$ENGINE \
-          --mysql-socket=$SOCKET --mysql-user=root prepare
+          $SYSBENCH_CONNECTION prepare
         if [[ $SECONDS -ge $TIMEOUT ]]
         then
             msg "loading data ran into timeout of ${TIMEOUT}s"
@@ -120,7 +120,7 @@ mkdir -p ${LOGDIRECTORY}
        timeout $TIMEOUT numactl ${CPU_MASK_SYSBENCH:-"--all"} ${SYSBENCH} ${RT_HOME}/lua/tpcc.lua \
          ${LUA_ARGS_RUN} --scale=$SCALE --tables=$TABLES --threads=$thread \
          --report-interval=$REPORT --time=$RUNTIME --forced-shutdown=60 --events=0 \
-         --mysql-socket=$SOCKET --mysql-user=root run 2>&1 > ${LOGDIRECTORY}/sysbench.$thread.log
+         $SYSBENCH_CONNECTION run 2>&1 > ${LOGDIRECTORY}/sysbench.$thread.log
 
        if [[ $SECONDS -ge $TIMEOUT ]]
        then
@@ -146,7 +146,7 @@ mkdir -p ${LOGDIRECTORY}
         stop_server > ${LOGDIRECTORY}/stop.server.log 2>&1
     else
         info $(date --utc "+%F %T   cleaning up")
-        $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
+        $MYSQL $MYSQL_CONNECTION -e "DROP DATABASE IF EXISTS sbtest"
     fi
 
 } 2>&1 | tee ${LOGDIRECTORY}/${TEST_NAME}.log
