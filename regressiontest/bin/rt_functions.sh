@@ -48,8 +48,8 @@ config_variable() {
     then
         debug "exporting config variable: ${1}=${2}"
         export ref=$2
-    else
-        debug "using preset config variable: ${1}=${ref}"
+#    else
+#        debug "using preset config variable: ${1}=${ref}"
     fi
 }
 
@@ -339,4 +339,5 @@ thread_range() {
     done
     echo $retval
 }
+
 
