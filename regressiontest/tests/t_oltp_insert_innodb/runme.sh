@@ -69,8 +69,8 @@ mkdir -p ${LOGDIRECTORY}
 
     info $(date --utc "+%F %T   loading data set")
     {
-        $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
-        $MYSQL -S $SOCKET -u root -e "CREATE DATABASE sbtest"
+        $MYSQL $MYSQL_CONNECTION -e "DROP DATABASE IF EXISTS sbtest"
+        $MYSQL $MYSQL_CONNECTION -e "CREATE DATABASE sbtest"
     } 2>&1 > ${LOGDIRECTORY}/prepare.log
 
     collect_server_stats before
@@ -85,7 +85,7 @@ mkdir -p ${LOGDIRECTORY}
 
        $SYSBENCH ${RT_HOME}/lua/${LUA_PREPARE} ${LUA_ARGS_PREPARE} \
          --tables=$TABLES --table-size=$ROWS --mysql-storage-engine=$ENGINE \
-         --mysql-socket=$SOCKET --mysql-user=root prepare 2>&1 > ${LOGDIRECTORY}/prepare.$thread.log
+         $SYSBENCH_CONNECTION prepare 2>&1 > ${LOGDIRECTORY}/prepare.$thread.log
 
        numactl ${CPU_MASK_SYSBENCH:-"--all"} iostat -mx $REPORT $(($RUNTIME/$REPORT+1))  >> ${LOGDIRECTORY}/iostat.$thread.log &
        PIDLIST=$!
@@ -103,13 +103,13 @@ mkdir -p ${LOGDIRECTORY}
        numactl ${CPU_MASK_SYSBENCH:-"--all"} ${SYSBENCH} ${RT_HOME}/lua/${LUA_RUN} ${LUA_ARGS_RUN} \
          --tables=$TABLES --table-size=$ROWS --threads=$thread \
          --report-interval=$REPORT --time=$RUNTIME --forced-shutdown=60 --events=0 \
-         --mysql-socket=$SOCKET --mysql-user=root run 2>&1 > ${LOGDIRECTORY}/sysbench.$thread.log
+         $SYSBENCH_CONNECTION run 2>&1 > ${LOGDIRECTORY}/sysbench.$thread.log
 
        wait $PIDLIST
        summarize_sysbench ${LOGDIRECTORY}/sysbench.$thread.log >> ${LOGDIRECTORY}/summary.log
 
        $SYSBENCH ${RT_HOME}/lua/${LUA_PREPARE} ${LUA_ARGS_PREPARE} --tables=$TABLES \
-         --mysql-socket=$SOCKET --mysql-user=root cleanup 2>&1 > ${LOGDIRECTORY}/cleanup.$thread.log
+         $SYSBENCH_CONNECTION cleanup 2>&1 > ${LOGDIRECTORY}/cleanup.$thread.log
 
     done
     info " end"
@@ -122,7 +122,7 @@ mkdir -p ${LOGDIRECTORY}
         stop_server > ${LOGDIRECTORY}/stop.server.log 2>&1
     else
         info $(date --utc "+%F %T   cleaning up")
-        $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
+        $MYSQL $MYSQL_CONNECTION -e "DROP DATABASE IF EXISTS sbtest"
     fi
 
 } 2>&1 | tee ${LOGDIRECTORY}/${TEST_NAME}.log
