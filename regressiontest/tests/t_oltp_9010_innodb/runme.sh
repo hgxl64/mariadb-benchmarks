@@ -99,8 +99,10 @@ mkdir -p ${LOGDIRECTORY}
     for thread in $THREADS
     do
        info -n " ${thread} ..."
-       numactl ${CPU_MASK_SYSBENCH:-"--all"} iostat -mx $REPORT $(($RUNTIME/$REPORT+1))  >> ${LOGDIRECTORY}/iostat.$thread.log &
+       $REMOTE_SHELL "iostat -mx $REPORT $(($RUNTIME/$REPORT+1))" >> ${LOGDIRECTORY}/iostat.$thread.log &
        PIDLIST=$!
+       numactl ${CPU_MASK_SYSBENCH:-"--all"} dstat --nocolor --noupdate $REPORT $(($RUNTIME/$REPORT)) >> ${LOGDIRECTORY}/dstat.$thread.log &
+       PIDLIST="$PIDLIST $!"
        if [[ ${DUMP_STATUS:-0} -eq 1 ]]
        then
            numactl ${CPU_MASK_SYSBENCH:-"--all"} dump_status.sh >> ${LOGDIRECTORY}/status.$thread.log &
