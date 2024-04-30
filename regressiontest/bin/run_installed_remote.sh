@@ -49,9 +49,9 @@ done
 # setup connection variables to remote host
 if [[ ! ${MYSQL_CONNECTION} ]]
 then
-    MYSQL_CONNECTION="-h ${HOST}"
-    [[ ${USER} ]]     && MYSQL_CONNECTION="${MYSQL_CONNECTION} -u ${USER}"
-    [[ ${PASSWORD} ]] && MYSQL_CONNECTION="${MYSQL_CONNECTION} -p ${PASSWORD}"
+    MYSQL_CONNECTION="--host=${HOST}"
+    [[ ${USER} ]]     && MYSQL_CONNECTION="${MYSQL_CONNECTION} --user=${USER}"
+    [[ ${PASSWORD} ]] && MYSQL_CONNECTION="${MYSQL_CONNECTION} --password=${PASSWORD}"
     export MYSQL_CONNECTION
 fi
 
@@ -97,7 +97,7 @@ mkdir -p $LOGDIRECTORY
     echo "HOST: ${HOST}"            >> $LOGDIRECTORY/desc.yaml
     echo "USER: ${USER}"            >> $LOGDIRECTORY/desc.yaml
     echo "PASSWORD: ${PASSWORD}"    >> $LOGDIRECTORY/desc.yaml
-    echo "VERSION(): $(mysql -e 'select version()' | tail -1  | cut -f 2)" >> $LOGDIRECTORY/desc.yaml
+    echo "VERSION(): $(mysql $MYSQL_CONNECTION -e 'select version()' | tail -1  | cut -f 2)" >> $LOGDIRECTORY/desc.yaml
 
     msg $(date --utc "+%F %T running regression tests for ${DATABASE} on ${HOST}")
 
