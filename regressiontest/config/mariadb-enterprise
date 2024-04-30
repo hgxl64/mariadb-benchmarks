@@ -4,7 +4,7 @@
 
 source ${RT_HOME}/config/mariadb
 
-config_variable JENKINS_URL    "https://es-repo.mariadb.net/jenkins/"
-config_variable GIT_REPO       "git@github.com:mariadb-corporation/MariaDBEnterprise.git"
+config_variable JENKINS_URL    https://es-repo.mariadb.net/jenkins
+config_variable GIT_REPO       git@github.com:mariadb-corporation/MariaDBEnterprise.git
 config_variable LOCAL_GIT_REPO ${HOME}/versioned/MariaDB-Enterprise
 

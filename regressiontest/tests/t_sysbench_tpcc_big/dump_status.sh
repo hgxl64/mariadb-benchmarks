@@ -10,7 +10,7 @@ USER="root"
 
 while [[ $RUNTIME -eq 0 || $NRUN -ge 0 ]]
 do
-  $MYSQL -A -n -S $SOCKET -u $USER -e "$QUERY"
+  $MYSQL -A -n $MYSQL_CONNECTION -e "$QUERY"
   NRUN=$(($NRUN - 1))
 done
 
