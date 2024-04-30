@@ -99,7 +99,7 @@ mkdir -p ${LOGDIRECTORY}
          --tables=$TABLES --table-size=$ROWS --mysql-storage-engine=$ENGINE \
          $SYSBENCH_CONNECTION prepare 2>&1 > ${LOGDIRECTORY}/prepare.$thread.log
 
-       numactl ${CPU_MASK_SYSBENCH:-"--all"} iostat -mx $REPORT $(($RUNTIME/$REPORT+1))  >> ${LOGDIRECTORY}/iostat.$thread.log &
+       $REMOTE_SHELL "iostat -mx $REPORT $(($RUNTIME/$REPORT+1))" >> ${LOGDIRECTORY}/iostat.$thread.log &
        PIDLIST=$!
        if [[ ${DUMP_STATUS:-0} -eq 1 ]]
        then

@@ -3,6 +3,7 @@
 #
 
 # Marker
+unset IS_MYSQL
 export IS_MARIADB=1
 [[ ${IS_MYSQL} ]] && unset IS_MYSQL
 
