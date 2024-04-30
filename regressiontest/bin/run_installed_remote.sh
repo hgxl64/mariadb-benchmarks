@@ -50,6 +50,7 @@ done
 if [[ ! ${MYSQL_CONNECTION} ]]
 then
 <<<<<<< HEAD
+<<<<<<< HEAD
     MYSQL_CONNECTION="--host=${HOST}"
     [[ ${USER} ]]     && MYSQL_CONNECTION="${MYSQL_CONNECTION} --user=${USER}"
     [[ ${PASSWORD} ]] && MYSQL_CONNECTION="${MYSQL_CONNECTION} --password=${PASSWORD}"
@@ -58,6 +59,11 @@ then
     [[ ${USER} ]]     && MYSQL_CONNECTION="${MYSQL_CONNECTION} -u ${USER}"
     [[ ${PASSWORD} ]] && MYSQL_CONNECTION="${MYSQL_CONNECTION} -p ${PASSWORD}"
 >>>>>>> branched for use with a remote server
+=======
+    MYSQL_CONNECTION="--host=${HOST}"
+    [[ ${USER} ]]     && MYSQL_CONNECTION="${MYSQL_CONNECTION} --user=${USER}"
+    [[ ${PASSWORD} ]] && MYSQL_CONNECTION="${MYSQL_CONNECTION} --password=${PASSWORD}"
+>>>>>>> misc fixes for remote testing
     export MYSQL_CONNECTION
 fi
 
