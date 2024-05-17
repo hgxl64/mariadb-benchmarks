@@ -4,12 +4,13 @@
 
 # Marker
 export IS_MARIADB=1
+[[ ${IS_MYSQL} ]] && unset IS_MYSQL
 
 # Command Line Tools
-export MYSQL="mariadb"
-export MYSQLD="mariadbd"
-export MYSQLADMIN="mariadb-admin"
-export MYSQLD_SAFE="mariadbd-safe"
-export MYSQL_INSTALL_DB=mariadb-install-db
+config_variable MYSQL            mariadb
+config_variable MYSQLD           mariadbd
+config_variable MYSQLADMIN       mariadb-admin
+config_variable MYSQLD_SAFE      mariadbd-safe
+config_variable MYSQL_INSTALL_DB mariadb-install-db
 
 

@@ -1,0 +1,16 @@
+#
+# MySQL specific
+#
+
+# Marker
+export IS_MYSQL=1
+[[ ${IS_MARIADB} ]] && unset IS_MARIADB
+
+# Command Line Tools
+config_variable MYSQL            mysql
+config_variable MYSQLD           mysqld
+config_variable MYSQLADMIN       mysqladmin
+config_variable MYSQLD_SAFE      mysqld_safe
+config_variable MYSQL_INSTALL_DB mysql_install_db
+
+
