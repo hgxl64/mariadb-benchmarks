@@ -1,0 +1,33 @@
+Prequisites
+-----------
+
+1. sysbench 1.0.20 or later
+
+The provided Lua scripts (in subfolder lua) have been tested to work
+with sybench 1.0.20 and sysbench 1.1.x. Better is a build of sysbench
+from the GIT repository https://github.com/hgxl64/sysbench-1.x-mariadb.
+With this fork of sysbench the latency fields 25%, 50% and 75% become
+available and the histograms show more data.
+
+
+2. numactl
+
+numactl is used to restrict sysbench and the database server to certain
+cpu cores.
+
+
+3. iostat
+
+iostat is used for monitoring cpu usage and IO statistics.
+
+
+3. dstat
+
+The dstat tool is used to monitor the client side, when doing benchmarks
+over the network (branch remote-regressiontest).
+
+
+5. git, cmake, C/C++ compiler
+
+Those tools are required only when MariaDB/MySQL is to be built from
+source GIT repositories.
