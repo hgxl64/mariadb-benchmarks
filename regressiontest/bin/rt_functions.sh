@@ -304,10 +304,38 @@ collect_host_info() {
 }
 
 
-# log commit timestamp to LOGDIR
-commit_date() {
-    git show -s --pretty="format:%ct|%cD" $1 > ${LOGDIRECTORY}/commit_date.txt
+# log commit info to LOGDIR
+commit_info() {
+
+    git show -s --pretty="format:FULL_COMMIT: %H" $1  >  ${LOGDIRECTORY}/commit_info.yaml
+    git show -s --pretty="format:ABBRV_COMMIT: %h" $1 >> ${LOGDIRECTORY}/commit_info.yaml
+    git show -s --pretty="format:TIMESTAMP: %ct"  $1  >> ${LOGDIRECTORY}/commit_info.yaml
+    git show -s --pretty="format:RFC2822_TS: %cD" $1  >> ${LOGDIRECTORY}/commit_info.yaml
 }
+
+
+# wrapped commit_info
+commit_info_safe() {
+    local commit=$1
+    local here=$PWD
+
+    #make sure git repo is cloned locally
+    if [[ ! -d ${LOCAL_GIT_REPO} ]]
+    then
+        msg "cloning ${GIT_REPO} into ${LOCAL_GIT_REPO}"
+        mkdir -p $(dirname ${LOCAL_GIT_REPO})
+        cd $(dirname ${LOCAL_GIT_REPO})
+        git clone ${GIT_REPO} $(basename ${LOCAL_GIT_REPO}) >> ${LOGDIRECTORY}/git.log 2>&1
+    fi
+
+    cd ${LOCAL_GIT_REPO}
+    git fetch >> ${LOGDIRECTORY}/git.log 2>&1
+
+    commit_info $commit
+
+    cd $here
+}
+
 
 
 # return number of cpu cores, either from config variable or system
