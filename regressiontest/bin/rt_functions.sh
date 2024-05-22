@@ -307,10 +307,10 @@ collect_host_info() {
 # log commit info to LOGDIR
 commit_info() {
 
-    git show -s --pretty="format:FULL_COMMIT: %H" $1  >  ${LOGDIRECTORY}/commit_info.yaml
-    git show -s --pretty="format:ABBRV_COMMIT: %h" $1 >> ${LOGDIRECTORY}/commit_info.yaml
-    git show -s --pretty="format:TIMESTAMP: %ct"  $1  >> ${LOGDIRECTORY}/commit_info.yaml
-    git show -s --pretty="format:RFC2822_TS: %cD" $1  >> ${LOGDIRECTORY}/commit_info.yaml
+    git show -s --pretty="format:FULL_COMMIT: %H%n"  $1 >  ${LOGDIRECTORY}/commit_info.yaml
+    git show -s --pretty="format:ABBRV_COMMIT: %h%n" $1 >> ${LOGDIRECTORY}/commit_info.yaml
+    git show -s --pretty="format:TIMESTAMP: %ct%n"   $1 >> ${LOGDIRECTORY}/commit_info.yaml
+    git show -s --pretty="format:RFC2822_TS: %cD%n"  $1 >> ${LOGDIRECTORY}/commit_info.yaml
 }
 
 
