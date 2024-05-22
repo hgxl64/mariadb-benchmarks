@@ -86,6 +86,7 @@ fi
                 info "found ${BASE_URL}/build.properties"
                 COMMIT=$(fgrep GIT_COMMIT build.properties | sed 's/GIT_COMMIT=//' | head -c 11)
                 TARGETDIR="${INSTALLDIR}/mariadb-enterprise-${BRANCH}-${COMMIT}"
+                commit_info ${COMMIT}
 
                 if [[ -d ${TARGETDIR} ]]
                 then
@@ -147,6 +148,7 @@ fi
                 VERSION=$(fgrep FULL_VERSION build.properties | sed 's/FULL_VERSION=//')
                 BINTAR_URL="${BASE_URL}/bintar/${JENKINS_OS}/RelWithDebInfo/mariadb-enterprise-${VERSION}-${JENKINS_ARCH}.tar.gz"
                 TARGETDIR="${INSTALLDIR}/mariadb-enterprise-${BRANCH}-${COMMIT}"
+                commit_info ${COMMIT}
 
                 if [[ -d ${TARGETDIR} ]]
                 then
@@ -229,7 +231,7 @@ fi
             fi
 
             TARGETDIR="${INSTALLDIR}/mariadb-enterprise-${BRANCH}-${COMMIT}"
-            commit_date ${COMMIT}
+            commit_info ${COMMIT}
             if [[ -d ${TARGETDIR} ]]
             then
                 msg "${TARGETDIR} exists, assuming it's already there"
@@ -299,7 +301,7 @@ fi
             fi
 
             TARGETDIR="${INSTALLDIR}/mariadb-community-${BRANCH}-${COMMIT}"
-            commit_date ${COMMIT}
+            commit_info ${COMMIT}
             if [[ -d ${TARGETDIR} ]]
             then
                 msg "${TARGETDIR} exists, assuming it's already there"
