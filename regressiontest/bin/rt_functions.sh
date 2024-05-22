@@ -314,6 +314,30 @@ commit_info() {
 }
 
 
+# wrapped commit_info
+commit_info_safe() {
+    local commit=$1
+    local here=$PWD
+
+    #make sure git repo is cloned locally
+    if [[ ! -d ${LOCAL_GIT_REPO} ]]
+    then
+        msg "cloning ${GIT_REPO} into ${LOCAL_GIT_REPO}"
+        mkdir -p $(dirname ${LOCAL_GIT_REPO})
+        cd $(dirname ${LOCAL_GIT_REPO})
+        git clone ${GIT_REPO} $(basename ${LOCAL_GIT_REPO}) >> ${LOGDIRECTORY}/git.log 2>&1
+    fi
+
+    cd ${LOCAL_GIT_REPO}
+    git fetch >> ${LOGDIRECTORY}/git.log 2>&1
+
+    commit_info $commit
+
+    cd $here
+}
+
+
+
 # return number of cpu cores, either from config variable or system
 n_cpu() {
     if [[ -n ${NCPU} ]]

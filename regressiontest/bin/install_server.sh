@@ -86,7 +86,7 @@ fi
                 info "found ${BASE_URL}/build.properties"
                 COMMIT=$(fgrep GIT_COMMIT build.properties | sed 's/GIT_COMMIT=//' | head -c 11)
                 TARGETDIR="${INSTALLDIR}/mariadb-enterprise-${BRANCH}-${COMMIT}"
-                commit_info ${COMMIT}
+                commit_info_safe ${COMMIT}
 
                 if [[ -d ${TARGETDIR} ]]
                 then
@@ -148,7 +148,7 @@ fi
                 VERSION=$(fgrep FULL_VERSION build.properties | sed 's/FULL_VERSION=//')
                 BINTAR_URL="${BASE_URL}/bintar/${JENKINS_OS}/RelWithDebInfo/mariadb-enterprise-${VERSION}-${JENKINS_ARCH}.tar.gz"
                 TARGETDIR="${INSTALLDIR}/mariadb-enterprise-${BRANCH}-${COMMIT}"
-                commit_info ${COMMIT}
+                commit_info_safe ${COMMIT}
 
                 if [[ -d ${TARGETDIR} ]]
                 then
