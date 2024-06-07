@@ -1,0 +1,2 @@
+connect test
+doing { connect; select 1 from dual; disconnect; } in a loop
