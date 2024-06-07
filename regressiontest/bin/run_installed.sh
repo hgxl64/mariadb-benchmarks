@@ -68,7 +68,7 @@ mkdir -p $LOGDIRECTORY
     echo "DATABASE: ${DATABASE}"    >> $LOGDIRECTORY/desc.yaml
     echo "BRANCH: ${BRANCH}"        >> $LOGDIRECTORY/desc.yaml
     echo "COMMIT: ${COMMIT}"        >> $LOGDIRECTORY/desc.yaml
-    echo "VERSION(): $(mysql -e 'select version()' | tail -1  | cut -f 2)" >> $LOGDIRECTORY/desc.yaml
+    echo "VERSION(): $($MYSQL -S $SOCKET -e 'select version()' | tail -1  | cut -f 2)" >> $LOGDIRECTORY/desc.yaml
 
     msg $(date --utc "+%F %T running regression tests for ${DATABASE}")
 
