@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DATABASE="mariadb-community"
-DEFAULT_BRANCHES="10.5 10.6 10.11 11.0 11.1 11.2 11.3 11.4 11.5"
+DEFAULT_BRANCHES="10.5 10.6 10.11 11.1 11.2 11.4 11.5 11.6"
 
 unset BRANCHES
 unset COMMIT
