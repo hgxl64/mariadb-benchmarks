@@ -16,7 +16,7 @@ do
   do
     [[ -f ${STOPFILE} ]] && break
     run_community_git.sh --branch ${branch}
-    rmdir $(find ${RT_LOG_HOME}/ -type d -empty)
+    rmdir $(find ${RT_LOG_HOME}/ -type d -empty) >/dev/null 2>&1
   done
 
   if [[ -f ${STOPFILE} ]]
