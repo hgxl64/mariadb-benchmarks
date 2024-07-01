@@ -63,13 +63,14 @@ do
     mkdir -p $LOGDIRECTORY
 
     {
+        msg $(date --utc "+%F %T running regression tests for ${DATABASE} branch ${branch}")
         date --utc "+%F %T" > $LOGDIRECTORY/start
         collect_host_info
         echo "TIMESTAMP: $(date '+%s')" >  $LOGDIRECTORY/desc.yaml
         echo "DATABASE: ${DATABASE}"    >> $LOGDIRECTORY/desc.yaml
         echo "BRANCH: ${branch}"        >> $LOGDIRECTORY/desc.yaml
 
-        msg $(date --utc "+%F %T running regression tests for ${DATABASE} branch ${branch}")
+        msg $(date --utc "+%F %T trying to install server")
         CMD="install_server.sh --database $DATABASE --source git --branch $branch"
         if [[ -n ${COMMIT} ]]
         then
@@ -86,7 +87,8 @@ do
         then
             if [[ ! ${KEEPLOG} ]]
             then
-                rm -rf $LOGDIRECTORY
+                rm -rf $LOGDIRECTORY >/dev/null 2>&1
+                rmdir $LOGDIRECTORY >/dev/null 2>&1
             fi
             error "regression test already run, skipping"
         fi
