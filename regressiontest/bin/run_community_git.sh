@@ -50,6 +50,7 @@ done
 
 JOB="regressiontest.${DATABASE}"
 ALLTESTS=$(find ${RT_HOME}/tests -maxdepth 1 -type d -name t_\* -printf "%P\n" | sort)
+exitcode=0
 
 for branch in ${BRANCHES:-$DEFAULT_BRANCHES}
 do
@@ -62,6 +63,8 @@ do
     export LOGDIRECTORY
     mkdir -p $LOGDIRECTORY
 
+    exitcode=0
+
     {
         msg $(date --utc "+%F %T running regression tests for ${DATABASE} branch ${branch}")
         date --utc "+%F %T" > $LOGDIRECTORY/start
@@ -69,6 +72,7 @@ do
         echo "TIMESTAMP: $(date '+%s')" >  $LOGDIRECTORY/desc.yaml
         echo "DATABASE: ${DATABASE}"    >> $LOGDIRECTORY/desc.yaml
         echo "BRANCH: ${branch}"        >> $LOGDIRECTORY/desc.yaml
+        echo "SOURCE: git"              >> $LOGDIRECTORY/desc.yaml
 
         msg $(date --utc "+%F %T trying to install server")
         CMD="install_server.sh --database $DATABASE --source git --branch $branch"
@@ -82,20 +86,27 @@ do
 
         if [[ $status -eq 1 ]]
         then
-            error "installing server failed"
+            date --utc "+%F %T" > $LOGDIRECTORY/stop
+            echo "install server failed" > $LOGDIRECTORY/FAILED
+            exitcode=1
+            error "install server failed"
         elif [[ $status -eq 2 && ! ${FORCE} ]]
         then
-            if [[ ! ${KEEPLOG} ]]
+            if [[ ${KEEPLOG} ]]
             then
-                rm -rf $LOGDIRECTORY >/dev/null 2>&1
-                rmdir $LOGDIRECTORY >/dev/null 2>&1
+                date --utc "+%F %T" > $LOGDIRECTORY/stop
+                echo "regression test for this commit already run" > $LOGDIRECTORY/FAILED
+            else
+                rm_logdir=1
             fi
+            exitcode=1
             error "regression test already run, skipping"
         fi
 
         export TARGETDIR=$(get_targetdir)
         remove_targetdir
         echo "BINARY: $(basename ${TARGETDIR})" >> $LOGDIRECTORY/desc.yaml
+        msg $(date --utc "+%F %T install server succeeded (into ${TARGETDIR})")
 
         for t in ${TESTS:-$ALLTESTS}
         do
@@ -114,5 +125,12 @@ do
 
     } 2>&1 | tee $LOGDIRECTORY/${JOB}.log
 
+    if [[ $rm_logdir ]]
+    then
+        rm -rf $LOGDIRECTORY
+        unset rm_logdir
+    fi
+
 done
 
+return $exitcode

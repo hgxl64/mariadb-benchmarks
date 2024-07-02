@@ -12,16 +12,11 @@ echo -e "running MariaDB CS regression tests\n\n'touch ${STOPFILE}' to stop grac
 
 while true
 do
-  branch_tested=0
+  branches_tested=0
   for branch in ${BRANCHES}
   do
     [[ -f ${STOPFILE} ]] && break
-    if run_community_git.sh --branch ${branch}
-    then
-      branch_tested=1
-    else
-      rmdir $(find ${RT_LOG_HOME}/ -type d -empty)
-    fi
+    run_community_git.sh --branch ${branch} && branches_tested=$(($branches_tested + 1))
   done
 
   if [[ -f ${STOPFILE} ]]
@@ -31,7 +26,7 @@ do
   fi
 
   #if no branch had a new commit, sleep a while
-  if [[ $branch_tested -eq 0 ]]
+  if [[ $branches_tested -eq 0 ]]
   then
     date --utc "+%F %T no new commits in (${BRANCHES})"
     echo "sleeping for ${IDLE} seconds"

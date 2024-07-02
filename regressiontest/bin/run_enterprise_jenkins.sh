@@ -25,9 +25,9 @@ Options:
     --force
     -h|--help
 Examples:
+    $0 --branch 10.5-enterprise --branch 10.6-enterprise ...
     $0 --branch 10.6-enterprise --release 10.6.17-12
     $0 --branch 10.6-enterprise --commit 0815badc0de
-    $0 --branch 10.5-enterprise --branch 10.6-enterprise ...
     $0 --force
 "
 
@@ -53,6 +53,7 @@ done
 
 JOB="regressiontest.${DATABASE}"
 ALLTESTS=$(find ${RT_HOME}/tests -maxdepth 1 -type d -name t_\* -printf "%P\n" | sort)
+exitcode=0
 
 for branch in ${BRANCHES:-$DEFAULT_BRANCHES}
 do
@@ -68,7 +69,10 @@ do
     export LOGDIRECTORY
     mkdir -p $LOGDIRECTORY
 
+    exitcode=0
+
     {
+        msg $(date --utc "+%F %T running regression tests for ${DATABASE} branch ${branch}")
         date --utc "+%F %T" > $LOGDIRECTORY/start
         collect_host_info
         echo "TIMESTAMP: $(date '+%s')" >  $LOGDIRECTORY/desc.yaml
@@ -76,8 +80,8 @@ do
         echo "BRANCH: ${branch}"        >> $LOGDIRECTORY/desc.yaml
         echo "SOURCE: jenkins"          >> $LOGDIRECTORY/desc.yaml
 
-        msg $(date --utc "+%F %T running regression tests for ${DATABASE} branch ${branch}")
-        CMD="install_server.sh --database $DATABASE --branch $branch --source jenkins"
+        msg $(date --utc "+%F %T trying to install server")
+        CMD="install_server.sh --database $DATABASE --source jenkins --branch $branch"
         if [[ -n ${RELEASE} ]]
         then
             CMD="${CMD} --buildtype release --release ${RELEASE}"
@@ -97,13 +101,20 @@ do
 
         if [[ $status -eq 1 ]]
         then
-            error "installing server failed"
+            date --utc "+%F %T" > $LOGDIRECTORY/stop
+            echo "install server failed" > $LOGDIRECTORY/FAILED
+            exitcode=1
+            error "install server failed"
         elif [[ $status -eq 2 && ! ${FORCE} ]]
         then
-            if [[ ! ${KEEPLOG} ]]
+            if [[ ${KEEPLOG} ]]
             then
-                rm -rf $LOGDIRECTORY
+                date --utc "+%F %T" > $LOGDIRECTORY/stop
+                echo "regression test for this commit already run" > $LOGDIRECTORY/FAILED
+            else
+                rm_logdir=1
             fi
+            exitcode=1
             error "regression test already run, skipping"
         fi
 
@@ -111,6 +122,7 @@ do
         remove_targetdir
         echo "BINARY: $(basename ${TARGETDIR})" >> $LOGDIRECTORY/desc.yaml
         cp ${TARGETDIR}/build.properties $LOGDIRECTORY/
+        msg $(date --utc "+%F %T install server succeeded (into ${TARGETDIR})")
 
         for t in ${TESTS:-$ALLTESTS}
         do
@@ -129,5 +141,12 @@ do
 
     } 2>&1 | tee $LOGDIRECTORY/${JOB}.log
 
+    if [[ $rm_logdir ]]
+    then
+        rm -rf $LOGDIRECTORY
+        unset rm_logdir
+    fi
+
 done
 
+return $exitcode
