@@ -149,4 +149,4 @@ do
 
 done
 
-return $exitcode
+exit $exitcode
