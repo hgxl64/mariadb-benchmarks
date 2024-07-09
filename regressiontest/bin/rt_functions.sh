@@ -316,7 +316,7 @@ set_rm_logdir() {
 }
 
 get_rm_logdir() {
-    if [[ -f /tmp/rm_logdir]]
+    if [[ -f /tmp/rm_logdir ]]
     then
         echo "1"
     else
