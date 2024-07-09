@@ -284,7 +284,7 @@ set_branches_tested() {
         msg "/tmp/branches_tested reports ${bt} but should not exist!"
         rm -f /tmp/branches_tested
     fi
-    echo "${1}:-0" > /tmp/branches_tested
+    echo "${1:-0}" > /tmp/branches_tested
 }
 
 get_branches_tested() {
