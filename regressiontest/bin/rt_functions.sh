@@ -277,6 +277,58 @@ remove_targetdir() {
 }
 
 
+set_branches_tested() {
+    if [[ -f /tmp/branches_tested ]]
+    then
+        local bt=$(cat /tmp/branches_tested)
+        msg "/tmp/branches_tested reports ${bt} but should not exist!"
+        rm -f /tmp/branches_tested
+    fi
+    echo "${1}:-0" > /tmp/branches_tested
+}
+
+get_branches_tested() {
+    if [[ -f /tmp/branches_tested ]]
+    then
+        cat /tmp/branches_tested
+    else
+        echo 0
+    fi
+}
+
+inc_branches_tested() {
+    local bt=0
+    if [[ -f /tmp/branches_tested ]]
+    then
+        bt=$(cat /tmp/branches_tested)
+    fi
+    bt=$((${bt} + 1))
+    echo $bt > /tmp/branches_tested
+}
+
+reset_branches_tested() {
+    rm -f /tmp/branches_tested
+}
+
+
+set_rm_logdir() {
+    touch /tmp/rm_logdir
+}
+
+get_rm_logdir() {
+    if [[ -f /tmp/rm_logdir]]
+    then
+        echo "1"
+    else
+        echo "0"
+    fi
+}
+
+reset_rm_logdir() {
+    rm -f /tmp/rm_logdir
+}
+
+
 # pre- and post-collecting server stats
 # extend as needed
 collect_server_stats() {
