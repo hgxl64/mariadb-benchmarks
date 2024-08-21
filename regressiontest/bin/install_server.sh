@@ -106,7 +106,7 @@ fi
                 then
                     cd $HERE
                     rm -rf $TMP
-                    rf -rf ${TARGETDIR}
+                    rm -rf ${TARGETDIR}
                     error "failed to download '${BINTAR_URL}'"
                 fi
 
@@ -169,7 +169,7 @@ fi
                 then
                     cd $HERE
                     rm -rf $TMP
-                    rf -rf ${TARGETDIR}
+                    rm -rf ${TARGETDIR}
                     error "failed to download '${BINTAR_URL}'"
                 fi
 
