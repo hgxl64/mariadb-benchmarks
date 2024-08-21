@@ -4,7 +4,7 @@
 #
 #
 
-BRANCHES="10.4-enterprise 10.5-enterprise 10.6-enterprise"
+BRANCHES="10.5-enterprise 10.6-enterprise 11.4-enterprise"
 STOPFILE="${HOME}/stop"
 IDLE=3600
 

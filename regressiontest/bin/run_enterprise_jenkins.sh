@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DATABASE="mariadb-enterprise"
-DEFAULT_BRANCHES="10.4-enterprise 10.5-enterprise 10.6-enterprise"
+DEFAULT_BRANCHES="10.5-enterprise 10.6-enterprise 11.4-enterprise"
 
 unset BRANCHES
 unset COMMIT
