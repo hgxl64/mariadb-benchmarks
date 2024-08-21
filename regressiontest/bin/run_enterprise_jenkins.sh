@@ -53,7 +53,8 @@ done
 
 JOB="regressiontest.${DATABASE}"
 ALLTESTS=$(find ${RT_HOME}/tests -maxdepth 1 -type d -name t_\* -printf "%P\n" | sort)
-exitcode=0
+
+set_branches_tested 0
 
 for branch in ${BRANCHES:-$DEFAULT_BRANCHES}
 do
@@ -66,10 +67,9 @@ do
     else
         LOGDIRECTORY=${RT_LOG_HOME}/$(date +%y%m%d.%H%M%S.${JOB}.${branch})
     fi
-    export LOGDIRECTORY
     mkdir -p $LOGDIRECTORY
-
-    exitcode=0
+    export LOGDIRECTORY
+    reset_rm_logdir
 
     {
         msg $(date --utc "+%F %T running regression tests for ${DATABASE} branch ${branch}")
@@ -103,7 +103,6 @@ do
         then
             date --utc "+%F %T" > $LOGDIRECTORY/stop
             echo "install server failed" > $LOGDIRECTORY/FAILED
-            exitcode=1
             error "install server failed"
         elif [[ $status -eq 2 && ! ${FORCE} ]]
         then
@@ -112,9 +111,8 @@ do
                 date --utc "+%F %T" > $LOGDIRECTORY/stop
                 echo "regression test for this commit already run" > $LOGDIRECTORY/FAILED
             else
-                rm_logdir=1
+                set_rm_logdir
             fi
-            exitcode=1
             error "regression test already run, skipping"
         fi
 
@@ -139,14 +137,24 @@ do
         msg $(date --utc "+%F %T postprocess $(basename ${LOGDIRECTORY})")
         run_postprocess.sh > $LOGDIRECTORY/postprocess.log
 
+        inc_branches_tested
+
     } 2>&1 | tee $LOGDIRECTORY/${JOB}.log
 
-    if [[ $rm_logdir ]]
+    if [[ $(get_rm_logdir) -eq 1 ]]
     then
         rm -rf $LOGDIRECTORY
-        unset rm_logdir
+        reset_rm_logdir
     fi
 
 done
 
-exit $exitcode
+
+branches_tested=$(get_branches_tested)
+reset_branches_tested
+
+info "tested ${branches_tested} branch(es) for regressions"
+
+[[ ${branches_tested} -eq 0 ]] && exit 1
+exit 0
+
