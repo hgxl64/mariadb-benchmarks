@@ -5,7 +5,6 @@
 set -e
 set -u
 
-
 TARGETDIR=${1:?usage: $0 installdir, installdir not given, cannot continue}
 
 
