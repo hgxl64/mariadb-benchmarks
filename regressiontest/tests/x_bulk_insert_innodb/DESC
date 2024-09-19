@@ -1,0 +1,2 @@
+bulk inserts into empty tables
+multiple InnoDB tables (1 per thd), big redo, no trx (auto commit)
