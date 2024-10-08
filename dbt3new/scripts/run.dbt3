@@ -124,7 +124,7 @@ done
 [[ ${CREATESQL:-""}  ]] || CREATESQL="create_tables.sql"
 [[ ${LOADSQL:-""}    ]] || LOADSQL="load_tables.sql"
 [[ ${INDEXSQL:-""}   ]] || INDEXSQL="index_tables.sql"
-[[ ${LOGDIR}:-""}    ]] || LOGDIR=${RESULTSDIR}/${DIR}
+[[ ${LOGDIR:-""}     ]] || LOGDIR=${RESULTSDIR}/${DIR}
 
 if [[ ${PARALLEL} == TRUE ]]
 then
