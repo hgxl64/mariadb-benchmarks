@@ -25,6 +25,7 @@ USAGE="usage: $0
     --loadsql S ...... load LOAD DATA statements from given file
     --indexsql S ..... load CREATE INDEX statements from given file
     --skipload ....... skip the loading stage, relying on contents of DATADIR
+    --keepstats ...... keep statistics from previous runs
     --noexec ......... don't execute any query
 "
 
@@ -66,6 +67,9 @@ do
                       ;;
 
         --skipload)   SKIPLOAD=TRUE
+                      ;;
+
+        --keepstats)  KEEPSTATS=TRUE
                       ;;
 
         --force)      FORCE=TRUE
@@ -113,6 +117,7 @@ done
 [[ ${NOEXEC:-""}     ]] || NOEXEC=FALSE
 [[ ${SKIPLOAD:-""}   ]] || SKIPLOAD=FALSE
 [[ ${PARALLEL:-""}   ]] || PARALLEL=FALSE
+[[ ${KEEPSTATS:-""}  ]] || KEEPSTATS=FALSE
 [[ ${FORCE:-""}      ]] || FORCE=FALSE
 
 [[ ${ANALYZESQL:-""} ]] || ANALYZESQL="analyze_tables.sql"
@@ -255,10 +260,14 @@ do
     SHOW GLOBAL VARIABLES;")
     mysql -nt -S ${SOCKET} -u root -e "$CMD" dbt3 2>&1 | tee --append $LOG
 
+    # clean stats tables on first run
+    if [[ ${KEEPSTATS} == FALSE ]] && [[ ${RUN} -eq 1 ]]
+    then
+        mysql -nt -S ${SOCKET} -u root -e "DELETE FROM dbt3_runs" dbt3 2>&1 | tee --append $LOG
+    fi
 
     # execute DBT3 queries
-
-    if [[ ${PARALLEL} -eq 1 ]]
+    if [[ ${PARALLEL} == FALSE ]]
     then
         LOG=${LOGDIR}/$(date +%y%m%d.%H%M%S).dbt3_exec.log
         for QUERY in ${DIR}/query_*.sql
@@ -305,7 +314,7 @@ do
                 do
                     LOG=${LOGDIR}/$(date +%y%m%d.%H%M%S).dbt3_exec.${THD}.log
                     CMD=$(echo "SELECT 'running query ${Q2}' AS progress;"; echo "SET @start:=NOW(6);"; cat $QUERY;
-                        echo "INSERT INTO dbt3_runs (query, pass, start_ts, end_ts) VALUES ('${QNUM}', ${RUN}, @start, NOW(6));")
+                        echo "INSERT INTO dbt3_runs (query, pass, start_ts, end_ts) VALUES ('${QNUM}', ${THD}, @start, NOW(6));")
                     timeout ${TIMEOUT} mysql -vvvnt -S ${SOCKET} -u root -e "${CMD}" dbt3 | 2>&1 tee --append $LOG &
 
                     if [[ -z $PIDLIST ]]
