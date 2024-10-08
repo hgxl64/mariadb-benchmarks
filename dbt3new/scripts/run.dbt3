@@ -17,12 +17,13 @@ USAGE="usage: $0
   optional arguments
     --timeout N ...... query execution timeout in seconds (default: 7200)
     --repeats N ...... query repetitions with restart inbetween (default: 1)
+    --parallel ....... execute repetitions concurrently (disables restart)
     --engine S ....... use storage engine S to create the tables (default: InnoDB)
     --explain S ...... explain query (ex. --explain 'EXPLAIN EXTENDED', default: none)
     --analyzesql S ... load ANALYZE TABLE statements from given file
     --createsql S .... load CREATE TABLE statements from given file
     --loadsql S ...... load LOAD DATA statements from given file
-    --indexsql S ..... load CREATE INDEX statements from givel file
+    --indexsql S ..... load CREATE INDEX statements from given file
     --skipload ....... skip the loading stage, relying on contents of DATADIR
     --noexec ......... don't execute any query
 "
@@ -53,6 +54,9 @@ do
                       ;;
 
         --repeats)    REPEATS="$1"; shift
+                      ;;
+
+        --parallel)   PARALLEL=TRUE
                       ;;
 
         --explain)    EXPLAIN="$1"; shift
@@ -108,6 +112,7 @@ done
 [[ ${ENGINE:-""}     ]] || ENGINE="InnoDB"
 [[ ${NOEXEC:-""}     ]] || NOEXEC=FALSE
 [[ ${SKIPLOAD:-""}   ]] || SKIPLOAD=FALSE
+[[ ${PARALLEL:-""}   ]] || PARALLEL=FALSE
 [[ ${FORCE:-""}      ]] || FORCE=FALSE
 
 [[ ${ANALYZESQL:-""} ]] || ANALYZESQL="analyze_tables.sql"
@@ -115,6 +120,12 @@ done
 [[ ${LOADSQL:-""}    ]] || LOADSQL="load_tables.sql"
 [[ ${INDEXSQL:-""}   ]] || INDEXSQL="index_tables.sql"
 [[ ${LOGDIR}:-""}    ]] || LOGDIR=${RESULTSDIR}/${DIR}
+
+if [[ ${PARALLEL} == TRUE ]]
+then
+    PARALLEL=$REPEATS;
+    REPEATS=1;
+fi
 
 HERE=$(pwd)
 
@@ -244,29 +255,73 @@ do
     SHOW GLOBAL VARIABLES;")
     mysql -nt -S ${SOCKET} -u root -e "$CMD" dbt3 2>&1 | tee --append $LOG
 
+
     # execute DBT3 queries
-    LOG=${LOGDIR}/$(date +%y%m%d.%H%M%S).dbt3_exec.log
-    for QUERY in ${DIR}/query_*.sql
-    do
-	Q1=$(basename $QUERY)
-	Q2=${Q1%%.sql}
-	QNUM=${Q2##query_}
 
-        # explain query
-        if [[ ${EXPLAIN} != "" ]]
-        then
-            EXP=$(cat ${DIR}/explain_${QNUM}.sql | sed "s/EXPLAIN/${EXPLAIN}/")
-            timeout ${TIMEOUT} mysql -nt -S ${SOCKET} -u root -e "${EXP}" dbt3 | 2>&1 tee --append ${LOGDIR}/${Q2}.explains
-        fi
+    if [[ ${PARALLEL} -eq 1 ]]
+    then
+        LOG=${LOGDIR}/$(date +%y%m%d.%H%M%S).dbt3_exec.log
+        for QUERY in ${DIR}/query_*.sql
+        do
+            Q1=$(basename $QUERY)
+            Q2=${Q1%%.sql}
+            QNUM=${Q2##query_}
 
-        # run query
-        if [[ ${NOEXEC} != TRUE ]]
-        then
-            CMD=$(echo "SELECT 'running query ${Q2}' AS progress;"; echo "SET @start:=NOW(6);"; cat $QUERY;
-	          echo "INSERT INTO dbt3_runs (query, pass, start_ts, end_ts) VALUES ('${QNUM}', ${RUN}, @start, NOW(6));")
-            timeout ${TIMEOUT} mysql -vvvnt -S ${SOCKET} -u root -e "${CMD}" dbt3 | 2>&1 tee --append $LOG
-        fi
-    done
+            # explain query
+            if [[ ${EXPLAIN} != "" ]]
+            then
+                EXP=$(cat ${DIR}/explain_${QNUM}.sql | sed "s/EXPLAIN/${EXPLAIN}/")
+                timeout ${TIMEOUT} mysql -nt -S ${SOCKET} -u root -e "${EXP}" dbt3 | 2>&1 tee --append ${LOGDIR}/${Q2}.explains
+            fi
+
+            # run query
+            if [[ ${NOEXEC} != TRUE ]]
+            then
+                CMD=$(echo "SELECT 'running query ${Q2}' AS progress;"; echo "SET @start:=NOW(6);"; cat $QUERY;
+                  echo "INSERT INTO dbt3_runs (query, pass, start_ts, end_ts) VALUES ('${QNUM}', ${RUN}, @start, NOW(6));")
+                timeout ${TIMEOUT} mysql -vvvnt -S ${SOCKET} -u root -e "${CMD}" dbt3 | 2>&1 tee --append $LOG
+            fi
+        done
+    else
+        # parallel query execution
+        for QUERY in ${DIR}/query_*.sql
+        do
+            Q1=$(basename $QUERY)
+            Q2=${Q1%%.sql}
+            QNUM=${Q2##query_}
+
+            # explain query only once
+            if [[ ${EXPLAIN} != "" ]]
+            then
+                EXP=$(cat ${DIR}/explain_${QNUM}.sql | sed "s/EXPLAIN/${EXPLAIN}/")
+                timeout ${TIMEOUT} mysql -nt -S ${SOCKET} -u root -e "${EXP}" dbt3 | 2>&1 tee --append ${LOGDIR}/${Q2}.explains
+            fi
+
+            # run query
+            if [[ ${NOEXEC} != TRUE ]]
+            then
+                PIDLIST=""
+                for THD in $(seq $PARALLEL)
+                do
+                    LOG=${LOGDIR}/$(date +%y%m%d.%H%M%S).dbt3_exec.${THD}.log
+                    CMD=$(echo "SELECT 'running query ${Q2}' AS progress;"; echo "SET @start:=NOW(6);"; cat $QUERY;
+                        echo "INSERT INTO dbt3_runs (query, pass, start_ts, end_ts) VALUES ('${QNUM}', ${RUN}, @start, NOW(6));")
+                    timeout ${TIMEOUT} mysql -vvvnt -S ${SOCKET} -u root -e "${CMD}" dbt3 | 2>&1 tee --append $LOG &
+
+                    if [[ -z $PIDLIST ]]
+                    then
+                        PIDLIST=$!
+                    else
+                        PIDLIST="$PIDLIST $!"
+                   fi
+
+                done
+                echo "waiting for query processes to finish (${PIDLIST})"
+                wait $PIDLIST
+            fi
+        done
+
+    fi
 
     # generate exec time statistics on last run
     if [[ $RUN == $REPEATS ]]
