@@ -18,6 +18,7 @@ USAGE="usage: $0
     --timeout N ...... query execution timeout in seconds (default: 7200)
     --repeats N ...... query repetitions with restart inbetween (default: 1)
     --parallel ....... execute repetitions concurrently (disables restart)
+    --skew N ......... how many seconds delay between concurrent queries (default: 5)
     --engine S ....... use storage engine S to create the tables (default: InnoDB)
     --explain S ...... explain query (ex. --explain 'EXPLAIN EXTENDED', default: none)
     --analyzesql S ... load ANALYZE TABLE statements from given file
@@ -58,6 +59,9 @@ do
                       ;;
 
         --parallel)   PARALLEL=TRUE
+                      ;;
+
+        --skew)       SKEW="$1"; shift
                       ;;
 
         --explain)    EXPLAIN="$1"; shift
@@ -119,6 +123,7 @@ done
 [[ ${PARALLEL:-""}   ]] || PARALLEL=FALSE
 [[ ${KEEPSTATS:-""}  ]] || KEEPSTATS=FALSE
 [[ ${FORCE:-""}      ]] || FORCE=FALSE
+[[ ${SKEW:-""}       ]] || SKEW=5
 
 [[ ${ANALYZESQL:-""} ]] || ANALYZESQL="analyze_tables.sql"
 [[ ${CREATESQL:-""}  ]] || CREATESQL="create_tables.sql"
@@ -208,11 +213,11 @@ else
     # generate load time statistics
     LOG=${LOGDIR}/$(date +%y%m%d.%H%M%S).dbt3_load.stats
     mysql -t -S ${SOCKET} -u root -e "
-    SELECT @start:=MIN(timest) FROM load_time_statistics;
-    SELECT UNIX_TIMESTAMP(timest)-UNIX_TIMESTAMP(@start) AS duration,
-    @start:=timest AS time, task_name
-    FROM load_time_statistics ORDER BY idx;
-    SELECT version()
+      SELECT @start:=MIN(timest) FROM load_time_statistics;
+      SELECT UNIX_TIMESTAMP(timest)-UNIX_TIMESTAMP(@start) AS duration,
+      @start:=timest AS time, task_name
+      FROM load_time_statistics ORDER BY idx;
+      SELECT version()
     " dbt3 2>&1 | tee --append $LOG
 
     # shutdown server
@@ -251,13 +256,13 @@ do
     echo "Analyzing Tables using '${ANALYZESQL}' ..."
     LOG=${LOGDIR}/$(date +%y%m%d.%H%M%S).dbt3_analyze.log
     CMD=$(envsubst < ${ANALYZESQL}; echo "
-    SELECT @start:=MIN(timest) FROM load_time_statistics;
-    SELECT UNIX_TIMESTAMP(timest)-UNIX_TIMESTAMP(@start) AS duration,
-    @start:=timest AS time, task_name
-    FROM load_time_statistics ORDER BY idx;
+      SELECT @start:=MIN(timest) FROM load_time_statistics;
+      SELECT UNIX_TIMESTAMP(timest)-UNIX_TIMESTAMP(@start) AS duration,
+      @start:=timest AS time, task_name
+      FROM load_time_statistics ORDER BY idx;
 
-    SHOW TABLE STATUS;
-    SHOW GLOBAL VARIABLES;")
+      SHOW TABLE STATUS;
+      SHOW GLOBAL VARIABLES;")
     mysql -nt -S ${SOCKET} -u root -e "$CMD" dbt3 2>&1 | tee --append $LOG
 
     # clean stats tables on first run
@@ -322,9 +327,16 @@ do
                         PIDLIST=$!
                     else
                         PIDLIST="$PIDLIST $!"
-                   fi
+                    fi
+
+                    if [[ $THD -ne $PARALLEL ]]
+                    then
+                        sleep $SKEW
+                    fi
 
                 done
+
+                sleep 1
                 echo "waiting for query processes to finish (${PIDLIST})"
                 wait $PIDLIST
             fi
@@ -337,31 +349,31 @@ do
     then
         LOG=${LOGDIR}/$(date +%y%m%d.%H%M%S).dbt3_exec.long.stats
         mysql -t -S ${SOCKET} -u root -e "\
-	SELECT query, pass, UNIX_TIMESTAMP(end_ts)-UNIX_TIMESTAMP(start_ts) AS duration
-	FROM dbt3_runs ORDER BY query, pass;
+          SELECT query, pass, UNIX_TIMESTAMP(end_ts)-UNIX_TIMESTAMP(start_ts) AS duration
+          FROM dbt3_runs ORDER BY query, pass;
 
-	SELECT query, COUNT(*) FROM dbt3_runs GROUP BY query;
+          SELECT query, COUNT(*) FROM dbt3_runs GROUP BY query;
 
-	SELECT query,
-          min(duration) as min,
-          max(duration) as max,
-          avg(duration) as avg,
-          std(duration) as sigma,
-          std(duration)/avg(duration)*100 as 'sigma/avg %'
-        FROM (
-          SELECT query, UNIX_TIMESTAMP(end_ts)-UNIX_TIMESTAMP(start_ts) AS duration FROM dbt3_runs
-        ) xxx
-        GROUP BY query;
+          SELECT query,
+            min(duration) as min,
+            max(duration) as max,
+            avg(duration) as avg,
+            std(duration) as sigma,
+            std(duration)/avg(duration)*100 as 'sigma/avg %'
+          FROM (
+            SELECT query, UNIX_TIMESTAMP(end_ts)-UNIX_TIMESTAMP(start_ts) AS duration FROM dbt3_runs
+          ) xxx
+          GROUP BY query;
         " dbt3 2>&1 | tee --append $LOG
 
         LOG=${LOGDIR}/$(date +%y%m%d.%H%M%S).dbt3_exec.stats
 
         mysql -t -S ${SOCKET} -u root -e "\
-	SELECT query, avg(duration) as average_execution_time
-        FROM (
-          SELECT query, UNIX_TIMESTAMP(end_ts)-UNIX_TIMESTAMP(start_ts) AS duration FROM dbt3_runs
-        ) xxx
-        GROUP BY query;
+          SELECT query, avg(duration) as average_execution_time
+          FROM (
+            SELECT query, UNIX_TIMESTAMP(end_ts)-UNIX_TIMESTAMP(start_ts) AS duration FROM dbt3_runs
+          ) xxx
+          GROUP BY query;
         " dbt3 2>&1 | tee --append $LOG
     fi
 
