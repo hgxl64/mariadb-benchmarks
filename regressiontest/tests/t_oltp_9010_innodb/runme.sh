@@ -89,14 +89,19 @@ mkdir -p ${LOGDIRECTORY}
        info -n " ${thread} ..."
        numactl ${CPU_MASK_SYSBENCH:-"--all"} iostat -mx $REPORT $(($RUNTIME/$REPORT+1))  >> ${LOGDIRECTORY}/iostat.$thread.log &
        PIDLIST=$!
-       if [[ -x ./dump_status.sh ]]
+       if [[ ${DUMP_STATUS:-0} -eq 1 ]]
        then
-           numactl ${CPU_MASK_SYSBENCH:-"--all"} ./dump_status.sh >> ${LOGDIRECTORY}/status.$thread.log &
+           numactl ${CPU_MASK_SYSBENCH:-"--all"} dump_status.sh >> ${LOGDIRECTORY}/status.$thread.log &
            PIDLIST="$PIDLIST $!"
        fi
-       if [[ -x ./dump_pfs.sh ]]
+       if [[ ${DUMP_PFS:-0} -eq 1 ]]
        then
-           numactl ${CPU_MASK_SYSBENCH:-"--all"} ./dump_pfs.sh >> ${LOGDIRECTORY}/pfs.$thread.log &
+           numactl ${CPU_MASK_SYSBENCH:-"--all"} dump_pfs.sh >> ${LOGDIRECTORY}/pfs.$thread.log &
+           PIDLIST="$PIDLIST $!"
+       fi
+       if [[ ${DUMP_PERF:-0} -eq 1 ]]
+       then
+           numactl ${CPU_MASK_SYSBENCH:-"--all"} dump_perf.sh ${LOGDIRECTORY}/perf.$thread.data >> ${LOGDIRECTORY}/perf.$thread.log &
            PIDLIST="$PIDLIST $!"
        fi
 
