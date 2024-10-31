@@ -23,7 +23,7 @@ debug() {
 }
 
 
-# message and exiting the script/block
+# message and exit the script/block
 error() {
     echo "$@"
     exit 1
@@ -418,6 +418,107 @@ thread_range() {
         start=$(($start * 2))
     done
     echo $retval
+}
+
+
+# postprocess a test subdir
+test_postprocess()
+{
+    pushd $LOGDIRECTORY/$1 > /dev/null
+
+    local desc=$(head -1 DESC)
+
+    #create time series plots for sysbench logs
+    for f in $(find . -maxdepth 1 -type f -name sysbench.\*.log)
+    do
+        thd=$(basename $f | sed 's/sysbench\.//' | sed 's/\.log//')
+        tmpfile=$(mktemp)
+        ts_extract.pl <$f >$tmpfile
+
+        echo "
+          set terminal png medium nocrop enhanced size 960,480 background '#F0F0F0' linewidth 2
+          set xrange [0:]
+          set yrange [0:]
+          set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+          set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+          set ylabel 'tps'
+          set xlabel 'time [s]'
+          set output 'tps_over_time.${thd}.png'
+          set title '${desc} @ ${thd} threads'
+          plot '$tmpfile' using 1:2 notitle with lines
+        " | gnuplot
+
+        rm $tmpfile
+    done
+
+    #create summary plots
+    echo "
+      set terminal png medium nocrop enhanced size 960,480 background '#F0F0F0' linewidth 2 font 'Arial,12'
+      set xrange [0:]
+      set logscale y 2
+      set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+      set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+      set ylabel 'avg latency [ms]'
+      set xlabel 'tps'
+      set output 'performancecurve.png'
+      set title '${desc}'
+      plot 'summary.log' using 2:4 notitle with linespoints pointtype 7, \
+           '' using 2:4:1 with labels center offset 0.5, -0.5 notitle
+    " | gnuplot
+
+    echo "
+      set terminal png medium nocrop enhanced size 960,480 background '#F0F0F0' linewidth 2 font 'Arial,12'
+      set xrange [0:]
+      set yrange [0:]
+      set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+      set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+      set ylabel 'tps'
+      set xlabel 'threads'
+      set style fill solid
+      set boxwidth 0.3
+      set output 'tps_bars.png'
+      set title '${desc}'
+      plot 'summary.log' using 0:2:xtic(1) with boxes notitle
+    " | gnuplot
+
+    echo "
+      set terminal png medium nocrop enhanced size 960,480 background '#F0F0F0' linewidth 2 font 'Arial,12'
+      set xrange [0:]
+      set logscale y 2
+      set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+      set ylabel 'latency [ms]'
+      set xlabel 'threads'
+      set style fill empty
+      set style line 1 lc rgb '#000'
+      set boxwidth 0.3
+      set offsets -0.5,0.5,0,0
+      set output 'latency_bars.png'
+      set title '${desc} - shows {min, 25%, median(dot), 75%, 95%}'
+      plot 'summary.log' using 0:7:3:6:9:xtic(1) with candlesticks whiskerbars 0.5 linestyle 1 notitle, \
+           '' using 0:8 with points linestyle 1 pointtype 7 notitle
+    " | gnuplot
+
+    echo "
+      set terminal png medium nocrop enhanced size 960,480 background '#F0F0F0' linewidth 2 font 'Arial,12'
+      set xrange [0:]
+      set logscale y 2
+      set y2range [0:]
+      set ylabel 'latency [ms]'
+      set ytics nomirror
+      set y2label 'tps'
+      set y2tics
+      set xlabel 'threads'
+      set style fill empty
+      set style line 2 lc rgb '#000'
+      set boxwidth 0.3
+      set output 'tps+latency_bars.png'
+      set title '${desc}'
+      plot 'summary.log' using (\$0+0.2):2 with boxes fillstyle solid axes x1y2 notitle, \
+           '' using (\$0-0.2):7:3:6:9:xtic(1) with candlesticks whiskerbars 0.5 linestyle 2 notitle, \
+           '' using (\$0-0.2):8 with points linestyle 2 pointtype 7 notitle
+    " | gnuplot
+
+    popd > /dev/null
 }
 
 
