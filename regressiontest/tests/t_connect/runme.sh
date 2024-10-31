@@ -69,6 +69,19 @@ mkdir -p ${LOGDIRECTORY}
         $MYSQL -S $SOCKET -u root -e "CREATE DATABASE sbtest"
     } 2>&1 > ${LOGDIRECTORY}/prepare.log
 
+    if [[ ${DUMP_STATUS:-0} -eq 1 ]]
+    then
+        info -n "[status dumps active] "
+    fi
+    if [[ ${DUMP_PFS:-0} -eq 1 ]]
+    then
+        info -n "[PFS dumps active] "
+    fi
+    if [[ ${DUMP_PERF:-0} -eq 1 ]]
+    then
+        info "[perf dumps active]"
+    fi
+
     collect_server_stats before
 
     #run benchmark
@@ -80,14 +93,19 @@ mkdir -p ${LOGDIRECTORY}
        info -n " ${thread} ..."
        numactl ${CPU_MASK_SYSBENCH:-"--all"} iostat -mx $REPORT $(($RUNTIME/$REPORT+1))  >> ${LOGDIRECTORY}/iostat.$thread.log &
        PIDLIST=$!
-       if [[ -x ./dump_status.sh ]]
+       if [[ ${DUMP_STATUS:-0} -eq 1 ]]
        then
-           numactl ${CPU_MASK_SYSBENCH:-"--all"} ./dump_status.sh >> ${LOGDIRECTORY}/status.$thread.log &
+           numactl ${CPU_MASK_SYSBENCH:-"--all"} dump_status.sh >> ${LOGDIRECTORY}/status.$thread.log &
            PIDLIST="$PIDLIST $!"
        fi
-       if [[ -x ./dump_pfs.sh ]]
+       if [[ ${DUMP_PFS:-0} -eq 1 ]]
        then
-           numactl ${CPU_MASK_SYSBENCH:-"--all"} ./dump_pfs.sh >> ${LOGDIRECTORY}/pfs.$thread.log &
+           numactl ${CPU_MASK_SYSBENCH:-"--all"} dump_pfs.sh >> ${LOGDIRECTORY}/pfs.$thread.log &
+           PIDLIST="$PIDLIST $!"
+       fi
+       if [[ ${DUMP_PERF:-0} -eq 1 ]]
+       then
+           numactl ${CPU_MASK_SYSBENCH:-"--all"} dump_perf.sh ${LOGDIRECTORY}/perf.$thread.data >> ${LOGDIRECTORY}/perf.$thread.log 2>&1 &
            PIDLIST="$PIDLIST $!"
        fi
 
