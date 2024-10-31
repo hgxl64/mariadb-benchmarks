@@ -78,6 +78,19 @@ mkdir -p ${LOGDIRECTORY}
         [[ ${ENGINE} == "InnoDB" ]] && checkpoint_innodb
     } 2>&1 > ${LOGDIRECTORY}/prepare.log
 
+    if [[ ${DUMP_STATUS:-0} -eq 1 ]]
+    then
+        info -n "[status dumps active] "
+    fi
+    if [[ ${DUMP_PFS:-0} -eq 1 ]]
+    then
+        info -n "[PFS dumps active] "
+    fi
+    if [[ ${DUMP_PERF:-0} -eq 1 ]]
+    then
+        info "[perf dumps active]"
+    fi
+
     collect_server_stats before
 
     #run benchmark
@@ -101,7 +114,7 @@ mkdir -p ${LOGDIRECTORY}
        fi
        if [[ ${DUMP_PERF:-0} -eq 1 ]]
        then
-           numactl ${CPU_MASK_SYSBENCH:-"--all"} dump_perf.sh ${LOGDIRECTORY}/perf.$thread.data >> ${LOGDIRECTORY}/perf.$thread.log &
+           numactl ${CPU_MASK_SYSBENCH:-"--all"} dump_perf.sh ${LOGDIRECTORY}/perf.$thread.data >> ${LOGDIRECTORY}/perf.$thread.log 2>&1 &
            PIDLIST="$PIDLIST $!"
        fi
 
