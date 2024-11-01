@@ -1,4 +1,4 @@
-SELECT 'indexing linitem' AS progress;
+SELECT 'indexing lineitem' AS progress;
 ALTER TABLE lineitem
    ADD INDEX i_l_shipdate(l_shipdate),
    ADD INDEX i_l_suppkey_partkey (l_partkey, l_suppkey),
