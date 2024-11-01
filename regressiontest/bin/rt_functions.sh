@@ -223,7 +223,11 @@ stop_server() {
 
     #copy server errorlog to log dir
     ERRORLOG=${DATADIR}/$(hostname).err
-    [[ -f $ERRORLOG ]] && cp $ERRORLOG $LOGDIRECTORY/error.log
+    if [[ -f $ERRORLOG ]] 
+    then
+        cp $ERRORLOG $LOGDIRECTORY/error.log
+        chmod a+r $LOGDIRECTORY/error.log
+    fi
 }
 
 
