@@ -126,10 +126,16 @@ do
         do
             if [[ -x ${RT_HOME}/tests/$t/runme.sh ]]
             then
+                info $(date --utc "+%F %T setting power plan 'max'") >> $LOGDIRECTORY/pstate-frequency.log
+                sudo pstate-frequency -S -p max >> $LOGDIRECTORY/pstate-frequency.log
+
                 info $(date --utc "+%F %T running test $t")
                 pushd ${RT_HOME}/tests/$t > /dev/null
                 ./runme.sh
                 popd > /dev/null
+
+                info $(date --utc "+%F %T setting power plan 'balanced'") >> $LOGDIRECTORY/pstate-frequency.log
+                sudo pstate-frequency -S -p balanced >> $LOGDIRECTORY/pstate-frequency.log
             fi
         done
         date --utc "+%F %T" > $LOGDIRECTORY/stop
