@@ -188,6 +188,16 @@ start_server() {
     [[ -e my.cnf ]] && CMD="${CMD} --defaults-file=$PWD/my.cnf"
     [[ ${MALLOC_LIB} ]] && CMD="${CMD} --malloc-lib=${MALLOC_LIB}"
     CMD="$CMD --datadir=${DATADIR} --pid-file=/tmp/mysqld.pid.sysbench --socket=${SOCKET}"
+    if [[ ${DUMP_PFS:-0} -eq 1 ]]
+    then
+        CMD="$CMD --performance-schema=true"
+        CMD="$CMD --performance-schema-consumer-events_waits_current=on"
+        CMD="$CMD --performance-schema-consumer-events_statements_current=off"
+        CMD="$CMD --performance-schema-consumer-statements_digest=off"
+        CMD="$CMD --performance-schema-instrument='%=off'"
+        CMD="$CMD --performance-schema-instrument='wait/synch/mutex/%=on'"
+        CMD="$CMD --performance-schema-instrument='wait/synch/rwlock/%=on'"
+    fi
 
     info "starting server with '${CMD}'"
     cd $TARGETDIR
@@ -223,7 +233,7 @@ stop_server() {
 
     #copy server errorlog to log dir
     ERRORLOG=${DATADIR}/$(hostname).err
-    if [[ -f $ERRORLOG ]] 
+    if [[ -f $ERRORLOG ]]
     then
         cp $ERRORLOG $LOGDIRECTORY/error.log
         chmod a+r $LOGDIRECTORY/error.log
