@@ -27,6 +27,7 @@ while [[ $# > 0 ]] ; do
         --branch)       BRANCH="$1"; shift;;
         --commit)       COMMIT="$1"; shift;;
         --database)     DATABASE="$1"; shift;;
+        --tag)          TAG="$1"; shift;;
         -h|--help)      error "$USAGE"; exit 1;;
         *)  msg "Invalid input switch: $key"; msg "COMMAND_LINE = ${COMMAND_LINE}"; error "${USAGE}";;
     esac
@@ -49,13 +50,8 @@ source ${RT_HOME}/config/global
 source ${RT_HOME}/config/${DATABASE}
 
 JOB="test.${DATABASE}"
-if [[ ${COMMIT} ]]
-then
-    JOB="${JOB}.${COMMIT}"
-elif [[ $BRANCH ]]
-then
-    JOB="${JOB}.${BRANCH}"
-fi
+[[ $BRANCH ]]   && JOB="${JOB}.${BRANCH}"
+[[ ${COMMIT} ]] && JOB="${JOB}.${COMMIT}"
 
 export LOGDIRECTORY=${RT_LOG_HOME}/$(date +%y%m%d.%H%M%S.${JOB})
 mkdir -p $LOGDIRECTORY
@@ -69,26 +65,27 @@ mkdir -p $LOGDIRECTORY
     echo "BRANCH: ${BRANCH}"        >> $LOGDIRECTORY/desc.yaml
     echo "COMMIT: ${COMMIT}"        >> $LOGDIRECTORY/desc.yaml
     echo "VERSION(): $($MYSQL -S $SOCKET -e 'select version()' | tail -1  | cut -f 2)" >> $LOGDIRECTORY/desc.yaml
+    echo "TAG: ${TAG}"              >> $LOGDIRECTORY/desc.yaml
 
     msg $(date --utc "+%F %T running regression tests for ${DATABASE}")
 
     ALLTESTS=$(find ${RT_HOME}/tests -maxdepth 1 -type d -name t_\* -printf "%P\n" | sort)
+    info $(date --utc "+%F %T setting power plan 'max'") >> $LOGDIRECTORY/pstate-frequency.log
+    sudo pstate-frequency -S -p max >> $LOGDIRECTORY/pstate-frequency.log
+
     for t in ${TESTS:-$ALLTESTS}
     do
         if [[ -x ${RT_HOME}/tests/$t/runme.sh ]]
         then
-            info $(date --utc "+%F %T setting power plan 'max'") >> $LOGDIRECTORY/pstate-frequency.log
-            sudo pstate-frequency -S -p max >> $LOGDIRECTORY/pstate-frequency.log
-
             info $(date --utc "+%F %T running test $t")
             pushd ${RT_HOME}/tests/$t > /dev/null
             ./runme.sh --installed
             popd > /dev/null
-
-            info $(date --utc "+%F %T setting power plan 'balanced'") >> $LOGDIRECTORY/pstate-frequency.log
-            sudo pstate-frequency -S -p balanced >> $LOGDIRECTORY/pstate-frequency.log
         fi
     done
+
+    info $(date --utc "+%F %T setting power plan 'balanced'") >> $LOGDIRECTORY/pstate-frequency.log
+    sudo pstate-frequency -S -p balanced >> $LOGDIRECTORY/pstate-frequency.log
     date --utc "+%F %T" > $LOGDIRECTORY/stop
 
 } 2>&1 | tee $LOGDIRECTORY/${JOB}.log
