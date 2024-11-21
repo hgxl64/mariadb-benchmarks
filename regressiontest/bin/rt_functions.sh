@@ -403,7 +403,6 @@ commit_info_safe() {
 }
 
 
-
 # return number of cpu cores, either from config variable or system
 n_cpu() {
     if [[ -n ${NCPU} ]]
@@ -435,17 +434,19 @@ thread_range() {
 }
 
 
-# postprocess a test subdir
-test_postprocess()
+# create plots in test subdir
+create_plots_for_test()
 {
     pushd $LOGDIRECTORY/$1 > /dev/null
 
     local desc=$(head -1 DESC)
-    local html='!allplots.html'
     #determine the time step for this test
     local timestep=$(grep REPORT= runme.sh | cut -d = -f 2)
     #find thread numbers
     local thds=$(fgrep 'thds)' ${1}.log | sed s/.*\(// | sed 's/thds.*//')
+    [[ -d plots ]] && rm -rf plots
+    mkdir plots
+    local html='plots/index.html'
 
     #and off we go!
     echo "<html><head>" > $html
@@ -453,8 +454,12 @@ test_postprocess()
     echo "</head><body>" >> $html
 
     #create summary plots
-    echo "<h1>Summary</h1><h2>Performancecurve</h2>" >> $html
-    echo "<p><img src=\"performancecurve.png\"><br><a href=\"summary.log\">raw data</a></p>" >> $html
+    echo "<h1>Summary for test $1</h1>" >> $html
+    echo "<pre>" >> $html
+    cat DESC >> $html
+    echo "</pre>" >> $html
+    echo "<h2>Performancecurve</h2>" >> $html
+    echo "<p><img src=\"performancecurve.png\"><br><a href=\"../summary.log\">raw data</a></p>" >> $html
     echo "
       set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
       set xrange [0:]
@@ -463,14 +468,14 @@ test_postprocess()
       set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
       set ylabel 'avg latency [ms]'
       set xlabel 'tps'
-      set output 'performancecurve.png'
+      set output 'plots/performancecurve.png'
       set title '${desc}'
       plot 'summary.log' using 2:4 notitle with linespoints pointtype 7, \
            '' using 2:4:1 with labels center offset 0.5, -0.5 notitle
     " | gnuplot
 
     echo "<h2>TPS</h2>" >> $html
-    echo "<p><img src=\"tps_bars.png\"><br><a href=\"summary.log\">raw data</a></p>" >> $html
+    echo "<p><img src=\"tps_bars.png\"><br><a href=\"../summary.log\">raw data</a></p>" >> $html
     echo "
       set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
       set xrange [0:]
@@ -481,13 +486,13 @@ test_postprocess()
       set xlabel 'threads'
       set style fill solid
       set boxwidth 0.3
-      set output 'tps_bars.png'
+      set output 'plots/tps_bars.png'
       set title '${desc}'
       plot 'summary.log' using 0:2:xtic(1) with boxes notitle
     " | gnuplot
 
     echo "<h2>Latency</h2>" >> $html
-    echo "<p><img src=\"latency_bars.png\"><br><a href=\"summary.log\">raw data</a></p>" >> $html
+    echo "<p><img src=\"latency_bars.png\"><br><a href=\"../summary.log\">raw data</a></p>" >> $html
     echo "
       set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
       set xrange [0:]
@@ -499,14 +504,14 @@ test_postprocess()
       set style line 1 lc rgb '#000'
       set boxwidth 0.3
       set offsets -0.5,0.5,0,0
-      set output 'latency_bars.png'
+      set output 'plots/latency_bars.png'
       set title '${desc} - shows {min, 25%, median(dot), 75%, 95%}'
       plot 'summary.log' using 0:7:3:6:9:xtic(1) with candlesticks whiskerbars 0.5 linestyle 1 notitle, \
            '' using 0:8 with points linestyle 1 pointtype 7 notitle
     " | gnuplot
 
     echo "<h2>TPS + Latency combined</h2>" >> $html
-    echo "<p><img src=\"tps+latency_bars.png\"><br><a href=\"summary.log\">raw data</a></p>" >> $html
+    echo "<p><img src=\"tps+latency_bars.png\"><br><a href=\"../summary.log\">raw data</a></p>" >> $html
     echo "
       set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
       set xrange [0:]
@@ -520,7 +525,7 @@ test_postprocess()
       set style fill empty
       set style line 2 lc rgb '#000'
       set boxwidth 0.3
-      set output 'tps+latency_bars.png'
+      set output 'plots/tps+latency_bars.png'
       set title '${desc}'
       plot 'summary.log' using (\$0+0.2):2 with boxes fillstyle solid axes x1y2 notitle, \
            '' using (\$0-0.2):7:3:6:9:xtic(1) with candlesticks whiskerbars 0.5 linestyle 2 notitle, \
@@ -551,12 +556,12 @@ test_postprocess()
               set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
               set ylabel 'tps'
               set xlabel 'time [s]'
-              set output 'tps_over_time.${thd}.png'
+              set output 'plots/tps_over_time.${thd}.png'
               set title '${desc} @ ${thd} threads'
               plot '$tmpfile' using 1:2 notitle with lines
             " | gnuplot
 
-            echo "<p><img src=\"tps_over_time.${thd}.png\" alt=\"${thd} threads\"><br><a href=\"sysbench.${thd}.log\">raw data</a></p>" >> $html
+            echo "<p><img src=\"tps_over_time.${thd}.png\" alt=\"${thd} threads\"><br><a href=\"../sysbench.${thd}.log\">raw data</a></p>" >> $html
             rm $tmpfile
         fi
 
@@ -583,7 +588,7 @@ test_postprocess()
               set style line 2
               set style line 3
               set style line 5
-              set output 'cpu_over_time.${thd}.png'
+              set output 'plots/cpu_over_time.${thd}.png'
               set title 'CPU usage [usr,sys,idle,iowait] for ${thd} threads'
               plot \
                 '$tmpfile' using 1:(\$2+\$4+\$5+\$7) with filledcurves above x1 ls 1 notitle,\
@@ -592,14 +597,48 @@ test_postprocess()
                 '$tmpfile' using 1:(\$2)             with filledcurves above x1 ls 3 notitle
             " | gnuplot
 
-            echo "<p><img src=\"cpu_over_time.${thd}.png\"><br><a href=\"iostat.${thd}.log\">raw data</a></p>" >> $html
+            echo "<p><img src=\"cpu_over_time.${thd}.png\"></p>" >> $html
             rm $tmpfile
 
             if [[ ${DATADISK} ]]
             then
                 tmpfile=$(mktemp)
+                perl -e '$t=0;
+                         while (<>) {
+                           next unless /^'${DATADISK}'/;
+                           @f=split " ";
+                           print $t, "\t", join("\t", @f), "\n";
+                           $t+='${timestep}';
+                        }' <iostat.${thd}.log >$tmpfile
+
+                echo "
+                  set terminal png medium nocrop enhanced size 960,280 background '#FCFCFC' linewidth 2
+                  set xrange [0:]
+                  set yrange [0:]
+                  set ylabel 'io per second'
+                  set xlabel 'time [s]'
+                  set style line 2
+                  set style line 3
+                  set output 'plots/diskops_over_time.${thd}.png'
+                  set title 'disk io ops for ${thd} threads'
+                  plot \
+                    '$tmpfile' using 1:3 with filledcurves above x1 ls 2 title 'read',\
+                    '$tmpfile' using 1:9 with lines ls 3 title 'write'
+                  set ylabel 'MB per second'
+                  set output 'plots/diskmb_over_time.${thd}.png'
+                  set title 'disk data moved for ${thd} threads'
+                  plot \
+                    '$tmpfile' using 1:4 with filledcurves above x1 ls 2 title 'read',\
+                    '$tmpfile' using 1:10 with lines ls 3 title 'write'
+                " | gnuplot
+
+                echo "<p><img src=\"diskops_over_time.${thd}.png\"></p>" >> $html
+                echo "<p><img src=\"diskmb_over_time.${thd}.png\"></p>" >> $html
+
                 rm $tmpfile
             fi
+            echo "<p><a href=\"../iostat.${thd}.log\">raw data</a></p>" >> $html
+
         fi
 
         #performance schema (mutexes & latches)
