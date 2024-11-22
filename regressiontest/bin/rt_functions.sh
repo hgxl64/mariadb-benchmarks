@@ -470,8 +470,8 @@ create_plots_for_test()
       set xlabel 'tps'
       set output 'plots/performancecurve.png'
       set title '${desc}'
-      plot 'summary.log' using 2:4 notitle with linespoints pointtype 7, \
-           '' using 2:4:1 with labels center offset 0.5, -0.5 notitle
+      plot 'summary.log' using 2:4 notitle with linespoints lc 'blue' pointtype 7, \
+           '' using 2:4:1 with labels center offset 1.5, -0.5 notitle
     " | gnuplot
 
     echo "<h2>TPS</h2>" >> $html
@@ -488,7 +488,7 @@ create_plots_for_test()
       set boxwidth 0.3
       set output 'plots/tps_bars.png'
       set title '${desc}'
-      plot 'summary.log' using 0:2:xtic(1) with boxes notitle
+      plot 'summary.log' using 0:2:xtic(1) with boxes fc 'blue' notitle
     " | gnuplot
 
     echo "<h2>Latency</h2>" >> $html
@@ -501,13 +501,12 @@ create_plots_for_test()
       set ylabel 'latency [ms]'
       set xlabel 'threads'
       set style fill empty
-      set style line 1 lc rgb '#000'
       set boxwidth 0.3
       set offsets -0.5,0.5,0,0
       set output 'plots/latency_bars.png'
       set title '${desc} - shows {min, 25%, median(dot), 75%, 95%}'
-      plot 'summary.log' using 0:7:3:6:9:xtic(1) with candlesticks whiskerbars 0.5 linestyle 1 notitle, \
-           '' using 0:8 with points linestyle 1 pointtype 7 notitle
+      plot 'summary.log' using 0:7:3:6:9:xtic(1) with candlesticks whiskerbars 0.5 lc 'black' notitle, \
+           '' using 0:8 with points lc 'black' pointtype 7 notitle
     " | gnuplot
 
     echo "<h2>TPS + Latency combined</h2>" >> $html
@@ -523,13 +522,12 @@ create_plots_for_test()
       set y2tics
       set xlabel 'threads'
       set style fill empty
-      set style line 2 lc rgb '#000'
       set boxwidth 0.3
       set output 'plots/tps+latency_bars.png'
       set title '${desc}'
-      plot 'summary.log' using (\$0+0.2):2 with boxes fillstyle solid axes x1y2 notitle, \
-           '' using (\$0-0.2):7:3:6:9:xtic(1) with candlesticks whiskerbars 0.5 linestyle 2 notitle, \
-           '' using (\$0-0.2):8 with points linestyle 2 pointtype 7 notitle
+      plot 'summary.log' using (\$0+0.2):2 with boxes fillstyle solid fc 'blue' axes x1y2 notitle, \
+           '' using (\$0-0.2):7:3:6:9:xtic(1) with candlesticks whiskerbars 0.5 lc 'black' notitle, \
+           '' using (\$0-0.2):8 with points lc 'black' pointtype 7 notitle
     " | gnuplot
 
 
@@ -557,8 +555,8 @@ create_plots_for_test()
               set ylabel 'tps'
               set xlabel 'time [s]'
               set output 'plots/tps_over_time.${thd}.png'
-              set title '${desc} @ ${thd} threads'
-              plot '$tmpfile' using 1:2 notitle with lines
+              set title '${desc} at ${thd} threads'
+              plot '$tmpfile' using 1:2 notitle with lines lc 'blue'
             " | gnuplot
 
             echo "<p><img src=\"tps_over_time.${thd}.png\" alt=\"${thd} threads\"><br><a href=\"../sysbench.${thd}.log\">raw data</a></p>" >> $html
@@ -583,18 +581,15 @@ create_plots_for_test()
               set xrange [0:]
               set yrange [0:100]
               set ylabel 'percent cpu'
-              set xlabel 'time [s]'
-              set style line 1
-              set style line 2
-              set style line 3
-              set style line 5
+              set style fill solid
+              set key bottom center outside horizontal
               set output 'plots/cpu_over_time.${thd}.png'
-              set title 'CPU usage [usr,sys,idle,iowait] for ${thd} threads'
+              set title 'CPU usage for ${desc} at ${thd} threads'
               plot \
-                '$tmpfile' using 1:(\$2+\$4+\$5+\$7) with filledcurves above x1 ls 1 notitle,\
-                '$tmpfile' using 1:(\$2+\$4+\$7)     with filledcurves above x1 ls 2 notitle,\
-                '$tmpfile' using 1:(\$2+\$4)         with filledcurves above x1 ls 5 notitle,\
-                '$tmpfile' using 1:(\$2)             with filledcurves above x1 ls 3 notitle
+                '$tmpfile' using 1:(\$2+\$4+\$5+\$7) with filledcurves above x1 fc 'red' title 'iowait',\
+                '$tmpfile' using 1:(\$2+\$4+\$7)     with filledcurves above x1 fc 'green' title 'idle',\
+                '$tmpfile' using 1:(\$2+\$4)         with filledcurves above x1 fc 'orange' title 'system',\
+                '$tmpfile' using 1:(\$2)             with filledcurves above x1 fc 'blue' title 'user'
             " | gnuplot
 
             echo "<p><img src=\"cpu_over_time.${thd}.png\"></p>" >> $html
@@ -615,21 +610,19 @@ create_plots_for_test()
                   set terminal png medium nocrop enhanced size 960,280 background '#FCFCFC' linewidth 2
                   set xrange [0:]
                   set yrange [0:]
+                  set style fill solid
+                  set key bottom center outside horizontal
+                  set title 'disk usage for ${desc} at ${thd} threads'
                   set ylabel 'io per second'
-                  set xlabel 'time [s]'
-                  set style line 2
-                  set style line 3
                   set output 'plots/diskops_over_time.${thd}.png'
-                  set title 'disk io ops for ${thd} threads'
                   plot \
-                    '$tmpfile' using 1:3 with filledcurves above x1 ls 2 title 'read',\
-                    '$tmpfile' using 1:9 with lines ls 3 title 'write'
+                    '$tmpfile' using 1:3 with filledcurves above x1 fc 'green' title 'read',\
+                    '$tmpfile' using 1:9 with lines lc 'blue' title 'write'
                   set ylabel 'MB per second'
                   set output 'plots/diskmb_over_time.${thd}.png'
-                  set title 'disk data moved for ${thd} threads'
                   plot \
-                    '$tmpfile' using 1:4 with filledcurves above x1 ls 2 title 'read',\
-                    '$tmpfile' using 1:10 with lines ls 3 title 'write'
+                    '$tmpfile' using 1:4 with filledcurves above x1 fc 'green' title 'read',\
+                    '$tmpfile' using 1:10 with lines lc 'blue' title 'write'
                 " | gnuplot
 
                 echo "<p><img src=\"diskops_over_time.${thd}.png\"></p>" >> $html
