@@ -351,8 +351,7 @@ collect_server_stats() {
     du -s -BM ${DATADIR}/* > ${LOGDIRECTORY}/${prefix}_datadir_size.txt
     $MYSQL -S $SOCKET -u root -e "SHOW GLOBAL VARIABLES" > ${LOGDIRECTORY}/${prefix}_global_variables.txt
     $MYSQL -S $SOCKET -u root -e "SHOW GLOBAL STATUS" > ${LOGDIRECTORY}/${prefix}_global_status.txt
-    [[ $IS_MARIADB ]] && cat /proc/$(pidof mariadbd)/status > ${LOGDIRECTORY}/${prefix}_mariadbd_status.txt
-    [[ $IS_MYSQL ]]   && cat /proc/$(pidof mysqld)/status   > ${LOGDIRECTORY}/${prefix}_mysqld_status.txt
+    cat /proc/$(pidof ${MYSQLD})/status > ${LOGDIRECTORY}/${prefix}_${MYSQLD}_status.txt
     for s in stat interrupts diskstats meminfo mdstat mounts
     do
         cat /proc/${s} > ${LOGDIRECTORY}/${prefix}_${s}.txt
@@ -634,16 +633,16 @@ create_plots_for_test()
 
         fi
 
-        #performance schema (mutexes & latches)
-        if [[ -f pfs.${thd}.data ]]
-        then
-            echo "<!-- pfs.${thd}.log-->" >> $html
-        fi
-
         #global status
         if [[ -f status.${thd}.data ]]
         then
             echo "<!-- status.${thd}.log-->" >> $html
+        fi
+
+        #performance schema (mutexes & latches)
+        if [[ -f pfs.${thd}.data ]]
+        then
+            echo "<!-- pfs.${thd}.log-->" >> $html
         fi
 
         #flame graphs
