@@ -78,7 +78,7 @@ mkdir -p ${LOGDIRECTORY}
 
     if [[ ${DUMP_STATUS:-0} -eq 1 ]]
     then
-        info -n "[status dumps active] "
+        debug -n "[status dumps active] "
     fi
     if [[ ${DUMP_PFS:-0} -eq 1 ]]
     then
