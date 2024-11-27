@@ -88,5 +88,8 @@ mkdir -p $LOGDIRECTORY
     sudo pstate-frequency -S -p balanced >> $LOGDIRECTORY/pstate-frequency.log
     date --utc "+%F %T" > $LOGDIRECTORY/stop
 
+    msg $(date --utc "+%F %T postprocess $(basename ${LOGDIRECTORY})")
+    run_postprocess.sh > $LOGDIRECTORY/postprocess.log
+
 } 2>&1 | tee $LOGDIRECTORY/${JOB}.log
 

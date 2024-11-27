@@ -13,7 +13,7 @@ do
     if [[ -d ${LOGDIRECTORY}/$t ]]
     then
         info $(date --utc "+%F %T postprocessing test $t")
-        create_plots_for_test $t
+        create_plots_for_test $t 2>&1
     fi
 done
 

@@ -438,12 +438,12 @@ thread_range() {
 average_col2()
 {
     perl -e '
-      my @data_x= ();
-      my @data_y= ();
+      my @data_x = ();
+      my @data_y = ();
 
       while (<>) {
           chomp;
-          my ($x, $y, undef)= split "\t";
+          my ($x, $y, undef) = split "\t";
           push @data_x, $x;
           push @data_y, $y;
       }
@@ -517,7 +517,7 @@ average_col23()
 extract_status_rate()
 {
     perl -e '
-      my $start= undef;
+      my $start = undef;
       my $laststamp = undef;
       my $lastval = undef;
       <>;
@@ -553,7 +553,7 @@ extract_status_rate()
 extract_status_gauge()
 {
     perl -e '
-      my $start= undef;
+      my $start = undef;
       <>;
       do {
           my %d = ();
