@@ -62,9 +62,9 @@ set_branches_tested 0
     collect_host_info
     echo "TIMESTAMP: $(date '+%s')" >  $LOGDIRECTORY/desc.yaml
     echo "DATABASE: ${DATABASE}"    >> $LOGDIRECTORY/desc.yaml
+    echo "SOURCE: git"              >> $LOGDIRECTORY/desc.yaml
     echo "BRANCH: ${BRANCH}"        >> $LOGDIRECTORY/desc.yaml
     echo "COMMIT: ${COMMIT}"        >> $LOGDIRECTORY/desc.yaml
-    echo "SOURCE: git"              >> $LOGDIRECTORY/desc.yaml
     echo "TAG: ${TAG}"              >> $LOGDIRECTORY/desc.yaml
 
     msg $(date --utc "+%F %T trying to install server")
@@ -72,7 +72,6 @@ set_branches_tested 0
     if [[ -n ${COMMIT} ]]
     then
         CMD="${CMD} --commit ${COMMIT}"
-        echo "COMMIT: ${COMMIT}" >> $LOGDIRECTORY/desc.yaml
     fi
     $CMD
     status=$?
