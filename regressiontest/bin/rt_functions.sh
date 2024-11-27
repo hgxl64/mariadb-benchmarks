@@ -433,6 +433,145 @@ thread_range() {
 }
 
 
+#calculate moving average over column 2
+#of file $1 and write result to file $2
+average_col2()
+{
+    perl -e '
+      my @data_x= ();
+      my @data_y= ();
+
+      while (<>) {
+          chomp;
+          my ($x, $y, undef)= split "\t";
+          push @data_x, $x;
+          push @data_y, $y;
+      }
+
+      my @avg_y = do {
+        my $sum = 0;
+        my @summers = ();
+        map {
+          $sum += $_;
+          push @summers, $_;
+          $sum -= shift @summers if @summers > '${SMOOTHING:-3}';
+          $sum / @summers;
+        } @data_y;
+      };
+
+      for my $x (@data_x) {
+          print $x, "\t", shift @avg_y, "\n";
+      }
+    ' <$1 >$2
+}
+
+
+#calculate moving average over columns 2 and 3
+#of file $1 and write result to file $2
+average_col23()
+{
+    perl -e '
+      my @data_x = ();
+      my @data_y = ();
+      my @data_z = ();
+
+      while (<>) {
+          chomp;
+          my ($x, $y, $z, undef) = split "\t";
+          push @data_x, $x;
+          push @data_y, $y;
+          push @data_z, $z;
+      }
+
+      my @avg_y = do {
+        my $sum = 0;
+        my @summers = ();
+        map {
+          $sum += $_;
+          push @summers, $_;
+          $sum -= shift @summers if @summers > '${SMOOTHING:-3}';
+          $sum / @summers;
+        } @data_y;
+      };
+
+      my @avg_z = do {
+        my $sum = 0;
+        my @summers = ();
+        map {
+          $sum += $_;
+          push @summers, $_;
+          $sum -= shift @summers if @summers > '${SMOOTHING:-3}';
+          $sum / @summers;
+        } @data_z;
+      };
+
+      for my $x (@data_x) {
+          print $x, "\t", shift @avg_y, "\t", shift @avg_z, "\n";
+      }
+    ' <$1 >$2
+}
+
+
+#extract change rate of variable $3 from status dump $1
+#and write timestamp and rate to file $2
+extract_status_rate()
+{
+    perl -e '
+      my $start= undef;
+      my $laststamp = undef;
+      my $lastval = undef;
+      <>;
+      do {
+          my %d = ();
+          while (<>) {
+              chomp;
+              my ($k, $v) = split "\t";
+              last if ($k eq "Variable_name");
+              $d{$k} = $v;
+          }
+          if (not defined $start) {
+              $start = $d{"Uptime"};
+          }
+          my $rate = 0;
+          if (not defined $lastval) {
+              $lastval = $d{'$3'};
+              $laststamp = $d{"Uptime"};
+          } else {
+              $rate = ($d{'$3'}-$lastval) / ($d{"Uptime"}-$laststamp);
+          }
+
+          printf "%d\t%.1f\n", $d{"Uptime"}-$start, $rate;
+          $lastval = $d{'$3'};
+          $laststamp = $d{"Uptime"};
+      } while (not eof);
+    ' <$1 >$2
+}
+
+
+#extract value of variable $3 from status dump $1
+#and write timestamp and rate to file $2
+extract_status_gauge()
+{
+    perl -e '
+      my $start= undef;
+      <>;
+      do {
+          my %d = ();
+          while (<>) {
+              chomp;
+              my ($k, $v) = split "\t";
+              last if ($k eq "Variable_name");
+              $d{$k} = $v;
+          }
+          if (not defined $start) {
+              $start = $d{"Uptime"};
+          }
+          printf "%d\t%s\n", $d{"Uptime"}-$start, $d{'$3'};
+      } while (not eof);
+    ' <$1 >$2
+}
+
+
 # create plots in test subdir
 create_plots_for_test()
 {
@@ -441,6 +580,8 @@ create_plots_for_test()
     local desc=$(head -1 DESC)
     #determine the time step for this test
     local timestep=$(grep REPORT= runme.sh | cut -d = -f 2)
+    #determine the runtime for this test
+    local runtime=$(grep RUNTIME= runme.sh | cut -d = -f 2)
     #find thread numbers
     local thds=$(fgrep 'thds)' ${1}.log | sed s/.*\(// | sed 's/thds.*//')
     [[ -d plots ]] && rm -rf plots
@@ -546,9 +687,10 @@ create_plots_for_test()
                       }' <sysbench.${thd}.log >$tmpfile
 
             echo "
-              set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2
+              set terminal png medium nocrop enhanced size 960,300 background '#FCFCFC' linewidth 2
               set xrange [0:]
               set yrange [0:]
+              set lmargin 10
               set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
               set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
               set ylabel 'tps'
@@ -560,6 +702,195 @@ create_plots_for_test()
 
             echo "<p><img src=\"tps_over_time.${thd}.png\" alt=\"${thd} threads\"><br><a href=\"../sysbench.${thd}.log\">raw data</a></p>" >> $html
             rm $tmpfile
+        fi
+
+        #performance schema (mutexes & latches)
+        if [[ -f pfs.${thd}.data ]]
+        then
+            echo "<!-- pfs.${thd}.log-->" >> $html
+        fi
+
+        #global status
+        if [[ -f status.${thd}.log ]]
+        then
+            #
+            # InnoDB pages data/dirty
+            #
+            tmpfile1=$(mktemp)
+            extract_status_gauge status.${thd}.log $tmpfile1 "Innodb_buffer_pool_pages_data"
+            average_col2 $tmpfile1 $tmpfile1.avg
+            tmpfile2=$(mktemp)
+            extract_status_gauge status.${thd}.log $tmpfile2 "Innodb_buffer_pool_pages_dirty"
+            average_col2 $tmpfile2 $tmpfile2.avg
+
+            echo "
+              set terminal png medium nocrop enhanced size 960,300 background '#FCFCFC' linewidth 2
+              set xrange [0:$runtime]
+              set yrange [0:]
+              set lmargin 10
+              set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+              set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+              set ylabel 'kpages'
+              set key bottom center outside horizontal
+              set output 'plots/ib_pages_over_time.${thd}.png'
+              set title 'Buffer pool usage for ${desc} at ${thd} threads'
+              plot '$tmpfile1' using 1:(\$2/1000) with dots lc 'blue' notitle,\
+               '$tmpfile1.avg' using 1:(\$2/1000) with lines lc 'blue' title 'pages data',\
+               '$tmpfile2'     using 1:(\$2/1000) with dots lc 'red' notitle,\
+               '$tmpfile2.avg' using 1:(\$2/1000) with lines lc 'red' title 'pages dirty'
+              " | gnuplot
+            echo "<p><img src=\"ib_pages_over_time.${thd}.png\"></p>" >> $html
+
+            rm ${tmpfile1} ${tmpfile1}.avg
+            rm ${tmpfile2} ${tmpfile2}.avg
+
+            #
+            # InnoDB page flushes / LRU flushes
+            #
+            tmpfile1=$(mktemp)
+            extract_status_rate status.${thd}.log $tmpfile1 "Innodb_buffer_pool_pages_flushed"
+            average_col2 $tmpfile1 $tmpfile1.avg
+            tmpfile2=$(mktemp)
+            extract_status_rate status.${thd}.log $tmpfile2 "Innodb_buffer_pool_pages_lru_flushed"
+            average_col2 $tmpfile2 $tmpfile2.avg
+
+            echo "
+              set terminal png medium nocrop enhanced size 960,300 background '#FCFCFC' linewidth 2
+              set xrange [0:$runtime]
+              set yrange [0:]
+              set lmargin 10
+              set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+              set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+              set ylabel 'kpages/s'
+              set key bottom center outside horizontal
+              set output 'plots/ib_flush_over_time.${thd}.png'
+              set title 'Buffer pool flushes for ${desc} at ${thd} threads'
+              plot '$tmpfile1' using 1:(\$2/1000) with dots lc 'blue' notitle,\
+               '$tmpfile1.avg' using 1:(\$2/1000) with lines lc 'blue' title 'pages flushed',\
+               '$tmpfile2'     using 1:(\$2/1000) with dots lc 'red' notitle,\
+               '$tmpfile2.avg' using 1:(\$2/1000) with lines lc 'red' title 'pages LRU flushed'
+              " | gnuplot
+            echo "<p><img src=\"ib_flush_over_time.${thd}.png\"></p>" >> $html
+
+            rm ${tmpfile1} ${tmpfile1}.avg
+            rm ${tmpfile2} ${tmpfile2}.avg
+
+            #
+            # InnoDB checkpoint age
+            #
+            if fgrep -q "Innodb_checkpoint_age" status.${thd}.log
+            then
+                tmpfile1=$(mktemp)
+                extract_status_gauge status.${thd}.log $tmpfile1 "Innodb_checkpoint_age"
+                average_col2 $tmpfile1 $tmpfile1.avg
+
+                echo "
+                  set terminal png medium nocrop enhanced size 960,280 background '#FCFCFC' linewidth 2
+                  set xrange [0:$runtime]
+                  set yrange [0:]
+                  set lmargin 10
+                  set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+                  set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+                  set ylabel 'MB'
+                  set key top right
+                  set output 'plots/ib_chkpt_over_time.${thd}.png'
+                  set title 'Checkpoint age for ${desc} at ${thd} threads'
+                  plot '$tmpfile1' using 1:(\$2/1024/1024) with dots lc 'blue' notitle,\
+                   '$tmpfile1.avg' using 1:(\$2/1024/1024) with lines lc 'blue' title 'checkpoint age',\
+                  " | gnuplot
+                echo "<p><img src=\"ib_chkpt_over_time.${thd}.png\"></p>" >> $html
+
+                rm ${tmpfile1} ${tmpfile1}.avg
+            fi
+
+            #
+            # InnoDB history list length
+            #
+            if fgrep -q "Innodb_history_list_length" status.${thd}.log
+            then
+                tmpfile1=$(mktemp)
+                extract_status_gauge status.${thd}.log $tmpfile1 "Innodb_history_list_length"
+                average_col2 $tmpfile1 $tmpfile1.avg
+
+                echo "
+                  set terminal png medium nocrop enhanced size 960,280 background '#FCFCFC' linewidth 2
+                  set xrange [0:$runtime]
+                  set yrange [0:]
+                  set lmargin 10
+                  set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+                  set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+                  set ylabel 'TRX'
+                  set key top right
+                  set output 'plots/ib_hist_over_time.${thd}.png'
+                  set title 'History list length for ${desc} at ${thd} threads'
+                  plot '$tmpfile1' using 1:(\$2) with dots lc 'blue' notitle,\
+                   '$tmpfile1.avg' using 1:(\$2) with lines lc 'blue' title 'History List Length',\
+                  " | gnuplot
+                echo "<p><img src=\"ib_hist_over_time.${thd}.png\"></p>" >> $html
+
+                rm ${tmpfile1} ${tmpfile1}.avg
+            fi
+
+            #
+            # InnoDB log writes
+            #
+            tmpfile1=$(mktemp)
+            extract_status_rate status.${thd}.log $tmpfile1 "Innodb_os_log_written"
+            average_col2 $tmpfile1 $tmpfile1.avg
+
+            echo "
+              set terminal png medium nocrop enhanced size 960,280 background '#FCFCFC' linewidth 2
+              set xrange [0:$runtime]
+              set yrange [0:]
+              set lmargin 10
+                  set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+                  set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+              set ylabel 'MB/s'
+              set key bottom right
+              set output 'plots/ib_log_over_time.${thd}.png'
+              set title 'InnoDB log writes for ${desc} at ${thd} threads'
+              plot '$tmpfile1' using 1:(\$2/1024/1024) with dots lc 'blue' notitle,\
+               '$tmpfile1.avg' using 1:(\$2/1024/1024) with lines lc 'blue' title 'log writes',\
+              " | gnuplot
+            echo "<p><img src=\"ib_log_over_time.${thd}.png\"></p>" >> $html
+
+            rm ${tmpfile1} ${tmpfile1}.avg
+
+            #
+            # InnoDB data reads / writes
+            #
+            tmpfile1=$(mktemp)
+            extract_status_rate status.${thd}.log $tmpfile1 "Innodb_data_read"
+            average_col2 $tmpfile1 $tmpfile1.avg
+            tmpfile2=$(mktemp)
+            extract_status_rate status.${thd}.log $tmpfile2 "Innodb_data_written"
+            average_col2 $tmpfile2 $tmpfile2.avg
+
+            echo "
+              set terminal png medium nocrop enhanced size 960,300 background '#FCFCFC' linewidth 2
+              set xrange [0:$runtime]
+              set yrange [0:]
+              set lmargin 10
+                  set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+                  set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+              set ylabel 'MB/s'
+              set key bottom center outside horizontal
+              set output 'plots/ib_writes_over_time.${thd}.png'
+              set title 'InnoDB disk usage for ${desc} at ${thd} threads'
+              plot '$tmpfile1' using 1:(\$2/1024/1024) with dots lc 'green' notitle,\
+               '$tmpfile1.avg' using 1:(\$2/1024/1024) with lines lc 'green' title 'data read',\
+               '$tmpfile2'     using 1:(\$2/1024/1024) with dots lc 'blue' notitle,\
+               '$tmpfile2.avg' using 1:(\$2/1024/1024) with lines lc 'blue' title 'data write'
+              " | gnuplot
+            echo "<p><img src=\"ib_writes_over_time.${thd}.png\"></p>" >> $html
+
+            rm ${tmpfile1} ${tmpfile1}.avg
+            rm ${tmpfile2} ${tmpfile2}.avg
+
+            #
+            #  End
+            #
+            echo "<p><a href=\"../status.${thd}.log\">raw data</a></p>" >> $html
         fi
 
         #iostat (cpu + disk)
@@ -577,8 +908,9 @@ create_plots_for_test()
 
             echo "
               set terminal png medium nocrop enhanced size 960,280 background '#FCFCFC' linewidth 2
-              set xrange [0:]
+              set xrange [0:$runtime]
               set yrange [0:100]
+              set lmargin 10
               set ylabel 'percent cpu'
               set style fill solid
               set key bottom center outside horizontal
@@ -607,8 +939,11 @@ create_plots_for_test()
 
                 echo "
                   set terminal png medium nocrop enhanced size 960,280 background '#FCFCFC' linewidth 2
-                  set xrange [0:]
+                  set xrange [0:$runtime]
                   set yrange [0:]
+                  set lmargin 10
+                  set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+                  set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
                   set style fill solid
                   set key bottom center outside horizontal
                   set title 'disk usage for ${desc} at ${thd} threads'
@@ -631,18 +966,6 @@ create_plots_for_test()
             fi
             echo "<p><a href=\"../iostat.${thd}.log\">raw data</a></p>" >> $html
 
-        fi
-
-        #global status
-        if [[ -f status.${thd}.data ]]
-        then
-            echo "<!-- status.${thd}.log-->" >> $html
-        fi
-
-        #performance schema (mutexes & latches)
-        if [[ -f pfs.${thd}.data ]]
-        then
-            echo "<!-- pfs.${thd}.log-->" >> $html
         fi
 
         #flame graphs
