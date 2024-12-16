@@ -990,9 +990,8 @@ create_plots_for_test()
             echo "<p><a href=\"flamegraph.${thd}.svg\"><img src=\"flamegraph.${thd}.svg\" width=\"900\" height=\"280\"></a></p>" >> $html
 
         fi
-done
-    done
 
+    done
 
     echo "</body></html>" >> $html
 
