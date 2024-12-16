@@ -984,7 +984,7 @@ create_plots_for_test()
         then
             date --utc "+%F %T   creating flamegraph from perf.${thd}.data"
             perf script -i perf.${thd}.data | ${FLAMEGRAPH}/stackcollapse-perf.pl > ${thd}.folded
-            ${FLAMEGRAPH}/flamegraph.pl ${thd}.folded > flamegraph.${thd}.svg && rm ${thd}.folded
+            ${FLAMEGRAPH}/flamegraph.pl ${thd}.folded > plots/flamegraph.${thd}.svg && rm ${thd}.folded
             date --utc "+%F %T   done"
             echo "<h3>Flame Graph</h3>" >> $html
             echo "<p><a href=\"flamegraph.${thd}.svg\"><img src=\"flamegraph.${thd}.svg\" width=\"900\" height=\"280\"></a></p>" >> $html
