@@ -185,9 +185,12 @@ start_server() {
 
     #start server
     CMD="numactl ${CPU_MASK_MYSQLD:-'--all'} ./bin/${MYSQLD_SAFE}"
+    #optional my.cnf
     [[ -e my.cnf ]] && CMD="${CMD} --defaults-file=$PWD/my.cnf"
+    #optional MALLOC_LIB
     [[ ${MALLOC_LIB} ]] && CMD="${CMD} --malloc-lib=${MALLOC_LIB}"
     CMD="$CMD --datadir=${DATADIR} --pid-file=/tmp/mysqld.pid.sysbench --socket=${SOCKET}"
+    #optional extra options when using PERFORMANCE SCHEMA
     if [[ ${DUMP_PFS:-0} -eq 1 ]]
     then
         CMD="$CMD --performance-schema=true"
@@ -197,6 +200,11 @@ start_server() {
         CMD="$CMD --performance-schema-instrument='%=off'"
         CMD="$CMD --performance-schema-instrument='wait/synch/mutex/%=on'"
         CMD="$CMD --performance-schema-instrument='wait/synch/rwlock/%=on'"
+    fi
+    #optional extra commandline parameters from environment
+    if [[ ${EXTRAMYCNF} ]]
+    then
+        CMD="$CMD ${EXTRAMYCNF}"
     fi
 
     info "starting server with '${CMD}'"
