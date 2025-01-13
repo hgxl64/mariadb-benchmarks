@@ -1,0 +1,4 @@
+Each subdirectory contains a test. Subdirectory names are "magical".
+A subdirectory starting with "t_" contains a test that is run by the
+bin/run_* scripts automatically. All others are run on demand only
+by setting the TESTS environment variable.
