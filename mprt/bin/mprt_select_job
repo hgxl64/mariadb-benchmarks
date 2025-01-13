@@ -1,9 +1,0 @@
-#!/usr/bin/perl -w
-#
-# select next job from the incoming queue
-#
-# (c) Axel (XL) Schwenke for MariaDB AB
-
-use mprt;
-
-
