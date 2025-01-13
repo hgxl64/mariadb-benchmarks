@@ -1,3 +1,0 @@
-sysbench dataset, 20 index-updates per trx
-32 tables, 10 mio rows total, engine InnoDB/XtraDB (builtin)
-numbers are queries per second

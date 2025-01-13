@@ -1,4 +1,0 @@
-sysbench OLTP readonly
-32 InnoDB tables, 10 mio rows total
-high thread counts, using the threadpool
-numbers are transactions per second

@@ -1,3 +1,0 @@
-sysbench dataset, 20 non-index-updates per trx, synchronous binlog
-32 tables, 10 mio rows total, engine InnoDB/XtraDB (builtin)
-numbers are queries per second

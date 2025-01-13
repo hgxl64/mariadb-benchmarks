@@ -1,9 +1,0 @@
-2019-02-13T18:33:19.069437Z 0 [System] [MY-013169] [Server] /home/axel/mariadb-install/mysql-8.0.15/libexec/mysqld (mysqld 8.0.15) initializing of server in progress as process 10207
-2019-02-13T18:33:37.261773Z 0 [Warning] [MY-000067] [Server] unknown variable 'loose-query_cache_type=0'.
-2019-02-13T18:33:37.261776Z 0 [Warning] [MY-000067] [Server] unknown variable 'loose-innodb_adaptive_hash_index_partitions=20'.
-2019-02-13T18:33:37.262487Z 5 [Warning] [MY-010453] [Server] root@localhost is created with an empty password ! Please consider switching off the --initialize-insecure option.
-2019-02-13T18:33:46.376123Z 0 [System] [MY-013170] [Server] /home/axel/mariadb-install/mysql-8.0.15/libexec/mysqld (mysqld 8.0.15) initializing of server has completed
-2019-02-13T18:33:49.538222Z mysqld_safe Logging to '/tmp/datadir/cheetah02.err'.
-2019-02-13T18:33:49.577655Z mysqld_safe Starting mysqld daemon with databases from /tmp/datadir
-2019-02-13T18:48:01.960662Z mysqld_safe mysqld from pid file /tmp/mysqld.pid.sysbench ended
-mysql-8.0.15 stopped
