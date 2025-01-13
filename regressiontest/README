@@ -31,3 +31,179 @@ over the network (branch remote-regressiontest).
 
 Those tools are required only when MariaDB/MySQL is to be built from
 source GIT repositories.
+
+
+Invocation
+----------
+
+First you have to modify your environment. The easiest way to do this is:
+
+cd .../regressiontest
+. profile
+
+Now .../regressiontest/bin is in your PATH and you can run any script.
+The main scripts are those to run the regression test suite:
+
+run_community_git.sh ........ on MariaDB community server, built locally 
+run_enterprise_git.sh ....... on MariaDB enterprise server, built locally
+run_enterprise_jenkins.sh ... on MariaDB enterprise server, Jenkins build
+run_installed.sh ............ on a server that is listening on localhost
+
+In addition there are some helper scripts:
+
+loop_community.sh
+loop_enterprise.sh
+  run community / enterprise server tests in an endless loop (using run_* scripts)
+
+rt_functions.sh
+  shell functions used by the other scripts
+
+install_server.sh
+  install a certain server version and build it if needed
+
+build_community_from_git.sh
+build_enterprise_from_git.sh
+  build scripts for MariaDB community / enterprise server
+
+run_postprocess.sh
+  scripts run after a regression test to summarize results, produce 
+  time series plots, etc. WIP
+
+dump_perf.sh
+dump_pfs.sh
+dump_status.sh
+  scripts used by individual tests to collect additional metrics
+
+All scripts take parameters. Invoke with --help to get a list.
+
+
+Output files
+------------
+
+The run_* scripts produce a lot of output. Each invocation of those scripts
+creates a directory in $RT_LOG_HOME. The name of that directory is
+<timestamp>.<job name>.<branch tested>.<commit tested>
+
+The branch / commit parts may be missing. The job name is "regressiontest"
+followed by the product (i.e. "mariadb-enterprise"). The timestamp is human
+readable and contains date (YYYYMMDD) and time (HHMMSS).
+
+All output from the scripts goes into various files (documented elsewhere)
+in that directory. Any executed test case (aka benchmark) creates its own 
+subdirectory with a name corresponding to the test name and writes there.
+
+
+Configuration
+-------------
+
+Configuration is read from .../regressiontest/config/ and is done by setting 
+environment variables. There are 3 files that are mandatory:
+
+global ............... configuration for any invocation of run_* scripts
+mariadb-community .... configuration specific for MariaDB community server
+mariadb-enterprise ... configuration specific for MariaDB enterprise server
+
+One optional but important config file is named like the host ($HOSTNAME).
+It contains settings that are specific for running regression tests there.
+
+Environment variables set in conf files should use the "config_variable"
+function defined in rt_functions.sh. That allows to set those environment 
+variables manually and override the defaults.
+
+
+Environment variables
+---------------------
+
+The following list contains all environment variables used by one or the 
+other script:
+
+CPU_MASK_MYSQLD
+  which cpu cores the server process should be restricted to
+  this is passed to 'numactl'. Example: "--physcpubind=0-7"
+  default is all cpu cores
+
+CPU_MASK_SYSBENCH
+  which cpu cores anything except the server should be restricted to
+  this is passed to 'numactl'. Example: "--physcpubind=8-11"
+  default is all cpu cores
+
+DATADIR
+  the directory holding the data dir of the MariaDB server under test
+  that directory is removed and created if needed, so the parent must
+  be writable by the user running the tests. No default
+
+DEBUG
+  the debug level determines how much output is produced:
+  0 (quiet) only errors are reported, this is the default
+  1 (info)  informational messages, recommended
+  2 (debug) messages needed for debugging
+
+DUMP_PERF
+  boolean switch to enable (1) or disable (anything else) collecting
+  'perf' profiles during test execution. Default: disabled
+
+DUMP_PFS
+  boolean switch to enable (1) or disable (anything else) collecting
+  performance schema dumps during test execution. Default: disabled
+
+DUMP_STATUS
+  boolean switch to enable (1) or disable (anything else) collecting
+  GLOBAL STATUS variables during test execution. Default: disabled
+
+GIT_REPO
+  the git repository for the server to test 
+  Example: "https://github.com/MariaDB/server.git"
+
+INSTALLDIR
+  the directory where server binaries should be put. There will be a
+  subdirectory <product>-<branch>-<commit> created for each one.
+
+JENKINS_ARCH
+  the architecture of the Jenkins build used for testing.
+  Example: "Linux-x86_64". No default
+
+JENKINS_OS
+  the operation system of the Jenkins build used for testing.
+  Example: "ubuntu-2404". No default
+
+JENKINS_URL
+  the base URL for Jenkins builds. No default
+
+LOCAL_GIT_REPO
+  where the → GIT_REPO is cloned locally. No default
+
+MYSQL
+  the name of the MySQL/MariaDB command line client
+
+MYSQLADMIN
+  the name of the MySQL/MariaDB admin command line tool
+
+MYSQL_INSTALL_DB
+  the name of the MySQL/MariaDB installion helper tool
+
+MYSQLD
+  the name of the MySQL/MariaDB server binary
+
+MYSQLD_SAFE
+  the name of the MySQL/MariaDB server wrapper
+
+NCPU
+  the number of cpu cores available for the server.
+  Default: number of installed cores
+
+PROFILETIME
+  the time in seconds for which to run 'perf record'
+  used only when → DUMP_PERF is 1
+
+PROFILEWARMUP
+  the time in seconds to wait before running 'perf record'
+  used only when → DUMP_PERF is 1
+
+SOCKET
+  the name of the UNIX domain socket for the server to listen
+  no default
+
+SYSBENCH
+  the name of the sysbench binary to use for running sysbench tests.
+  Default: "sysbench"
+
