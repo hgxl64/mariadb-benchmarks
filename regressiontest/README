@@ -21,16 +21,28 @@ cpu cores.
 iostat is used for monitoring cpu usage and IO statistics.
 
 
-3. dstat
+4. dstat
 
 The dstat tool is used to monitor the client side, when doing benchmarks
 over the network (branch remote-regressiontest).
 
 
-5. git, cmake, C/C++ compiler
+5. gnuplot, perl
+
+Gnuplot is used to create time series plots in the postprocessing step.
+Perl is used to extract timeseries data.
+
+
+6. git, cmake, C/C++ compiler
 
 Those tools are required only when MariaDB/MySQL is to be built from
 source GIT repositories.
+
+
+7. perf, https://github.com/brendangregg/FlameGraph
+
+Those tools are optionally used collect profiles during the benchmark 
+and create flame graphs.
 
 
 Invocation
@@ -132,6 +144,10 @@ DATADIR
   that directory is removed and created if needed, so the parent must
   be writable by the user running the tests. No default
 
+DATADISK
+  the name of the disk device that holds the → DATADIR. Default: none,
+  that also disables the time series plots for disk IO
+
 DEBUG
   the debug level determines how much output is produced:
   0 (quiet) only errors are reported, this is the default
@@ -149,6 +165,13 @@ DUMP_PFS
 DUMP_STATUS
   boolean switch to enable (1) or disable (anything else) collecting
   GLOBAL STATUS variables during test execution. Default: disabled
+
+EXTRAMYCNF
+  extra server options passed as command line parameters when a server
+  is started. Example: "--innodb-adaptive-hash-index=on"
+
+FLAMEGRAPH
+  location of local clone of https://github.com/brendangregg/FlameGraph
 
 GIT_REPO
   the git repository for the server to test 
@@ -171,6 +194,9 @@ JENKINS_URL
 
 LOCAL_GIT_REPO
   where the → GIT_REPO is cloned locally. No default
+
+MALLOC_LIB
+  a malloc(1) library that is passed to → MYSQLD_SAFE
 
 MYSQL
   the name of the MySQL/MariaDB command line client
@@ -206,4 +232,10 @@ SOCKET
 SYSBENCH
   the name of the sysbench binary to use for running sysbench tests.
   Default: "sysbench"
+
+VERBOSE
+  the verbosity determines how much output is produced:
+  0 (quiet) only errors are reported, this is the default
+  1 (info)  informational messages, recommended
+  2 (debug) messages needed for debugging
 
