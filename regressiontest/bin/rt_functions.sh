@@ -197,9 +197,9 @@ start_server() {
         CMD="$CMD --performance-schema-consumer-events_waits_current=on"
         CMD="$CMD --performance-schema-consumer-events_statements_current=off"
         CMD="$CMD --performance-schema-consumer-statements_digest=off"
-        CMD="$CMD --performance-schema-instrument='%=off'"
-        CMD="$CMD --performance-schema-instrument='wait/synch/mutex/%=on'"
-        CMD="$CMD --performance-schema-instrument='wait/synch/rwlock/%=on'"
+        CMD="$CMD --performance-schema-instrument=%=off"
+        CMD="$CMD --performance-schema-instrument=wait/synch/mutex/%=on"
+        CMD="$CMD --performance-schema-instrument=wait/synch/rwlock/%=on"
     fi
     #optional extra commandline parameters from environment
     if [[ ${EXTRAMYCNF} ]]
@@ -225,6 +225,13 @@ start_server() {
        sleep 1
     done
     echo
+
+   #optional extra SQL to run
+    if [[ ${EXTRASQL} ]]
+    then
+        echo "running SQL from ${EXTRASQL}"
+        $MYSQL -S ${SOCKET} -u root -v -v < ${EXTRASQL}
+    fi
 
     [[ $timeo -eq 0 ]] && error "server from $TARGETDIR not starting!"
 }
@@ -580,6 +587,53 @@ extract_status_gauge()
 }
 
 
+#extract mutex ranks from PFS dump $1 and write to $2
+extract_mutex_ranks()
+{
+    perl -e '
+      my %d=();
+      while (<>) {
+          next if (/^\| event/o);
+          if (my ($mutex, $events, $waits) = /^\| (.*?)[\| ]+(\d+)[\| ]+(\d+)/) {
+              my $n = $waits;
+              $d{$mutex} = (exists $d{$mutex} ? $d{$mutex} : 0) + $n;
+          }
+      }
+      foreach my $mutex (sort { $d{$b} <=> $d{$a} } keys %d) {
+          printf "%s\t%d\n", $mutex, $d{$mutex};
+      }
+    ' <$1 >$2
+}
+
+
+#extract mutex $3 events and waits from PFS dump $1 and write to $2
+extract_mutex()
+{
+    perl -e '
+      my $stamp= 0;
+      my $step= 1;
+      while (<>) {
+          if (/sleep\((\d+)\)/) {
+              $step= $1+0;
+              last;
+          }
+      }
+      while (<>) {
+          if (/^Bye/) {
+              $stamp += $step;
+          }
+          if (/^\|/) {
+              my $line = $_;
+              $line =~ s/^\| //s;
+              if ($line =~ /'$3'[\| ]+(\d+)[\| ]+(\d+)/) {
+                  print $stamp, "\t", $1, "\t", $2, "\n";
+              }
+          }
+      }
+    ' <$1 >$2
+}
+
+
 # create plots in test subdir
 create_plots_for_test()
 {
@@ -610,7 +664,19 @@ create_plots_for_test()
     echo "<h1>Summary for test $1</h1>" >> $html
     echo "<pre>" >> $html
     cat DESC >> $html
+    echo "</pre><hline><pre>" >> $html
+    cat ../desc.yaml >> $html
+    if [[ -f ../build.properties ]]
+    then
+        echo "</pre><hline><pre>" >> $html
+        cat ../build.properties >> $html
+    fi
+    echo "</pre><hline><pre>" >> $html
+    fgrep -v "TIMESTAMP" ../commit_info.yaml >> $html
+    echo "</pre><hline><pre>" >> $html
+    cat ../uname.txt >> $html
     echo "</pre>" >> $html
+
     echo "<h2>Performancecurve</h2>" >> $html
     echo "<p><img src=\"performancecurve.png\"><br><a href=\"../summary.log\">raw data</a></p>" >> $html
     echo "
@@ -715,12 +781,6 @@ create_plots_for_test()
 
             echo "<p><img src=\"tps_over_time.${thd}.png\" alt=\"${thd} threads\"><br><a href=\"../sysbench.${thd}.log\">raw data</a></p>" >> $html
             rm $tmpfile
-        fi
-
-        #performance schema (mutexes & latches)
-        if [[ -f pfs.${thd}.data ]]
-        then
-            echo "<!-- pfs.${thd}.log-->" >> $html
         fi
 
         #global status
@@ -909,6 +969,28 @@ create_plots_for_test()
                 #
                 echo "<p><a href=\"../status.${thd}.log\">raw data</a></p>" >> $html
             fi
+
+            #non-InnoDB status variables
+            #FIXME!
+        fi
+
+        #mutex stats from PFS
+        if [[ -f pfs.${thd}.log ]]
+        then
+            echo "<h3>Performance Schema monitoring</h3>" >> $html
+            extract_mutex_ranks pfs.${thd}.log pfs-ranks.${thd}.log
+
+            if [[ ${engine} = "InnoDB" ]]
+            then
+                echo "<h4>Top InnoDB Mutexes</h4>" >> $html
+                #FIXME!
+            fi
+
+            echo "<h4>Top Server Mutexes</h4>" >> $html
+            #FIXME!
+
+            echo "<p><a href=\"../pfs.${thd}.log\">raw data</a></p>" >> $html
+            #rm pfs-ranks.${thd}.log
         fi
 
         #iostat (cpu + disk)
