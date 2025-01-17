@@ -13,7 +13,9 @@ set -u
 
 PROFILE=${1:?"missing PROFILE parameter!"}
 
+echo "sleeping ${PROFILEWARMUP:-30} seconds"
 sleep ${PROFILEWARMUP:-30}
 
+echo "sampling perf profile ${PROFILE} for ${PROFILETIME:-60} seconds"
 perf record -F 400 -p $(pidof ${MYSQLD}) -o $PROFILE -g -- sleep ${PROFILETIME:-60}
 
