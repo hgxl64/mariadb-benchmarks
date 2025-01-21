@@ -964,14 +964,44 @@ create_plots_for_test()
                 rm ${tmpfile1} ${tmpfile1}.avg
                 rm ${tmpfile2} ${tmpfile2}.avg
 
-                #
-                #  End
-                #
-                echo "<p><a href=\"../status.${thd}.log\">raw data</a></p>" >> $html
             fi
 
-            #non-InnoDB status variables
-            #FIXME!
+            echo "<h3>Server Global Status Variables</h3>" >> $html
+            #
+            # Bytes received/sent
+            #
+            tmpfile1=$(mktemp)
+            extract_status_rate status.${thd}.log $tmpfile1 "Bytes_received"
+            average_col2 $tmpfile1 $tmpfile1.avg
+            tmpfile2=$(mktemp)
+            extract_status_rate status.${thd}.log $tmpfile2 "Bytes_sent"
+            average_col2 $tmpfile2 $tmpfile2.avg
+
+            echo "
+              set terminal png medium nocrop enhanced size 960,300 background '#FCFCFC' linewidth 2
+              set xrange [0:$runtime]
+              set yrange [0:]
+              set lmargin 10
+                  set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+                  set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+              set ylabel 'MB/s'
+              set key bottom center outside horizontal
+              set output 'plots/bytes_rcvd_sent_over_time.${thd}.png'
+              set title 'Server network/socket usage for ${desc} at ${thd} threads'
+              plot '$tmpfile1' using 1:(\$2/1024/1024) with dots lc 'green' notitle,\
+               '$tmpfile1.avg' using 1:(\$2/1024/1024) with lines lc 'green' title 'received',\
+               '$tmpfile2'     using 1:(\$2/1024/1024) with dots lc 'blue' notitle,\
+               '$tmpfile2.avg' using 1:(\$2/1024/1024) with lines lc 'blue' title 'sent'
+              " | gnuplot
+            echo "<p><img src=\"bytes_rcvd_sent_over_time.${thd}.png\"></p>" >> $html
+
+            rm ${tmpfile1} ${tmpfile1}.avg
+            rm ${tmpfile2} ${tmpfile2}.avg
+
+            #
+            #  End
+            #
+            echo "<p><a href=\"../status.${thd}.log\">raw data</a></p>" >> $html
         fi
 
         #mutex stats from PFS
@@ -1029,41 +1059,44 @@ create_plots_for_test()
 
             if [[ ${DATADISK} ]]
             then
-                tmpfile=$(mktemp)
-                perl -e '$t=0;
-                         while (<>) {
-                           next unless /^'${DATADISK}'/;
-                           @f=split " ";
-                           print $t, "\t", join("\t", @f), "\n";
-                           $t+='${timestep}';
-                        }' <iostat.${thd}.log >$tmpfile
+                for d in $(echo ${DATADISK})
+                do
+                    tmpfile=$(mktemp)
+                    perl -e '$t=0;
+                             while (<>) {
+                               next unless /^'$d'/;
+                               @f=split " ";
+                               print $t, "\t", join("\t", @f), "\n";
+                               $t+='${timestep}';
+                            }' <iostat.${thd}.log >$tmpfile
 
-                echo "
-                  set terminal png medium nocrop enhanced size 960,280 background '#FCFCFC' linewidth 2
-                  set xrange [0:$runtime]
-                  set yrange [0:]
-                  set lmargin 10
-                  set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
-                  set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
-                  set style fill solid
-                  set key bottom center outside horizontal
-                  set title 'disk usage for ${desc} at ${thd} threads'
-                  set ylabel 'io per second'
-                  set output 'plots/diskops_over_time.${thd}.png'
-                  plot \
-                    '$tmpfile' using 1:3 with filledcurves above x1 fc 'green' title 'read',\
-                    '$tmpfile' using 1:9 with lines lc 'blue' title 'write'
-                  set ylabel 'MB per second'
-                  set output 'plots/diskmb_over_time.${thd}.png'
-                  plot \
-                    '$tmpfile' using 1:4 with filledcurves above x1 fc 'green' title 'read',\
-                    '$tmpfile' using 1:10 with lines lc 'blue' title 'write'
-                " | gnuplot
+                    echo "
+                      set terminal png medium nocrop enhanced size 960,280 background '#FCFCFC' linewidth 2
+                      set xrange [0:$runtime]
+                      set yrange [0:]
+                      set lmargin 10
+                      set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+                      set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+                      set style fill solid
+                      set key bottom center outside horizontal
+                      set title 'disk $d usage for ${desc} at ${thd} threads'
+                      set ylabel 'iops'
+                      set output 'plots/disk_$d_ops_over_time.${thd}.png'
+                      plot \
+                        '$tmpfile' using 1:3 with filledcurves above x1 fc 'green' title 'read',\
+                        '$tmpfile' using 1:9 with lines lc 'blue' title 'write'
+                      set ylabel 'MB per second'
+                      set output 'plots/disk_$d_mb_over_time.${thd}.png'
+                      plot \
+                        '$tmpfile' using 1:4 with filledcurves above x1 fc 'green' title 'read',\
+                        '$tmpfile' using 1:10 with lines lc 'blue' title 'write'
+                    " | gnuplot
 
-                echo "<p><img src=\"diskops_over_time.${thd}.png\"></p>" >> $html
-                echo "<p><img src=\"diskmb_over_time.${thd}.png\"></p>" >> $html
+                    echo "<p><img src=\"disk_$d_ops_over_time.${thd}.png\"></p>" >> $html
+                    echo "<p><img src=\"disk_$d_mb_over_time.${thd}.png\"></p>" >> $html
 
-                rm $tmpfile
+                    rm $tmpfile
+                done
             fi
             echo "<p><a href=\"../iostat.${thd}.log\">raw data</a></p>" >> $html
 
