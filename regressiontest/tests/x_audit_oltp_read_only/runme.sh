@@ -13,7 +13,7 @@ export LUA_PREPARE=rt_read_only.lua
 export LUA_ARGS_PREPARE=""
 export LUA_RUN=rt_read_only.lua
 export LUA_ARGS_RUN="--rand-type=uniform --histogram"
-export THREADS=$(thread_range 1 $(($(n_cpu) * 8)))
+export THREADS=$(thread_range 1 $(($(n_cpu) * 2)))
 export RUNTIME=180
 export REPORT=2
 export POSTPROCESS="performancecurve"
