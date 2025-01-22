@@ -8,7 +8,7 @@ source ${RT_HOME}/config/global
 # -------------------
 export ENGINE=InnoDB
 export TABLES=16
-export ROWS=1000000
+export ROWS=5000000
 export LUA_PREPARE=rt_read_only.lua
 export LUA_ARGS_PREPARE=""
 export LUA_RUN=rt_read_only.lua

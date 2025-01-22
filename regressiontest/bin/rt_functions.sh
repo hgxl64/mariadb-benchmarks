@@ -1059,12 +1059,12 @@ create_plots_for_test()
 
             if [[ ${DATADISK} ]]
             then
-                for d in $(echo ${DATADISK})
+                for disk in ${DATADISK}
                 do
                     tmpfile=$(mktemp)
                     perl -e '$t=0;
                              while (<>) {
-                               next unless /^'$d'/;
+                               next unless /^'${disk}'/;
                                @f=split " ";
                                print $t, "\t", join("\t", @f), "\n";
                                $t+='${timestep}';
@@ -1079,21 +1079,21 @@ create_plots_for_test()
                       set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
                       set style fill solid
                       set key bottom center outside horizontal
-                      set title 'disk $d usage for ${desc} at ${thd} threads'
+                      set title 'disk ${disk} usage for ${desc} at ${thd} threads'
                       set ylabel 'iops'
-                      set output 'plots/disk_$d_ops_over_time.${thd}.png'
+                      set output 'plots/disk_${disk}_ops_over_time.${thd}.png'
                       plot \
                         '$tmpfile' using 1:3 with filledcurves above x1 fc 'green' title 'read',\
                         '$tmpfile' using 1:9 with lines lc 'blue' title 'write'
                       set ylabel 'MB per second'
-                      set output 'plots/disk_$d_mb_over_time.${thd}.png'
+                      set output 'plots/disk_${disk}_mb_over_time.${thd}.png'
                       plot \
                         '$tmpfile' using 1:4 with filledcurves above x1 fc 'green' title 'read',\
                         '$tmpfile' using 1:10 with lines lc 'blue' title 'write'
                     " | gnuplot
 
-                    echo "<p><img src=\"disk_$d_ops_over_time.${thd}.png\"></p>" >> $html
-                    echo "<p><img src=\"disk_$d_mb_over_time.${thd}.png\"></p>" >> $html
+                    echo "<p><img src=\"disk_${disk}_ops_over_time.${thd}.png\"></p>" >> $html
+                    echo "<p><img src=\"disk_${disk}_mb_over_time.${thd}.png\"></p>" >> $html
 
                     rm $tmpfile
                 done

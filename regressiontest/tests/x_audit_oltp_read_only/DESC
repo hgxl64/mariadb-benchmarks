@@ -1,2 +1,2 @@
 sysbench OLTP read-only
-16 InnoDB tables with 1 mio rows each, 10 point-selects + 4 range queries, standard mix
+16 InnoDB tables with 5 mio rows each, 10 point-selects + 4 range queries, standard mix
