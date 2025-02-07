@@ -45,6 +45,15 @@ done
 # script starts here
 # -------------------
 
+#handle alias names for branches, i.e. 11.8=main
+if [[ $BRANCH =~ '=' ]]
+then
+    GITBRANCH=$(echo $BRANCH | cut -d '=' -f 2)
+    BRANCH=$(echo $BRANCH | cut -d '=' -f 1)
+else
+    GITBRANCH=$BRANCH;
+fi
+
 JOB="regressiontest.${DATABASE}"
 [[ $BRANCH ]]   && JOB="${JOB}.${BRANCH}"
 [[ ${COMMIT} ]] && JOB="${JOB}.${COMMIT}"
@@ -64,11 +73,12 @@ set_branches_tested 0
     echo "DATABASE: ${DATABASE}"    >> $LOGDIRECTORY/desc.yaml
     echo "SOURCE: git"              >> $LOGDIRECTORY/desc.yaml
     echo "BRANCH: ${BRANCH}"        >> $LOGDIRECTORY/desc.yaml
+    echo "GITBRANCH: ${GITBRANCH}"  >> $LOGDIRECTORY/desc.yaml
     echo "COMMIT: ${COMMIT}"        >> $LOGDIRECTORY/desc.yaml
     echo "TAG: ${TAG}"              >> $LOGDIRECTORY/desc.yaml
 
     msg $(date --utc "+%F %T trying to install server")
-    CMD="install_server.sh --database $DATABASE --source git --branch $BRANCH"
+    CMD="install_server.sh --database $DATABASE --source git --branch $GITBRANCH"
     if [[ -n ${COMMIT} ]]
     then
         CMD="${CMD} --commit ${COMMIT}"
