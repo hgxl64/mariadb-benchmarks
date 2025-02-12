@@ -46,11 +46,11 @@ cd build
 {
     date --utc "+[%F %T] running cmake"
     cmake .. $CMAKE_BUILD_OPTS $CMAKE_LAYOUT_OPTS $CMAKE_FEATURE_OPTS \
-      -DCMAKE_C_FLAGS_RELWITHDEBINFO="$CFLAGS" -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="$CXXFLAGS" \
-      ${CMAKE_EXTRA:-""} > ${LOGDIRECTORY}/cmake.log 2>&1
+      -DCMAKE_C_FLAGS_RELWITHDEBINFO="$CFLAGS"
+      -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="$CXXFLAGS" > ${LOGDIRECTORY}/cmake.log 2>&1
 
     date --utc "+[%F %T] running make"
-    make -j ${NBUILD:-""}> ${LOGDIRECTORY}/make.log 2>&1
+    make -j ${NBUILD:-""} > ${LOGDIRECTORY}/make.log 2>&1
 
     date --utc "+[%F %T] running make install"
     make install > ${LOGDIRECTORY}/make_install.log 2>&1
