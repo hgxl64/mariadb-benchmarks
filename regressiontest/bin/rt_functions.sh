@@ -177,8 +177,8 @@ start_server() {
 
     #create fresh database
     [[ -d ${DATADIR} ]] && rm -rf ${DATADIR}
-    my_inst_db="$my_inst_db --basedir=${TARGETDIR}/${SERVER} --datadir=${DATADIR}"
-    my_inst_db="$my_inst_db --auth-root-authentication-method=normal --verbose"
+    my_inst_db="$my_inst_db --basedir=${TARGETDIR}/${SERVER} --datadir=${DATADIR} --verbose"
+    [[ ${IS_MARIADB:-0} -eq 1 ]] && my_inst_db="$my_inst_db --auth-root-authentication-method=normal"
     [[ -e my.cnf ]] && my_inst_db="$my_inst_db --defaults-file=$PWD/my.cnf"
     debug "running ${my_inst_db}"
     $my_inst_db
@@ -225,15 +225,25 @@ start_server() {
        sleep 1
     done
     echo
+    [[ $timeo -eq 0 ]] && error "server from $TARGETDIR not starting!"
 
-   #optional extra SQL to run
+    #run SQL to create time zone tables
+    if [[ ${IS_MARIADB:-0} -eq 1 ]]
+    then
+        info "loading time zone tables ..."
+        echo "use mysql;"                           > /tmp/tzdata.sql
+        mariadb-tzinfo-to-sql /usr/share/zoneinfo/ >> /tmp/tzdata.sql
+        echo "SET GLOBAL time_zone='UTC';"         >> /tmp/tzdata.sql
+        $MYSQL -S ${SOCKET} -u root < /tmp/tzdata.sql
+        rm /tmp/tzdata.sql
+    fi
+
+    #optional extra SQL to run
     if [[ ${EXTRASQL} ]]
     then
         echo "running SQL from ${EXTRASQL}"
         $MYSQL -S ${SOCKET} -u root -v -v < ${EXTRASQL}
     fi
-
-    [[ $timeo -eq 0 ]] && error "server from $TARGETDIR not starting!"
 }
 
 
