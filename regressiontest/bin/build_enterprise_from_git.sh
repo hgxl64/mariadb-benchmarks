@@ -46,6 +46,7 @@ cd build
 {
     CMD="cmake .. $CMAKE_BUILD_OPTS $CMAKE_LAYOUT_OPTS $CMAKE_FEATURE_OPTS"
     if [[ -s ${CMAKE_EXTRA:-""} ]]
+    then
         CMD="$CMD $CMAKE_EXTRA"
     fi
     date --utc "+[%F %T] running cmake (${CMD})"
