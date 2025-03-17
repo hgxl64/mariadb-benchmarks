@@ -1,0 +1,2 @@
+sysbench OLTP read-only, IO bound (100G vs. 24G buffer pool)
+16 InnoDB tables with 25 mio rows each, 10 point-selects + 4 range queries, standard mix

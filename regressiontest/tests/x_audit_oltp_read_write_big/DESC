@@ -1,0 +1,2 @@
+sysbench OLTP read/write, IO bound (100G vs. 24G buffer pool)
+16 InnoDB tables with 25 mio rows each, 14 reads + 4 writes, standard mix
