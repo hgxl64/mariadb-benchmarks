@@ -37,20 +37,27 @@ CMAKE_LAYOUT_OPTS="-DINSTALL_LAYOUT=RPM -DCMAKE_INSTALL_PREFIX=$TARGETDIR -DINST
 CMAKE_FEATURE_OPTS="-DWITH_READLINE=1 -DWITH_SSL=system -DWITHOUT_EMBEDDED_SERVER=1 \
  -DPLUGIN_CONNECT=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_SPIDER=NO -DPLUGIN_MROONGA=NO
  -DPLUGIN_OQGRAPH=NO -DPLUGIN_SPIDER=NO -DPLUGIN_XPAND=NO -DPLUGIN_S3=NO"
-CMAKE_BUILD_OPTS="-DCMAKE_BUILD_TYPE=RelWithDebInfo"
+CMAKE_BUILD_OPTS="-DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_FLAGS_RELWITHDEBINFO='$CFLAGS' -DCMAKE_CXX_FLAGS_RELWITHDEBINFO='$CXXFLAGS'"
 
 [[ -d build ]] && rm -rf build
 mkdir build
 cd build
 
 {
-    date --utc "+[%F %T] running cmake"
-    cmake .. $CMAKE_BUILD_OPTS $CMAKE_LAYOUT_OPTS $CMAKE_FEATURE_OPTS \
-      -DCMAKE_C_FLAGS_RELWITHDEBINFO="$CFLAGS"
-      -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="$CXXFLAGS" > ${LOGDIRECTORY}/cmake.log 2>&1
+    CMD="cmake .. $CMAKE_BUILD_OPTS $CMAKE_LAYOUT_OPTS $CMAKE_FEATURE_OPTS"
+    if [[ -s ${CMAKE_EXTRA:-""} ]]
+        CMD="$CMD $CMAKE_EXTRA"
+    fi
+    date --utc "+[%F %T] running cmake (${CMD})"
+    $CMD > ${LOGDIRECTORY}/cmake.log 2>&1
 
     date --utc "+[%F %T] running make"
-    make -j ${NBUILD:-""} > ${LOGDIRECTORY}/make.log 2>&1
+    if [[ -s ${NBUILD:-""} ]]
+    then
+        make -j ${NBUILD} > ${LOGDIRECTORY}/make.log 2>&1
+    else
+        make -j > ${LOGDIRECTORY}/make.log 2>&1
+    fi
 
     date --utc "+[%F %T] running make install"
     make install > ${LOGDIRECTORY}/make_install.log 2>&1
