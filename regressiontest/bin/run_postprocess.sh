@@ -20,3 +20,10 @@ done
 # FIXME: add more postprocessing steps
 
 
+# finally run postprocessing script defined in host config
+
+if [[ -s ${POST_PROCESSING_SCRIPT:-""} ]]
+then
+    info $(date --utc "+%F %T running ${POST_PROCESSING_SCRIPT}")
+    $POST_PROCESSING_SCRIPT 2>&1
+fi
