@@ -22,11 +22,11 @@ fi
 
 #detect product and branch
 WHEN=$(echo ${RESULTDIR} | sed 's/\.regressiontest\..*//')
-info "detected timespec '${WHEN}'"
+debug "detected timespec '${WHEN}'"
 PRODUCT=$(echo ${RESULTDIR} | sed 's/^'${WHEN}'\.regressiontest\.//' | sed 's/\..*//')
-info "detected product '${PRODUCT}'"
+debug "detected product '${PRODUCT}'"
 BRANCH=$(echo ${RESULTDIR} | sed 's/^'${WHEN}'\.regressiontest\.'${PRODUCT}'\.//')
-info "detected branch '${BRANCH}'"
+debug "detected branch '${BRANCH}'"
 
 
 #find tests (use list from current)
@@ -37,7 +37,7 @@ for DIR in $DIRS
 do
     [[ -d ${DIR} ]] && TESTS=(${TESTS[*]} ${DIR})
 done
-info "using tests: ${TESTS[*]}"
+debug "using tests: ${TESTS[*]}"
 
 
 #find older results
@@ -53,7 +53,7 @@ do
         left=$((${left} - 1))
     fi
 done
-info "using history: ${RESULTS[*]}"
+debug "using history: ${RESULTS[*]}"
 
 
 #set output dir
@@ -62,9 +62,12 @@ OUTDIR=${TARGETDIR}/${PRODUCT}-${BRANCH}
 OUTFILE=${OUTDIR}/${WHEN}.pdf
 
 
+info "create plot of last ${#RESULTS[*]} runs for product ${PRODUCT} branch ${BRANCH}"
+
+
 #creating GNUPLOT file
-gnuplot=$(mktemp)
-info "creating GNUPLOT script in ${gnuplot}"
+plotfile=$(mktemp)
+debug "creating GNUPLOT script in ${plotfile}"
 
 echo "set terminal pdfcairo size 8, 5 font 'Arial,12' noenhanced
 
@@ -80,20 +83,20 @@ set ylabel 'avg Latency [ms]'
 
 set key left top
 
-" >> $gnuplot
+" >> $plotfile
 
 for i in $(seq ${HISTORY})
 do
-    echo "set style line $i linewidth 2" >> $gnuplot
+    echo "set style line $i linewidth 2" >> $plotfile
 done
-echo >> $gnuplot
+echo >> $plotfile
 
-echo "set output '${OUTFILE}'" >> $gnuplot
-echo >> $gnuplot
+echo "set output '${OUTFILE}'" >> $plotfile
+echo >> $plotfile
 
 echo "do for [test in '${TESTS[*]}'] {
   set title sprintf('%s', test) font ',14'
-  plot \\" >> $gnuplot
+  plot \\" >> $plotfile
 
 i=0
 for RES in ${RESULTS[*]}
@@ -103,12 +106,12 @@ do
     stamp=$(grep '^TIMESTAMP:' ${RES}/commit_info.yaml | sed 's/^TIMESTAMP: //')
     date=$(date --date=@${stamp} --utc '+%Y-%m-%d %H:%M:%S UTC')
     title="${commit}, ${date}"
-    echo "    sprintf('${NFSBASEDIR}/${RUNHOST}/${RES}/%s/summary.log', test) using 2:4 with linespoints linestyle ${i} title '${title}',\\" >> $gnuplot
-    echo "    '' index 0 using 2:4:1 with labels center offset 1.5, 0.5 notitle,\\" >> $gnuplot
+    echo "    sprintf('${NFSBASEDIR}/${RUNHOST}/${RES}/%s/summary.log', test) using 2:4 with linespoints linestyle ${i} title '${title}',\\" >> $plotfile
+    echo "    '' index 0 using 2:4:1 with labels center offset 1.5, 0.5 notitle,\\" >> $plotfile
 done
-echo >> $gnuplot
-echo "}" >> $gnuplot
+echo >> $plotfile
+echo "}" >> $plotfile
 
 #creating plot
-gnuplot ${gnuplot} && rm ${gnuplot}
+gnuplot ${plotfile} && rm ${plotfile}
 
