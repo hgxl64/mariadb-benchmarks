@@ -25,9 +25,8 @@ WHEN=$(echo ${RESULTDIR} | sed 's/\.regressiontest\..*//')
 debug "detected timespec '${WHEN}'"
 PRODUCT=$(echo ${RESULTDIR} | sed 's/^'${WHEN}'\.regressiontest\.//' | sed 's/\..*//')
 debug "detected product '${PRODUCT}'"
-BRANCH=$(echo ${RESULTDIR} | sed 's/^'${WHEN}'\.regressiontest\.'${PRODUCT}'\.//')
+BRANCH=$(echo ${RESULTDIR} | sed 's/^'${WHEN}'\.regressiontest\.'${PRODUCT}'\.//' | perl -ne '($a,$b)=split /\./; print "$a.$b"')
 debug "detected branch '${BRANCH}'"
-
 
 #find tests (use list from current)
 unset TESTS
@@ -44,7 +43,7 @@ debug "using tests: ${TESTS[*]}"
 unset RESULTS
 left=${HISTORY}
 cd ${NFSBASEDIR}/${RUNHOST}
-DIRS=$(ls -1rd *.regressiontest.${PRODUCT}.${BRANCH})
+DIRS=$(ls -1rd *.regressiontest.${PRODUCT}.${BRANCH}*)
 for DIR in $DIRS
 do
     if [[ ! ${DIR} -nt ${RESULTDIR} ]] && [[ ${left} -gt 0 ]]
@@ -62,7 +61,7 @@ OUTDIR=${TARGETDIR}/${PRODUCT}-${BRANCH}
 OUTFILE=${OUTDIR}/${WHEN}.pdf
 
 
-info "create plot of last ${#RESULTS[*]} runs for product ${PRODUCT} branch ${BRANCH}"
+info $(date --utc "+%F %T create plot of last ${#RESULTS[*]} runs for product ${PRODUCT} branch ${BRANCH}")
 
 
 #creating GNUPLOT file
@@ -95,7 +94,7 @@ echo "set output '${OUTFILE}'" >> $plotfile
 echo >> $plotfile
 
 echo "do for [test in '${TESTS[*]}'] {
-  set title sprintf('%s', test) font ',14'
+  set title sprintf('%s (@${RUNHOST})', test) font ',14'
   plot \\" >> $plotfile
 
 i=0
@@ -114,4 +113,13 @@ echo "}" >> $plotfile
 
 #creating plot
 gnuplot ${plotfile} && rm ${plotfile}
+
+#
+# zip resultdir for xfer
+#
+info $(date --utc "+%F %T zipping ${NFSBASEDIR}/${RUNHOST}/${RESULTDIR} to ${XFERDIR}/${RUNHOST}/${RESULTDIR}.zip")
+cd ${NFSBASEDIR}/${RUNHOST}
+zip -9rq ${XFERDIR}/${RUNHOST}/${RESULTDIR}.zip ${RESULTDIR}
+unzip -tq ${XFERDIR}/${RUNHOST}/${RESULTDIR}.zip
+
 
