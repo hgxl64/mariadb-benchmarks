@@ -60,12 +60,13 @@ set_branches_tested 0
     msg $(date --utc "+%F %T running regression tests for ${DATABASE} branch ${BRANCH}")
     date --utc "+%F %T" > $LOGDIRECTORY/start
     collect_host_info
-    echo "TIMESTAMP: $(date '+%s')" >  $LOGDIRECTORY/desc.yaml
-    echo "DATABASE: ${DATABASE}"    >> $LOGDIRECTORY/desc.yaml
-    echo "SOURCE: git"              >> $LOGDIRECTORY/desc.yaml
-    echo "BRANCH: ${BRANCH}"        >> $LOGDIRECTORY/desc.yaml
-    echo "COMMIT: ${COMMIT}"        >> $LOGDIRECTORY/desc.yaml
-    echo "TAG: ${TAG}"              >> $LOGDIRECTORY/desc.yaml
+    echo "TIMESTAMP: $(date '+%s')"        >  $LOGDIRECTORY/desc.yaml
+    echo "DATABASE: ${DATABASE}"           >> $LOGDIRECTORY/desc.yaml
+    echo "SOURCE: git"                     >> $LOGDIRECTORY/desc.yaml
+    echo "BRANCH: ${BRANCH}"               >> $LOGDIRECTORY/desc.yaml
+    echo "COMMIT: ${COMMIT}"               >> $LOGDIRECTORY/desc.yaml
+    echo "TAG: ${TAG}"                     >> $LOGDIRECTORY/desc.yaml
+    echo "COMMANDLINE: $0 ${COMMAND_LINE}" >> $LOGDIRECTORY/desc.yaml
 
     msg $(date --utc "+%F %T trying to install server")
     CMD="install_server.sh --database $DATABASE --source git --branch $BRANCH"
