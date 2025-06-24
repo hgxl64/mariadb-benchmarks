@@ -68,7 +68,7 @@ set_branches_tested 0
     echo "TAG: ${TAG}"                     >> $LOGDIRECTORY/desc.yaml
     echo "COMMANDLINE: $0 ${COMMAND_LINE}" >> $LOGDIRECTORY/desc.yaml
 
-    msg $(date --utc "+%F %T trying to install server")
+    msg $(date --utc "+%F %T installing server")
     CMD="install_server.sh --database $DATABASE --source git --branch $BRANCH"
     if [[ -n ${COMMIT} ]]
     then
@@ -100,7 +100,7 @@ set_branches_tested 0
             else
                 set_rm_logdir
             fi
-            error "regression test already run, skipping"
+            error "regression test for this commit already run, skipping"
         else
             msg $(date --utc "+%F %T reusing already installed server")
         fi

@@ -110,7 +110,7 @@ set_branches_tested 0
             else
                 set_rm_logdir
             fi
-            error "regression test already run, skipping"
+            error "regression test for this commit already run, skipping"
         else
             msg $(date --utc "+%F %T reusing already installed server")
         fi
