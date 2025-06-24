@@ -41,7 +41,7 @@ source GIT repositories.
 
 7. perf, https://github.com/brendangregg/FlameGraph
 
-Those tools are optionally used collect profiles during the benchmark 
+Those tools are optionally used collect profiles during the benchmark
 and create flame graphs.
 
 
@@ -56,7 +56,7 @@ cd .../regressiontest
 Now .../regressiontest/bin is in your PATH and you can run any script.
 The main scripts are those to run the regression test suite:
 
-run_community_git.sh ........ on MariaDB community server, built locally 
+run_community_git.sh ........ on MariaDB community server, built locally
 run_enterprise_git.sh ....... on MariaDB enterprise server, built locally
 run_enterprise_jenkins.sh ... on MariaDB enterprise server, Jenkins build
 run_installed.sh ............ on a server that is listening on localhost
@@ -78,7 +78,7 @@ build_enterprise_from_git.sh
   build scripts for MariaDB community / enterprise server
 
 run_postprocess.sh
-  scripts run after a regression test to summarize results, produce 
+  scripts run after a regression test to summarize results, produce
   time series plots, etc. WIP
 
 dump_perf.sh
@@ -101,14 +101,14 @@ followed by the product (i.e. "mariadb-enterprise"). The timestamp is human
 readable and contains date (YYYYMMDD) and time (HHMMSS).
 
 All output from the scripts goes into various files (documented elsewhere)
-in that directory. Any executed test case (aka benchmark) creates its own 
+in that directory. Any executed test case (aka benchmark) creates its own
 subdirectory with a name corresponding to the test name and writes there.
 
 
 Configuration
 -------------
 
-Configuration is read from .../regressiontest/config/ and is done by setting 
+Configuration is read from .../regressiontest/config/ and is done by setting
 environment variables. There are 3 files that are mandatory:
 
 global ............... configuration for any invocation of run_* scripts
@@ -119,14 +119,14 @@ One optional but important config file is named like the host ($HOSTNAME).
 It contains settings that are specific for running regression tests there.
 
 Environment variables set in conf files should use the "config_variable"
-function defined in rt_functions.sh. That allows to set those environment 
+function defined in rt_functions.sh. That allows to set those environment
 variables manually and override the defaults.
 
 
 Environment variables
 ---------------------
 
-The following list contains all environment variables used by one or the 
+The following list contains all environment variables used by one or the
 other script:
 
 CPU_MASK_MYSQLD
@@ -148,12 +148,6 @@ DATADISK
   the name of the disk device that holds the → DATADIR. Default: none,
   that also disables the time series plots for disk IO
 
-DEBUG
-  the debug level determines how much output is produced:
-  0 (quiet) only errors are reported, this is the default
-  1 (info)  informational messages, recommended
-  2 (debug) messages needed for debugging
-
 DUMP_PERF
   boolean switch to enable (1) or disable (anything else) collecting
   'perf' profiles during test execution. Default: disabled
@@ -174,7 +168,7 @@ FLAMEGRAPH
   location of local clone of https://github.com/brendangregg/FlameGraph
 
 GIT_REPO
-  the git repository for the server to test 
+  the git repository for the server to test
   Example: "https://github.com/MariaDB/server.git"
 
 INSTALLDIR
@@ -213,8 +207,12 @@ MYSQLD
 MYSQLD_SAFE
   the name of the MySQL/MariaDB server wrapper
 
+NBUILD
+  the number of concurrent processes used by make (option -j)
+  default: use 'make -j' with no value
+
 NCPU
-  the number of cpu cores available for the server.
+  the number of cpu cores available for the server
   Default: number of installed cores
 
 PROFILETIME
@@ -224,6 +222,9 @@ PROFILETIME
 PROFILEWARMUP
   the time in seconds to wait before running 'perf record'
   used only when → DUMP_PERF is 1
+
+RUN_FSTRIM
+  if set, run 'fstrim -a' before each start of the server
 
 SOCKET
   the name of the UNIX domain socket for the server to listen

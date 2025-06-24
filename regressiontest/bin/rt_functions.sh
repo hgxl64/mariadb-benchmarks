@@ -177,6 +177,12 @@ start_server() {
 
     #create fresh database
     [[ -d ${DATADIR} ]] && rm -rf ${DATADIR}
+
+    if [[ ${RUN_FSTRIM} ]]
+    then
+        sudo fstrim -a
+    fi
+
     my_inst_db="$my_inst_db --basedir=${TARGETDIR}/${SERVER} --datadir=${DATADIR} --verbose"
     [[ ${IS_MARIADB:-0} -eq 1 ]] && my_inst_db="$my_inst_db --auth-root-authentication-method=normal"
     [[ -e my.cnf ]] && my_inst_db="$my_inst_db --defaults-file=$PWD/my.cnf"
