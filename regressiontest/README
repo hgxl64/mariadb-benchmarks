@@ -129,6 +129,10 @@ Environment variables
 The following list contains all environment variables used by one or the
 other script:
 
+ASYNCSQL
+  SQL statements run asynchronously after starting the server
+  example ASYNCSQL="BACKUP STAGE START; DO SLEEP(7200);"
+
 CPU_MASK_MYSQLD
   which cpu cores the server process should be restricted to
   this is passed to 'numactl'. Example: "--physcpubind=0-7"

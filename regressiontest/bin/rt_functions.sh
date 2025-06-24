@@ -250,11 +250,26 @@ start_server() {
         echo "running SQL from ${EXTRASQL}"
         $MYSQL -S ${SOCKET} -u root -v -v < ${EXTRASQL}
     fi
+
+    #optional async SQL to run
+    if [[ ${ASYNCSQL} ]]
+    then
+        echo "running asynchronous SQL: '${ASYNCSQL}'"
+        $MYSQL -S ${SOCKET} -u root -v -v -e "${ASYNCSQL}" &
+        export ASYNCPID=$!
+        echo "async pid is ${ASYNCPID}"
+    fi
 }
 
 
 # stop a running MariaDB/MySQL server
 stop_server() {
+    if [[ ${ASYNCPID} ]]
+    then
+        kill -TERM ${ASYNCPID}
+       wait ${ASYNCPID}
+    fi
+
     $MYSQLADMIN -S ${SOCKET} -u root shutdown
     wait $MYSQLD_SAFE_PID
     unset MYSQLD_SAFE_PID
