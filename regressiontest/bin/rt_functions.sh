@@ -284,6 +284,14 @@ stop_server() {
         cp $ERRORLOG $LOGDIRECTORY/error.log
         chmod a+r $LOGDIRECTORY/error.log
     fi
+
+    #copy the slow query log to log dir
+    SLOWLOG=${DATADIR}/slow.log
+    if [[ -f $SLOWLOG ]]
+    then
+        cp $SLOWLOG $LOGDIRECTORY/slow.log
+        chmod a+r $LOGDIRECTORY/slow.log
+    fi
 }
 
 
