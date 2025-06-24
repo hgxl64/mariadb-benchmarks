@@ -76,27 +76,39 @@ set_branches_tested 0
     $CMD
     status=$?
 
-    if [[ $status -eq 1 ]]
+    if [[ $status -eq 0 ]]
+    then
+        msg $(date --utc "+%F %T install server succeeded")
+    elif [[ $status -eq 1 ]]
     then
         date --utc "+%F %T" > $LOGDIRECTORY/stop
         echo "install server failed" > $LOGDIRECTORY/FAILED
-        error "install server failed"
-    elif [[ $status -eq 2 && ! ${FORCE} ]]
-    then
-        if [[ ${KEEPLOG} ]]
+        if [[ ! ${KEEPLOG} ]]
         then
-            date --utc "+%F %T" > $LOGDIRECTORY/stop
-            echo "regression test for this commit already run" > $LOGDIRECTORY/FAILED
-        else
             set_rm_logdir
         fi
-        error "regression test already run, skipping"
+        error "install server failed"
+    elif [[ $status -eq 2 ]]
+    then
+        if [[ ! ${FORCE} ]]
+        then
+            if [[ ${KEEPLOG} ]]
+            then
+                date --utc "+%F %T" > $LOGDIRECTORY/stop
+                echo "regression test for this commit already run" > $LOGDIRECTORY/FAILED
+            else
+                set_rm_logdir
+            fi
+            error "regression test already run, skipping"
+        else
+            msg $(date --utc "+%F %T reusing already installed server")
+        fi
     fi
 
     export TARGETDIR=$(get_targetdir)
     remove_targetdir
     echo "BINARY: $(basename ${TARGETDIR})" >> $LOGDIRECTORY/desc.yaml
-    msg $(date --utc "+%F %T install server succeeded (into ${TARGETDIR})")
+    msg $(date --utc "+%F %T using server binaries from ${TARGETDIR}")
 
     info $(date --utc "+%F %T setting power plan 'max'") >> $LOGDIRECTORY/pstate-frequency.log
     sudo pstate-frequency -S -p max >> $LOGDIRECTORY/pstate-frequency.log
