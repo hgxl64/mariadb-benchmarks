@@ -1,3 +1,0 @@
-insert rows in batches of 100
-temporary table, engine ARIA TRANSACTIONAL=1, no index
-number is batches inserted per second

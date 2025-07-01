@@ -1,3 +1,0 @@
-insert rows in batches of 100
-single table, engine ARIA ROW_FORMAT=FIXED, no index
-number is batches inserted per second

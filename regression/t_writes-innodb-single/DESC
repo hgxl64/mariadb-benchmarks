@@ -1,4 +1,0 @@
-sysbench OLTP write-only
-9 index-update, 9 non-index-update, 1 delete, 1 insert
-single table, 10 mio rows, engine InnoDB/XtraDB (builtin)
-numbers are queries per second

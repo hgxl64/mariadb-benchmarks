@@ -1,3 +1,0 @@
-sysbench OLTP read/write
-single InnoDB table with 10 mio rows
-numbers are queries per second

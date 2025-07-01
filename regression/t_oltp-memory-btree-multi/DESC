@@ -1,3 +1,0 @@
-sysbench OLTP read/write
-32 Memory tables with 100K rows each
-numbers are queries per second
