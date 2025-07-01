@@ -52,7 +52,7 @@ cd build
     date --utc "+[%F %T] running cmake (${CMD})"
     $CMD -DCMAKE_C_FLAGS_RELWITHDEBINFO="$CFLAGS" -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="$CXXFLAGS" > ${LOGDIRECTORY}/cmake.log 2>&1
 
-    if [[ ${NBUILD} ]]
+    if [[ ${NBUILD:-''} ]]
     then
         date --utc "+[%F %T] running make -j ${NBUILD}"
         make -j ${NBUILD} > ${LOGDIRECTORY}/make.log 2>&1
