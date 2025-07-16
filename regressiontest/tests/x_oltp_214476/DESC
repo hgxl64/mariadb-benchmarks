@@ -1,0 +1,2 @@
+mixed workload (Support Ticket 215576)
+1 InnoDB table, 16G buffer pool, 8G redo
