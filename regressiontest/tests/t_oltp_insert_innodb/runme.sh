@@ -17,12 +17,6 @@ export THREADS=$(thread_range 1 $(($(n_cpu) * 16)))
 export RUNTIME=100
 export REPORT=2
 
-echo "TIMESTEP=$REPORT" >  ${LOGDIRECTORY}/POSTPROCESS
-echo "RUNTIME=$RUNTIME" >> ${LOGDIRECTORY}/POSTPROCESS
-echo "ENGINE=$ENGINE"   >> ${LOGDIRECTORY}/POSTPROCESS
-echo "THREADS=$THREADS" >> ${LOGDIRECTORY}/POSTPROCESS
-echo "WRITES=yes"       >> ${LOGDIRECTORY}/POSTPROCESS
-
 
 # -------------------
 # command line processing
@@ -150,6 +144,16 @@ mkdir -p ${LOGDIRECTORY}
 
 } 2>&1 | tee ${LOGDIRECTORY}/${TEST_NAME}.log
 
+
+# -------------------
+# house keeping
+# -------------------
+
+echo "TIMESTEP=$REPORT" >  ${LOGDIRECTORY}/POSTPROCESS
+echo "RUNTIME=$RUNTIME" >> ${LOGDIRECTORY}/POSTPROCESS
+echo "ENGINE=$ENGINE"   >> ${LOGDIRECTORY}/POSTPROCESS
+echo "THREADS=$THREADS" >> ${LOGDIRECTORY}/POSTPROCESS
+echo "WRITES=yes"       >> ${LOGDIRECTORY}/POSTPROCESS
 
 for f in DESC my.cnf runme.sh
 do

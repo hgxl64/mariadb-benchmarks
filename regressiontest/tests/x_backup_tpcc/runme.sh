@@ -3,6 +3,8 @@
 source rt_functions.sh
 source ${RT_HOME}/config/global
 
+[[ ${BACKUPDIR} ]] || { echo "BACKUPDIR not set, cannot proceed"; exit 1; }
+
 # -------------------
 # configuration
 # -------------------
@@ -15,14 +17,6 @@ export THREADS=$(thread_range $(($(n_cpu) / 2)) $(($(n_cpu) * 2)))
 export POSTPROCESS="performancecurve timeseries"
 export RUNTIME=900
 export REPORT=5
-
-echo "TIMESTEP=$REPORT" >  ${LOGDIRECTORY}/POSTPROCESS
-echo "RUNTIME=$RUNTIME" >> ${LOGDIRECTORY}/POSTPROCESS
-echo "ENGINE=$ENGINE"   >> ${LOGDIRECTORY}/POSTPROCESS
-echo "THREADS=$THREADS" >> ${LOGDIRECTORY}/POSTPROCESS
-echo "WRITES=yes"       >> ${LOGDIRECTORY}/POSTPROCESS
-
-[[ ${BACKUPDIR} ]] || { echo "BACKUPDIR not set, cannot proceed"; exit 1; }
 
 
 # -------------------
@@ -159,6 +153,16 @@ mkdir -p ${LOGDIRECTORY}
 
 } 2>&1 | tee ${LOGDIRECTORY}/${TEST_NAME}.log
 
+
+# -------------------
+# house keeping
+# -------------------
+
+echo "TIMESTEP=$REPORT" >  ${LOGDIRECTORY}/POSTPROCESS
+echo "RUNTIME=$RUNTIME" >> ${LOGDIRECTORY}/POSTPROCESS
+echo "ENGINE=$ENGINE"   >> ${LOGDIRECTORY}/POSTPROCESS
+echo "THREADS=$THREADS" >> ${LOGDIRECTORY}/POSTPROCESS
+echo "WRITES=yes"       >> ${LOGDIRECTORY}/POSTPROCESS
 
 for f in DESC my.cnf runme.sh
 do
