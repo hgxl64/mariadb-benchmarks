@@ -16,7 +16,12 @@ export LUA_ARGS_RUN="--rand-type=uniform --histogram"
 export THREADS=$(thread_range 1 $(($(n_cpu) * 8)))
 export RUNTIME=180
 export REPORT=2
-export POSTPROCESS="performancecurve"
+
+echo "TIMESTEP=$REPORT" >  ${LOGDIRECTORY}/POSTPROCESS
+echo "RUNTIME=$RUNTIME" >> ${LOGDIRECTORY}/POSTPROCESS
+echo "ENGINE=$ENGINE"   >> ${LOGDIRECTORY}/POSTPROCESS
+echo "THREADS=$THREADS" >> ${LOGDIRECTORY}/POSTPROCESS
+echo "WRITES=yes"       >> ${LOGDIRECTORY}/POSTPROCESS
 
 
 # -------------------
@@ -142,7 +147,6 @@ mkdir -p ${LOGDIRECTORY}
 
 } 2>&1 | tee ${LOGDIRECTORY}/${TEST_NAME}.log
 
-echo ${POSTPROCESS} > ${LOGDIRECTORY}/POSTPROCESS
 
 for f in DESC my.cnf runme.sh
 do
