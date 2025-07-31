@@ -1004,7 +1004,7 @@ create_plots_for_test()
                   set lmargin 10
                       set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
                       set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
-                  set ylabel 'stmt/s'
+                  set ylabel 'commits/s'
                   set key bottom center outside horizontal
                   set output 'plots/binlog_commits.${thd}.png'
                   set title 'binlog commits for ${desc} at ${thd} threads'
