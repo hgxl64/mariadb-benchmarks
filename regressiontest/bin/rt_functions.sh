@@ -985,7 +985,7 @@ create_plots_for_test()
             rm ${tmpfile3} ${tmpfile3}.avg
             rm ${tmpfile4} ${tmpfile4}.avg
 
-            if [[ ${binlog} -eq "yes" ]]
+            if [[ ${binlog} = "yes" ]]
             then
                 #
                 # Binlog group commits
