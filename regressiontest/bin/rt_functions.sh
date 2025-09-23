@@ -748,7 +748,7 @@ create_plots_for_test()
     local writes=$(fgrep 'WRITES=' POSTPROCESS | cut -d = -f 2)
     local binlog=$(fgrep 'BINLOG=' POSTPROCESS | cut -d = -f 2)
 
-    local thd0=$(echo thds | cut -d ' ' -f 1)
+    local thd0=$(echo $thds | cut -d ' ' -f 1)
 
     [[ -d plots ]] && rm -rf plots
     mkdir plots
@@ -861,7 +861,7 @@ create_plots_for_test()
         # HammerDB
         #
         echo "<h2>Performancecurve</h2>" >> $html
-        echo "<p><img src=\"performancecurve.png\"><br><a href=\"../summary.log\">raw data</a></p>" >> $html
+        echo "<p><img src=\"pc_summary.png\"><br><a href=\"../summary.log\">raw data</a></p>" >> $html
         echo "
           set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
           set xrange [0:]
@@ -870,9 +870,24 @@ create_plots_for_test()
           set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
           set ylabel 'avg latency [ms]'
           set xlabel 'tps'
-          set output 'plots/performancecurve.png'
-          set title '${desc}'
-          plot 'summary.log' using 2:4 notitle with linespoints lc 'blue' pointtype 7, \
+          set output 'plots/pc_summary.png'
+          set title '${desc} - Transaction Summary'
+          plot 'summary.log' using 2:4 notitle with linespoints lc 'black' pointtype 7, \
+               '' using 2:4:1 with labels center offset 1.5, -0.5 notitle
+        " | gnuplot
+
+        echo "<p><img src=\"pc_neword.png\"><br><a href=\"../neword.log\">raw data</a></p>" >> $html
+        echo "
+          set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
+          set xrange [0:]
+          set logscale y 2
+          set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+          set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+          set ylabel 'avg latency [ms]'
+          set xlabel 'tps'
+          set output 'plots/pc_neword.png'
+          set title '${desc} - New Order Transaction'
+          plot 'neword.log' using 2:4 notitle with linespoints lc 'green' pointtype 7, \
                '' using 2:4:1 with labels center offset 1.5, -0.5 notitle
         " | gnuplot
 
@@ -885,13 +900,62 @@ create_plots_for_test()
           set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
           set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
           set ylabel 'tps'
-          set xlabel 'threads'
+          set xlabel 'users'
           set style fill solid
           set boxwidth 0.3
           set output 'plots/tps_bars.png'
-          set title '${desc}'
-          plot 'summary.log' using 0:2:xtic(1) with boxes fc 'blue' notitle
+          set title '${desc} - Transaction Summary'
+          plot 'summary.log' using 0:2:xtic(1) with boxes fc 'black' notitle
         " | gnuplot
+
+        echo "<p><img src=\"neword_bars.png\"><br><a href=\"../neword.log\">raw data</a></p>" >> $html
+        echo "
+          set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
+          set xrange [0:]
+          set yrange [0:]
+          set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+          set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+          set ylabel 'tps'
+          set xlabel 'users'
+          set style fill solid
+          set boxwidth 0.3
+          set output 'plots/neword_bars.png'
+          set title '${desc} - New Order Transaction'
+          plot 'neword.log' using 0:2:xtic(1) with boxes fc 'green' notitle
+        " | gnuplot
+
+        echo "<h2>Transaction Times</h2>" >> $html
+        echo "<p><img src=\"latency_bars.png\"><br>raw data: " >> $html
+        echo "<a href=\"../delivery.log\">delivery</a>,    "    >> $html
+        echo "<a href=\"../neword.log\">newword</a>, "         >> $html
+        echo "<a href=\"../payment.log\">payment</a>, "        >> $html
+        echo "<a href=\"../slev.log\">slev</a>, "              >> $html
+        echo "<a href=\"../ostat.log\">ostat</a>"              >> $html
+        echo "
+          set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
+          set xrange [0:]
+          set logscale y 2
+          set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+          set ylabel 'ms'
+          set xlabel 'users'
+          set style fill empty
+          set boxwidth 0.1
+          set offsets -0.5,0.5,0,0
+          set key bottom center outside horizontal
+          set output 'plots/latency_bars.png'
+          set title '${desc} - shows {min, median, avg (dot), 95%, 99%}'
+          plot 'delivery.log' using (\$0-0.3):8:3:7:6 with candlesticks whiskerbars 0.1 lc 'blue' title 'DELIVERY',\
+               '' using (\$0-0.3):4 with points lc 'blue' pointtype 7 notitle,\
+               'neword.log' using (\$0-0.15):8:3:7:6 with candlesticks whiskerbars 0.1 lc 'green' title 'NEWORD',\
+               '' using (\$0-0.15):4 with points lc 'green' pointtype 7 notitle,\
+               'payment.log' using 0:8:3:7:6:xtic(1) with candlesticks whiskerbars 0.1 lc 'brown' title 'PAYMENT',\
+               '' using 0:4 with points lc 'brown' pointtype 7 notitle,\
+               'slev.log' using (\$0+0.15):8:3:7:6 with candlesticks whiskerbars 0.1 lc 'purple' title 'SLEV',\
+               '' using (\$0+0.15):4 with points lc 'purple' pointtype 7 notitle,\
+               'ostat.log' using (\$0+0.3):8:3:7:6 with candlesticks whiskerbars 0.1 lc 'gray60' title 'SLEV',\
+               '' using (\$0+0.3):4 with points lc 'gray60' pointtype 7 notitle
+        " | gnuplot
+
     fi
 
     #create time series plots
@@ -915,6 +979,7 @@ create_plots_for_test()
               set xrange [0:$runtime]
               set yrange [0:]
               set lmargin 10
+              set rmargin 10
               set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
               set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
               set ylabel 'tps'
@@ -947,6 +1012,7 @@ create_plots_for_test()
               set xrange [0:$runtime]
               set yrange [0:]
               set lmargin 10
+              set rmargin 10
               set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
               set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
               set ylabel 'tpm'
@@ -981,6 +1047,7 @@ create_plots_for_test()
               set xrange [0:$runtime]
               set yrange [0:100]
               set lmargin 10
+              set rmargin 10
               set ylabel 'percent cpu'
               set style fill solid
               set key bottom center outside horizontal
@@ -1014,6 +1081,7 @@ create_plots_for_test()
                       set xrange [0:$runtime]
                       set yrange [0:]
                       set lmargin 10
+                      set rmargin 10
                       set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
                       set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
                       set style fill solid
@@ -1063,8 +1131,9 @@ create_plots_for_test()
               set xrange [0:$runtime]
               set yrange [0:]
               set lmargin 10
-                  set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
-                  set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+              set rmargin 10
+              set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+              set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
               set ylabel 'MB/s'
               set key bottom center outside horizontal
               set output 'plots/bytes_rcvd_sent_over_time.${thd}.png'
@@ -1100,8 +1169,9 @@ create_plots_for_test()
               set xrange [0:$runtime]
               set yrange [0:]
               set lmargin 10
-                  set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
-                  set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+              set rmargin 10
+              set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+              set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
               set ylabel 'stmt/s'
               set key bottom center outside horizontal
               set output 'plots/stmts_over_time.${thd}.png'
@@ -1137,9 +1207,11 @@ create_plots_for_test()
               set xrange [0:$runtime]
               set yrange [0:]
               set lmargin 10
+              set rmargin 10
               set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
               set ylabel 'commit/s'
               set y2label 'rollback/s'
+              set y2tics
               set key bottom right
               set output 'plots/trx_over_time.${thd}.png'
               set title 'transactions for ${desc} at ${thd} threads'
@@ -1170,8 +1242,9 @@ create_plots_for_test()
                   set xrange [0:$runtime]
                   set yrange [0:]
                   set lmargin 10
-                      set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
-                      set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+                  set rmargin 10
+                  set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+                  set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
                   set ylabel 'commits/s'
                   set key bottom center outside horizontal
                   set output 'plots/binlog_commits.${thd}.png'
@@ -1206,8 +1279,9 @@ create_plots_for_test()
                   set xrange [0:$runtime]
                   set yrange [0:]
                   set lmargin 10
-                      set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
-                      set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+                  set rmargin 10
+                  set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+                  set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
                   set ylabel 'MB/s'
                   set key bottom center outside horizontal
                   set output 'plots/aria_pc_reads_over_time.${thd}.png'
@@ -1244,6 +1318,7 @@ create_plots_for_test()
                   set xrange [0:$runtime]
                   set yrange [0:]
                   set lmargin 10
+                  set rmargin 10
                   set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
                   set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
                   set ylabel 'kpages'
@@ -1277,6 +1352,7 @@ create_plots_for_test()
                       set xrange [0:$runtime]
                       set yrange [0:]
                       set lmargin 10
+                      set rmargin 10
                       set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
                       set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
                       set ylabel 'kpages/s'
@@ -1307,6 +1383,7 @@ create_plots_for_test()
                           set xrange [0:$runtime]
                           set yrange [0:]
                           set lmargin 10
+                          set rmargin 10
                           set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
                           set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
                           set ylabel 'MB'
@@ -1335,6 +1412,7 @@ create_plots_for_test()
                           set xrange [0:$runtime]
                           set yrange [0:]
                           set lmargin 10
+                          set rmargin 10
                           set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
                           set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
                           set ylabel 'TRX'
@@ -1361,8 +1439,9 @@ create_plots_for_test()
                       set xrange [0:$runtime]
                       set yrange [0:]
                       set lmargin 10
-                          set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
-                          set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+                      set rmargin 10
+                      set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+                      set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
                       set ylabel 'MB/s'
                       set key bottom right
                       set output 'plots/ib_log_over_time.${thd}.png'
@@ -1390,8 +1469,9 @@ create_plots_for_test()
                   set xrange [0:$runtime]
                   set yrange [0:]
                   set lmargin 10
-                      set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
-                      set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+                  set rmargin 10
+                  set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+                  set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
                   set ylabel 'MB/s'
                   set key bottom center outside horizontal
                   set output 'plots/ib_writes_over_time.${thd}.png'
@@ -1427,8 +1507,9 @@ create_plots_for_test()
                   set xrange [0:$runtime]
                   set yrange [0:]
                   set lmargin 10
-                      set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
-                      set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+                  set rmargin 10
+                  set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+                  set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
                   set ylabel 'MB/s'
                   set key bottom center outside horizontal
                   set output 'plots/key_reads_over_time.${thd}.png'
@@ -1485,6 +1566,7 @@ create_plots_for_test()
                 echo "set xrange [0:$runtime]"                                                               >> $plotfile
                 echo "set yrange [0:]"                                                                       >> $plotfile
                 echo "set lmargin 10"                                                                        >> $plotfile
+                echo "set rmargin 10"                                                                        >> $plotfile
                 echo "set grid xtics lc rgb '#bbbbbb' lw 1 lt 0"                                             >> $plotfile
                 echo "set grid ytics lc rgb '#bbbbbb' lw 1 lt 0"                                             >> $plotfile
                 echo "set key bottom center outside horizontal"                                              >> $plotfile
@@ -1559,6 +1641,7 @@ create_plots_for_test()
                     echo "set xrange [0:$runtime]"                                                               >> $plotfile
                     echo "set yrange [0:]"                                                                       >> $plotfile
                     echo "set lmargin 10"                                                                        >> $plotfile
+                    echo "set rmargin 10"                                                                        >> $plotfile
                     echo "set grid xtics lc rgb '#bbbbbb' lw 1 lt 0"                                             >> $plotfile
                     echo "set grid ytics lc rgb '#bbbbbb' lw 1 lt 0"                                             >> $plotfile
                     echo "set key bottom center outside horizontal"                                              >> $plotfile
@@ -1633,6 +1716,7 @@ create_plots_for_test()
                     echo "set xrange [0:$runtime]"                                                               >> $plotfile
                     echo "set yrange [0:]"                                                                       >> $plotfile
                     echo "set lmargin 10"                                                                        >> $plotfile
+                    echo "set rmargin 10"                                                                        >> $plotfile
                     echo "set grid xtics lc rgb '#bbbbbb' lw 1 lt 0"                                             >> $plotfile
                     echo "set grid ytics lc rgb '#bbbbbb' lw 1 lt 0"                                             >> $plotfile
                     echo "set key bottom center outside horizontal"                                              >> $plotfile
@@ -1707,6 +1791,7 @@ create_plots_for_test()
                     echo "set xrange [0:$runtime]"                                                               >> $plotfile
                     echo "set yrange [0:]"                                                                       >> $plotfile
                     echo "set lmargin 10"                                                                        >> $plotfile
+                    echo "set rmargin 10"                                                                        >> $plotfile
                     echo "set grid xtics lc rgb '#bbbbbb' lw 1 lt 0"                                             >> $plotfile
                     echo "set grid ytics lc rgb '#bbbbbb' lw 1 lt 0"                                             >> $plotfile
                     echo "set key bottom center outside horizontal"                                              >> $plotfile

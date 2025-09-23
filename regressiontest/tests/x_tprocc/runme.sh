@@ -103,9 +103,9 @@ print dict
 buildschema
 "       > ${LOGDIRECTORY}/hdb_load.tcl
 
-        info $(date --utc "+%F %T   starting HammerDB schema build'")
+        info $(date --utc "+%F %T   starting HammerDB schema build")
         ${HAMMERDB}/hammerdbcli auto ${LOGDIRECTORY}/hdb_load.tcl >${LOGDIRECTORY}/hdb_load.log
-        info $(date --utc "+%F %T   HammerDB schema build finished'")
+        info $(date --utc "+%F %T   HammerDB schema build finished")
 
         [[ ${ENGINE} == "InnoDB" ]] && checkpoint_innodb
     } 2>&1 > ${LOGDIRECTORY}/prepare.log
