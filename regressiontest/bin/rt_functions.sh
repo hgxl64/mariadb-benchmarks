@@ -673,6 +673,65 @@ extract_mutex()
 }
 
 
+#summarize response times from HammerDB run
+#$1 = transaction name, $2 = hdbxtprofile
+summarize_hammerdb()
+{
+    perl -e '
+      my %trx = ();
+      my $p   = undef;
+      my $thd = undef;
+      my $runtime = undef;
+
+      while (<>) {
+          if (/SUMMARY OF (\d+) ACTIVE VIRTUAL USERS : MEDIAN ELAPSED TIME : (\d+)ms/o) {
+              $thd = $1;
+              $runtime = $2;
+              while (<>) {
+                  if (/PROC: (.*)/) {
+                      $p = $1;
+                      next;
+                  }
+                  $trx{$p}{"calls"} = $1 if (/CALLS: (\d+)/o);
+                  $trx{$p}{"min"}   = $1 if (/MIN: (\d+\.\d+)ms/o);
+                  $trx{$p}{"avg"}   = $1 if (/AVG: (\d+\.\d+)ms/o);
+                  $trx{$p}{"max"}   = $1 if (/MAX: (\d+\.\d+)ms/o);
+                  $trx{$p}{"p50"}   = $1 if (/P50: (\d+\.\d+)ms/o);
+                  $trx{$p}{"p95"}   = $1 if (/P95: (\d+\.\d+)ms/o);
+                  $trx{$p}{"p99"}   = $1 if (/P99: (\d+\.\d+)ms/o);
+              }
+          }
+      }
+      my ($calls, $total, $min, $avg, $max, $p50, $p95, $p99) = (0, 0, undef, 0, undef, 0, 0, 0);
+      for my $k (sort keys %trx) {
+          $trx{$k}{"tps"} = 1000.0 * $trx{$k}{"calls"} / $runtime;
+          $calls += $trx{$k}{"calls"};
+          $avg   += $trx{$k}{"calls"} * $trx{$k}{"avg"};
+          $p50   += $trx{$k}{"calls"} * $trx{$k}{"p50"};
+          $p95   += $trx{$k}{"calls"} * $trx{$k}{"p95"};
+          $p99   += $trx{$k}{"calls"} * $trx{$k}{"p99"};
+          $min = (defined $min ? ( $min < $trx{$k}{"min"} ? $min : $trx{$k}{"min"}) : $trx{$k}{"min"});
+          $max = (defined $max ? ( $max > $trx{$k}{"max"} ? $max : $trx{$k}{"max"}) : $trx{$k}{"max"});
+      }
+
+      $trx{"SUMMARY"}{"tps"}   = 1000.0 * $calls / $runtime;
+      $trx{"SUMMARY"}{"min"}   = $min;
+      $trx{"SUMMARY"}{"avg"}   = $avg/$calls;
+      $trx{"SUMMARY"}{"max"}   = $max;
+      $trx{"SUMMARY"}{"p50"}   = $p50/$calls;
+      $trx{"SUMMARY"}{"p95"}   = $p95/$calls;
+      $trx{"SUMMARY"}{"p99"}   = $p99/$calls;
+
+      $k = "'$1'";
+      if (exists $trx{$k}) {
+          printf "%d\t%.2f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n",
+            $thd, $trx{$k}{"tps"}, $trx{$k}{"min"}, $trx{$k}{"avg"},
+            $trx{$k}{"max"}, $trx{$k}{"p95"}, $trx{$k}{"p99"}, $trx{$k}{"p50"};
+      }
+    ' < $2
+}
+
+
 # create plots in test subdir
 create_plots_for_test()
 {
@@ -688,6 +747,8 @@ create_plots_for_test()
     local thds=$(fgrep 'THREADS=' POSTPROCESS | cut -d = -f 2)
     local writes=$(fgrep 'WRITES=' POSTPROCESS | cut -d = -f 2)
     local binlog=$(fgrep 'BINLOG=' POSTPROCESS | cut -d = -f 2)
+
+    local thd0=$(echo thds | cut -d ' ' -f 1)
 
     [[ -d plots ]] && rm -rf plots
     mkdir plots
@@ -716,78 +777,122 @@ create_plots_for_test()
     cat ../uname.txt >> $html
     echo "</pre>" >> $html
 
-    echo "<h2>Performancecurve</h2>" >> $html
-    echo "<p><img src=\"performancecurve.png\"><br><a href=\"../summary.log\">raw data</a></p>" >> $html
-    echo "
-      set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
-      set xrange [0:]
-      set logscale y 2
-      set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
-      set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
-      set ylabel 'avg latency [ms]'
-      set xlabel 'tps'
-      set output 'plots/performancecurve.png'
-      set title '${desc}'
-      plot 'summary.log' using 2:4 notitle with linespoints lc 'blue' pointtype 7, \
-           '' using 2:4:1 with labels center offset 1.5, -0.5 notitle
-    " | gnuplot
+    if [[ -f sysbench.${thd0}.log ]]
+    then
+        #
+        # sysbench
+        #
+        echo "<h2>Performancecurve</h2>" >> $html
+        echo "<p><img src=\"performancecurve.png\"><br><a href=\"../summary.log\">raw data</a></p>" >> $html
+        echo "
+          set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
+          set xrange [0:]
+          set logscale y 2
+          set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+          set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+          set ylabel 'avg latency [ms]'
+          set xlabel 'tps'
+          set output 'plots/performancecurve.png'
+          set title '${desc}'
+          plot 'summary.log' using 2:4 notitle with linespoints lc 'blue' pointtype 7, \
+               '' using 2:4:1 with labels center offset 1.5, -0.5 notitle
+        " | gnuplot
 
-    echo "<h2>TPS</h2>" >> $html
-    echo "<p><img src=\"tps_bars.png\"><br><a href=\"../summary.log\">raw data</a></p>" >> $html
-    echo "
-      set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
-      set xrange [0:]
-      set yrange [0:]
-      set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
-      set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
-      set ylabel 'tps'
-      set xlabel 'threads'
-      set style fill solid
-      set boxwidth 0.3
-      set output 'plots/tps_bars.png'
-      set title '${desc}'
-      plot 'summary.log' using 0:2:xtic(1) with boxes fc 'blue' notitle
-    " | gnuplot
+        echo "<h2>TPS</h2>" >> $html
+        echo "<p><img src=\"tps_bars.png\"><br><a href=\"../summary.log\">raw data</a></p>" >> $html
+        echo "
+          set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
+          set xrange [0:]
+          set yrange [0:]
+          set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+          set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+          set ylabel 'tps'
+          set xlabel 'threads'
+          set style fill solid
+          set boxwidth 0.3
+          set output 'plots/tps_bars.png'
+          set title '${desc}'
+          plot 'summary.log' using 0:2:xtic(1) with boxes fc 'blue' notitle
+        " | gnuplot
 
-    echo "<h2>Latency</h2>" >> $html
-    echo "<p><img src=\"latency_bars.png\"><br><a href=\"../summary.log\">raw data</a></p>" >> $html
-    echo "
-      set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
-      set xrange [0:]
-      set logscale y 2
-      set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
-      set ylabel 'latency [ms]'
-      set xlabel 'threads'
-      set style fill empty
-      set boxwidth 0.3
-      set offsets -0.5,0.5,0,0
-      set output 'plots/latency_bars.png'
-      set title '${desc} - shows {min, 25%, median(dot), 75%, 95%}'
-      plot 'summary.log' using 0:7:3:6:9:xtic(1) with candlesticks whiskerbars 0.5 lc 'black' notitle, \
-           '' using 0:8 with points lc 'black' pointtype 7 notitle
-    " | gnuplot
+        echo "<h2>Latency</h2>" >> $html
+        echo "<p><img src=\"latency_bars.png\"><br><a href=\"../summary.log\">raw data</a></p>" >> $html
+        echo "
+          set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
+          set xrange [0:]
+          set logscale y 2
+          set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+          set ylabel 'latency [ms]'
+          set xlabel 'threads'
+          set style fill empty
+          set boxwidth 0.3
+          set offsets -0.5,0.5,0,0
+          set output 'plots/latency_bars.png'
+          set title '${desc} - shows {min, 25%, median(dot), 75%, 95%}'
+          plot 'summary.log' using 0:7:3:6:9:xtic(1) with candlesticks whiskerbars 0.5 lc 'black' notitle, \
+               '' using 0:8 with points lc 'black' pointtype 7 notitle
+        " | gnuplot
 
-    echo "<h2>TPS + Latency combined</h2>" >> $html
-    echo "<p><img src=\"tps+latency_bars.png\"><br><a href=\"../summary.log\">raw data</a></p>" >> $html
-    echo "
-      set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
-      set xrange [0:]
-      set logscale y 2
-      set y2range [0:]
-      set ylabel 'latency [ms]'
-      set ytics nomirror
-      set y2label 'tps'
-      set y2tics
-      set xlabel 'threads'
-      set style fill empty
-      set boxwidth 0.3
-      set output 'plots/tps+latency_bars.png'
-      set title '${desc}'
-      plot 'summary.log' using (\$0+0.2):2 with boxes fillstyle solid lc 'blue' axes x1y2 notitle, \
-           '' using (\$0-0.2):7:3:6:9:xtic(1) with candlesticks whiskerbars 0.5 lc 'black' notitle, \
-           '' using (\$0-0.2):8 with points lc 'black' pointtype 7 notitle
-    " | gnuplot
+        echo "<h2>TPS + Latency combined</h2>" >> $html
+        echo "<p><img src=\"tps+latency_bars.png\"><br><a href=\"../summary.log\">raw data</a></p>" >> $html
+        echo "
+          set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
+          set xrange [0:]
+          set logscale y 2
+          set y2range [0:]
+          set ylabel 'latency [ms]'
+          set ytics nomirror
+          set y2label 'tps'
+          set y2tics
+          set xlabel 'threads'
+          set style fill empty
+          set boxwidth 0.3
+          set output 'plots/tps+latency_bars.png'
+          set title '${desc}'
+          plot 'summary.log' using (\$0+0.2):2 with boxes fillstyle solid lc 'blue' axes x1y2 notitle, \
+               '' using (\$0-0.2):7:3:6:9:xtic(1) with candlesticks whiskerbars 0.5 lc 'black' notitle, \
+               '' using (\$0-0.2):8 with points lc 'black' pointtype 7 notitle
+        " | gnuplot
+    fi
 
+    if [[ -f hdbtcount.${thd0}.log ]]
+    then
+        #
+        # HammerDB
+        #
+        echo "<h2>Performancecurve</h2>" >> $html
+        echo "<p><img src=\"performancecurve.png\"><br><a href=\"../summary.log\">raw data</a></p>" >> $html
+        echo "
+          set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
+          set xrange [0:]
+          set logscale y 2
+          set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+          set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+          set ylabel 'avg latency [ms]'
+          set xlabel 'tps'
+          set output 'plots/performancecurve.png'
+          set title '${desc}'
+          plot 'summary.log' using 2:4 notitle with linespoints lc 'blue' pointtype 7, \
+               '' using 2:4:1 with labels center offset 1.5, -0.5 notitle
+        " | gnuplot
+
+        echo "<h2>TPS</h2>" >> $html
+        echo "<p><img src=\"tps_bars.png\"><br><a href=\"../summary.log\">raw data</a></p>" >> $html
+        echo "
+          set terminal png medium nocrop enhanced size 960,480 background '#FCFCFC' linewidth 2 font 'Arial,12'
+          set xrange [0:]
+          set yrange [0:]
+          set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+          set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+          set ylabel 'tps'
+          set xlabel 'threads'
+          set style fill solid
+          set boxwidth 0.3
+          set output 'plots/tps_bars.png'
+          set title '${desc}'
+          plot 'summary.log' using 0:2:xtic(1) with boxes fc 'blue' notitle
+        " | gnuplot
+    fi
 
     #create time series plots
     echo "<h1>Timeseries</h1>" >> $html
@@ -820,6 +925,38 @@ create_plots_for_test()
             " | gnuplot
 
             echo "<p><img src=\"tps_over_time.${thd}.png\" alt=\"${thd} threads\"><br><a href=\"../sysbench.${thd}.log\">raw data</a></p>" >> $html
+            rm $tmpfile
+        fi
+
+        #
+        # HammerDB
+        #
+        if [[ -f hdbtcount.${thd}.log ]]
+        then
+            local tmpfile=$(mktemp)
+            perl -e '$ts = 0;
+                     while (<>) {
+                       if (/^(\d+)/) {
+                         print $ts, "\t", $1, "\n";
+                         $ts += '$timestep';
+                       }
+                     }' <hdbtcount.${thd}.log >$tmpfile
+
+            echo "
+              set terminal png medium nocrop enhanced size 960,300 background '#FCFCFC' linewidth 2
+              set xrange [0:$runtime]
+              set yrange [0:]
+              set lmargin 10
+              set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+              set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
+              set ylabel 'tpm'
+              set xlabel 'time [s]'
+              set output 'plots/tpm_over_time.${thd}.png'
+              set title '${desc} TPM at ${thd} users'
+              plot '$tmpfile' using 1:2 notitle with lines lc 'blue'
+            " | gnuplot
+
+            echo "<p><img src=\"tpm_over_time.${thd}.png\" alt=\"${thd} threads\"><br><a href=\"../hdbtcount.${thd}.log\">raw data</a></p>" >> $html
             rm $tmpfile
         fi
 
@@ -984,6 +1121,37 @@ create_plots_for_test()
             rm ${tmpfile2} ${tmpfile2}.avg
             rm ${tmpfile3} ${tmpfile3}.avg
             rm ${tmpfile4} ${tmpfile4}.avg
+
+            #
+            # Commit + Rollback
+            #
+            local tmpfile1=$(mktemp)
+            extract_status_rate status.${thd}.log $tmpfile1 "Com_commit"
+            average_col2 $tmpfile1 $tmpfile1.avg
+            local tmpfile2=$(mktemp)
+            extract_status_rate status.${thd}.log $tmpfile2 "Com_rollback"
+            average_col2 $tmpfile2 $tmpfile2.avg
+
+            echo "
+              set terminal png medium nocrop enhanced size 960,300 background '#FCFCFC' linewidth 2
+              set xrange [0:$runtime]
+              set yrange [0:]
+              set lmargin 10
+              set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
+              set ylabel 'commit/s'
+              set y2label 'rollback/s'
+              set key bottom right
+              set output 'plots/trx_over_time.${thd}.png'
+              set title 'transactions for ${desc} at ${thd} threads'
+              plot '$tmpfile1' using 1:2 with dots lc 'green' notitle,\
+               '$tmpfile1.avg' using 1:2 with lines lc 'green' title 'COMMIT',\
+               '$tmpfile2'     using 1:2 with dots axes x1y2 lc 'red' notitle,\
+               '$tmpfile2.avg' using 1:2 with lines axes x1y2 lc 'red' title 'ROLLBACK',\
+              " | gnuplot
+            echo "<p><img src=\"trx_over_time.${thd}.png\"></p>" >> $html
+
+            rm ${tmpfile1} ${tmpfile1}.avg
+            rm ${tmpfile2} ${tmpfile2}.avg
 
             if [[ ${binlog} = "yes" ]]
             then

@@ -1,0 +1,2 @@
+HammerDB TPROC-C
+scale 80 (nominal 8G, allwarehouse=true), InnoDB, 16G buffer pool, 8G redo log
