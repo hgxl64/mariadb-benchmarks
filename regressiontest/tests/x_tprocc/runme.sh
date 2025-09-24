@@ -97,7 +97,7 @@ diset tpcc maria_user root
 diset tpcc maria_pass null
 diset tpcc maria_storage_engine ${ENGINE}
 diset tpcc maria_count_ware ${SCALE}
-diset tpcc maria_num_vu $(n_cpu)
+diset tpcc maria_num_vu $(($(n_cpu) * 2))
 diset tpcc maria_raiseerror true
 print dict
 buildschema
