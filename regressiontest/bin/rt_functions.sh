@@ -952,7 +952,7 @@ create_plots_for_test()
                '' using 0:4 with points lc 'brown' pointtype 7 notitle,\
                'slev.log' using (\$0+0.15):8:3:7:6 with candlesticks whiskerbars 0.1 lc 'purple' title 'SLEV',\
                '' using (\$0+0.15):4 with points lc 'purple' pointtype 7 notitle,\
-               'ostat.log' using (\$0+0.3):8:3:7:6 with candlesticks whiskerbars 0.1 lc 'gray60' title 'SLEV',\
+               'ostat.log' using (\$0+0.3):8:3:7:6 with candlesticks whiskerbars 0.1 lc 'gray60' title 'OSTAT',\
                '' using (\$0+0.3):4 with points lc 'gray60' pointtype 7 notitle
         " | gnuplot
 

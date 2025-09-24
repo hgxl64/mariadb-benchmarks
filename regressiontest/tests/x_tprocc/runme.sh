@@ -166,7 +166,6 @@ diset tpcc maria_storage_engine ${ENGINE}
 diset tpcc maria_count_ware ${SCALE}
 diset tpcc maria_rampup ${RAMPUP_MINUTES}
 diset tpcc maria_duration $((${RUNTIME_MINUTES} - ${RAMPUP_MINUTES}))
-diset tpcc maria_raiseerror true
 diset tpcc maria_timeprofile true
 diset tpcc maria_allwarehouse true
 diset tpcc maria_prepared true
@@ -181,7 +180,9 @@ vuset delay 10
 vucreate
 tcstart
 vurun
+after 10000
 tcstop
+after 10000
 vudestroy
 "      > ${LOGDIRECTORY}/hdb_run.$thread.tcl
 
