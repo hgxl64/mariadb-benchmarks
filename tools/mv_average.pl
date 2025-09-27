@@ -16,8 +16,13 @@ GetOptions("interval=i" => \$avgcnt) or die "usage: $0 [-interval n]\n";
 
 my @data_x = ();
 my @data_y = ();
+my $header = undef;
 
 while (<>) {
+    if (/^#/) {
+        $header = $_;
+        next;
+    }
     chomp;
     my ($x, $y, undef) = split "\t";
     push @data_x, $x;
@@ -34,6 +39,8 @@ my @avg_y = do {
     $sum / @summers;
   } @data_y;
 };
+
+print $header if (defined $header);
 
 for my $x (@data_x) {
     print $x, "\t", shift @avg_y, "\n";
