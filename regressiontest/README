@@ -45,6 +45,14 @@ Those tools are optionally used collect profiles during the benchmark
 and create flame graphs.
 
 
+8. HammerDB 5.0 or higher
+
+This tool is needed to run test t_tprocc. Install to a location that
+fits you and set this is the host config file. I.e.
+
+ config_variable HAMMERDB /opt/HammerDB-5.0
+
+
 Invocation
 ----------
 
@@ -174,6 +182,9 @@ FLAMEGRAPH
 GIT_REPO
   the git repository for the server to test
   Example: "https://github.com/MariaDB/server.git"
+
+HAMMERDB
+  the directory where HammerDB is installed. No default
 
 INSTALLDIR
   the directory where server binaries should be put. There will be a

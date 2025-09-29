@@ -15,6 +15,14 @@ export RUNTIME=900   #including ramp-up time
 export REPORT=5
 
 # -------------------
+# test if HammerDB is installed
+# -------------------
+
+[[ ${HAMMERDB} ]] || exit 0
+[[ -d ${HAMMERDB} ]] || exit 0
+[[ -x ${HAMMERDB}/hammerdbcli ]] || exit 0
+
+# -------------------
 # sanity check configuration
 # -------------------
 
