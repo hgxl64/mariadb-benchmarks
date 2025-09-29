@@ -10,14 +10,15 @@ use strict;
 use Getopt::Long;
 
 #defaults
+my $timestep = undef;
 my $opt_rate = 0;
 #end defaults
 
-GetOptions("rate!" => \$opt_rate);
+GetOptions("rate!" => \$opt_rate, "timestep=i" => \$timestep);
 
-my $varname= shift @ARGV or die "usage: $0 [--rate] variable-name\n";
+my $varname= shift @ARGV or die "usage: $0 [--rate] [--timestep=n] variable-name\n";
 
-my $start= undef;
+my $start= (defined $timestep ? 0 : undef);
 my $laststamp = undef;
 my $lastval = undef;
 <>;
@@ -45,14 +46,15 @@ do {
         $lastval = $d{$varname};
         $laststamp = $d{"Uptime"};
     } else {
-        $rate = ($d{$varname}-$lastval) / ($d{"Uptime"}-$laststamp);
+        $rate = ($d{$varname}-$lastval) / (defined $timestep ? $timestep : $d{"Uptime"}-$laststamp);
     }
 
     #print result
-    if ($opt_rate) {
-        printf "%d\t%.1f\n", $d{"Uptime"}-$start, $rate;
+    if (defined $timestep) {
+        printf "%d\t%s\n", $start, ($opt_rate ? $rate : $d{$varname});
+        $start+= $timestep;
     } else {
-        printf "%d\t%s\n", $d{"Uptime"}-$start, $d{$varname};
+        printf "%d\t%s\n", $d{"Uptime"}-$start, ($opt_rate ? $rate : $d{$varname});
     }
 
     $lastval = $d{$varname};
