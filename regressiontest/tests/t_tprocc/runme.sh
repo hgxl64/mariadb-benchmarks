@@ -96,6 +96,9 @@ mkdir -p ${LOGDIRECTORY}
         $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS ${DBNAME}"
         $MYSQL -S $SOCKET -u root -e "CREATE DATABASE ${DBNAME}"
 
+        local vu=$(($(n_cpu) * 2))
+        [[ ${vu} -gt ${SCALE} ]] && vu=${SCALE}
+
         echo "\
 dbset db maria
 diset connection maria_host localhost
@@ -105,7 +108,7 @@ diset tpcc maria_user root
 diset tpcc maria_pass null
 diset tpcc maria_storage_engine ${ENGINE}
 diset tpcc maria_count_ware ${SCALE}
-diset tpcc maria_num_vu $(($(n_cpu) * 2))
+diset tpcc maria_num_vu ${vu}
 diset tpcc maria_raiseerror true
 print dict
 buildschema
@@ -177,6 +180,7 @@ diset tpcc maria_duration $((${RUNTIME_MINUTES} - ${RAMPUP_MINUTES}))
 diset tpcc maria_timeprofile true
 diset tpcc maria_allwarehouse true
 diset tpcc maria_prepared true
+diset tpcc maria_raiseerror false
 print dict
 tcset logtotemp 1
 tcset timestamps 1
