@@ -96,7 +96,7 @@ mkdir -p ${LOGDIRECTORY}
         $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS ${DBNAME}"
         $MYSQL -S $SOCKET -u root -e "CREATE DATABASE ${DBNAME}"
 
-        local vu=$(($(n_cpu) * 2))
+        vu=$(($(n_cpu) * 2))
         [[ ${vu} -gt ${SCALE} ]] && vu=${SCALE}
 
         echo "\
