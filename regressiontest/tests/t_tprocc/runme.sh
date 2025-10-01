@@ -79,6 +79,9 @@ else
 fi
 mkdir -p ${LOGDIRECTORY}
 
+#create dir HDBTMP
+HDBTMP=$(mktemp -d -p /dev/shm)
+
 
 # -------------------
 # main script
@@ -96,8 +99,8 @@ mkdir -p ${LOGDIRECTORY}
         $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS ${DBNAME}"
         $MYSQL -S $SOCKET -u root -e "CREATE DATABASE ${DBNAME}"
 
-        vu=$(($(n_cpu) * 2))
-        [[ ${vu} -gt ${SCALE} ]] && vu=${SCALE}
+        vu4load=$(($(n_cpu) * 2))
+        [[ ${vu4load} -gt ${SCALE} ]] && vu4load=${SCALE}
 
         echo "\
 dbset db maria
@@ -108,14 +111,14 @@ diset tpcc maria_user root
 diset tpcc maria_pass null
 diset tpcc maria_storage_engine ${ENGINE}
 diset tpcc maria_count_ware ${SCALE}
-diset tpcc maria_num_vu ${vu}
+diset tpcc maria_num_vu ${vu4load}
 diset tpcc maria_raiseerror true
 print dict
 buildschema
 "       > ${LOGDIRECTORY}/hdb_load.tcl
 
         info $(date --utc "+%F %T   starting HammerDB schema build")
-        ${HAMMERDB}/hammerdbcli auto ${LOGDIRECTORY}/hdb_load.tcl >${LOGDIRECTORY}/hdb_load.log
+        TMP=$HDBTMP ${HAMMERDB}/hammerdbcli auto ${LOGDIRECTORY}/hdb_load.tcl >${LOGDIRECTORY}/hdb_load.log
         info $(date --utc "+%F %T   HammerDB schema build finished")
 
         [[ ${ENGINE} == "InnoDB" ]] && checkpoint_innodb
@@ -181,14 +184,14 @@ diset tpcc maria_timeprofile true
 diset tpcc maria_allwarehouse true
 diset tpcc maria_prepared true
 diset tpcc maria_raiseerror false
-print dict
 tcset logtotemp 1
 tcset timestamps 1
 tcset refreshrate ${REPORT}
-print tcconf
 loadscript
 vuset vu ${thread}
 vuset delay 10
+print dict
+print tcconf
 vucreate
 tcstart
 vurun
@@ -198,13 +201,13 @@ after 10000
 vudestroy
 "      > ${LOGDIRECTORY}/hdb_run.$thread.tcl
 
-       numactl ${CPU_MASK_SYSBENCH:-"--all"} ${HAMMERDB}/hammerdbcli auto \
+       TMP=$HDBTMP numactl ${CPU_MASK_SYSBENCH:-"--all"} ${HAMMERDB}/hammerdbcli auto \
          ${LOGDIRECTORY}/hdb_run.$thread.tcl 2>&1 > ${LOGDIRECTORY}/hdb_run.$thread.log
 
        wait $PIDLIST
 
-       mv /tmp/hdbtcount.log    ${LOGDIRECTORY}/hdbtcount.$thread.log
-       mv /tmp/hdbxtprofile.log ${LOGDIRECTORY}/hdbxtprofile.$thread.log
+       mv $HDBTMP/hdbtcount.log    ${LOGDIRECTORY}/hdbtcount.$thread.log
+       mv $HDBTMP/hdbxtprofile.log ${LOGDIRECTORY}/hdbxtprofile.$thread.log
 
        summarize_hammerdb NEWORD   ${LOGDIRECTORY}/hdbxtprofile.$thread.log >> ${LOGDIRECTORY}/neword.log
        summarize_hammerdb PAYMENT  ${LOGDIRECTORY}/hdbxtprofile.$thread.log >> ${LOGDIRECTORY}/payment.log
@@ -240,6 +243,10 @@ echo "RUNTIME=$RUNTIME" >> ${LOGDIRECTORY}/POSTPROCESS
 echo "ENGINE=$ENGINE"   >> ${LOGDIRECTORY}/POSTPROCESS
 echo "THREADS=$THREADS" >> ${LOGDIRECTORY}/POSTPROCESS
 echo "WRITES=yes"       >> ${LOGDIRECTORY}/POSTPROCESS
+
+#clean up HDBTMP
+mv $HDBTMP/hammer.DB ${LOGDIRECTORY}/hammer.DB
+rm -rf $HDBTMP
 
 for f in DESC my.cnf runme.sh
 do
