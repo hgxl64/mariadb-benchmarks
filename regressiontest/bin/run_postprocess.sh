@@ -4,6 +4,8 @@ source rt_functions.sh
 source ${RT_HOME}/config/global
 
 
+info $(date --utc "+%F %T local postprocessing start")
+
 # Step 1: postprocess results for individal tests
 
 ALLTESTS=$(find ${RT_HOME}/tests -maxdepth 1 -type d -name t_\* -printf "%P\n" | sort)
@@ -17,13 +19,16 @@ do
     fi
 done
 
-# FIXME: add more postprocessing steps
+
+info $(date --utc "+%F %T local postprocessing end")
 
 
-# finally run postprocessing script defined in host config
-
-if [[ -s ${POST_PROCESSING_SCRIPT:-""} ]]
+if [[ ${POST_PROC_HOST} ]]
 then
-    info $(date --utc "+%F %T running ${POST_PROCESSING_SCRIPT}")
-    $POST_PROCESSING_SCRIPT 2>&1
+    info $(date --utc "+%F %T remote postprocessig @ ${POST_PROC_HOST} start")
+
+    ssh ${POST_PROC_HOST} "./post_process.sh ${HOSTNAME} $(basename ${LOGDIRECTORY})" 2>&1
+
+    info $(date --utc "+%F %T remote postprocessig @ ${POST_PROCESSING_HOST} end")
 fi
+

@@ -57,6 +57,7 @@ debug "using history: ${RESULTS[*]}"
 
 #set output dir
 OUTDIR=${TARGETDIR}/${PRODUCT}-${BRANCH}
+[[ ${RUNHOST} = "cheetah01" ]] && OUTDIR=${TARGETDIR}/${PRODUCT}-${BRANCH}-${RUNHOST}
 [[ -d ${OUTDIR} ]] || mkdir -p ${OUTDIR}
 OUTFILE=${OUTDIR}/${WHEN}.pdf
 
