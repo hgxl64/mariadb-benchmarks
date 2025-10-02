@@ -95,14 +95,18 @@ fi
                     exit 2
                 fi
 
-                BINTAR_URL="${BASE_URL}/bintar/${JENKINS_OS}/RelWithDebInfo/mariadb-enterprise-${RELEASE}-${JENKINS_ARCH}.tar.gz"
                 mkdir -p ${TARGETDIR}
                 mv build.properties ${TARGETDIR}
 
-                info "downloading bintar package from ${BINTAR_URL}"
-                if ( ! wget --user=$(vault 'jenkins_es_package_user') \
-                            --password=$(vault 'jenkins_es_package_pass') \
-                            ${BINTAR_URL})
+                for OS in ${JENKINS_OS}
+                do
+                    BINTAR_URL="${BASE_URL}/bintar/${OS}/RelWithDebInfo/mariadb-enterprise-${RELEASE}-${JENKINS_ARCH}.tar.gz"
+                    info "trying to download bintar package from ${BINTAR_URL}"
+                    wget --user=$(vault 'jenkins_es_package_user') \
+                         --password=$(vault 'jenkins_es_package_pass') \
+                         ${BINTAR_URL} && break
+                done
+                if [[ ! -f mariadb-enterprise-${RELEASE}-${JENKINS_ARCH}.tar.gz ]]
                 then
                     cd $HERE
                     rm -rf $TMP
@@ -146,7 +150,6 @@ fi
 
                 COMMIT=$(fgrep GIT_COMMIT build.properties | sed 's/GIT_COMMIT=//' | head -c 11)
                 VERSION=$(fgrep FULL_VERSION build.properties | sed 's/FULL_VERSION=//')
-                BINTAR_URL="${BASE_URL}/bintar/${JENKINS_OS}/RelWithDebInfo/mariadb-enterprise-${VERSION}-${JENKINS_ARCH}.tar.gz"
                 TARGETDIR="${INSTALLDIR}/mariadb-enterprise-${BRANCH}-${COMMIT}"
                 commit_info_safe ${COMMIT}
 
@@ -162,10 +165,15 @@ fi
                 mkdir -p ${TARGETDIR}
                 mv build.properties ${TARGETDIR}
 
-                info "downloading bintar package from ${BINTAR_URL}"
-                if ( ! wget --user=$(vault 'jenkins_es_package_user') \
-                            --password=$(vault 'jenkins_es_package_pass') \
-                            ${BINTAR_URL})
+                for OS in ${JENKINS_OS}
+                do
+                    BINTAR_URL="${BASE_URL}/bintar/${OS}/RelWithDebInfo/mariadb-enterprise-${RELEASE}-${JENKINS_ARCH}.tar.gz"
+                    info "trying to download bintar package from ${BINTAR_URL}"
+                    wget --user=$(vault 'jenkins_es_package_user') \
+                         --password=$(vault 'jenkins_es_package_pass') \
+                         ${BINTAR_URL} && break
+                done
+                if [[ ! -f mariadb-enterprise-${RELEASE}-${JENKINS_ARCH}.tar.gz ]]
                 then
                     cd $HERE
                     rm -rf $TMP
