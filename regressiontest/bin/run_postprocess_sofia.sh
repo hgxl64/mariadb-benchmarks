@@ -95,7 +95,7 @@ echo "set output '${OUTFILE}'" >> $plotfile
 echo >> $plotfile
 
 echo "do for [test in '${TESTS[*]}'] {
-  set title sprintf('%s (@${RUNHOST})', test) font ',14'
+  set title sprintf('%s (${BRANCH} @ ${RUNHOST})', test) font ',14'
   plot \\" >> $plotfile
 
 i=0
