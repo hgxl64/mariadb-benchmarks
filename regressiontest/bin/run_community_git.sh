@@ -73,8 +73,20 @@ set_branches_tested 0
     echo "DATABASE: ${DATABASE}"           >> $LOGDIRECTORY/desc.yaml
     echo "SOURCE: git"                     >> $LOGDIRECTORY/desc.yaml
     echo "BRANCH: ${BRANCH}"               >> $LOGDIRECTORY/desc.yaml
-    echo "GITBRANCH: ${GITBRANCH}"         >> $LOGDIRECTORY/desc.yaml
-    echo "COMMIT: ${COMMIT}"               >> $LOGDIRECTORY/desc.yaml
+
+    if [[ ${GITBRANCH} != ${BRANCH} ]]
+    then
+        echo "GITBRANCH: ${GITBRANCH}"     >> $LOGDIRECTORY/desc.yaml
+    fi
+
+    #catch release tags and mark the run as release
+    if [[ ${COMMIT} =~ 'mariadb-' ]]
+    then
+        echo "RELEASE: ${COMMIT}"          >> $LOGDIRECTORY/desc.yaml
+    else
+        echo "COMMIT: ${COMMIT}"           >> $LOGDIRECTORY/desc.yaml
+    fi
+
     echo "TAG: ${TAG}"                     >> $LOGDIRECTORY/desc.yaml
     echo "COMMANDLINE: $0 ${COMMAND_LINE}" >> $LOGDIRECTORY/desc.yaml
 
