@@ -167,7 +167,7 @@ fi
 
                 for OS in ${JENKINS_OS}
                 do
-                    BINTAR_URL="${BASE_URL}/bintar/${OS}/RelWithDebInfo/mariadb-enterprise-${RELEASE}-${JENKINS_ARCH}.tar.gz"
+                    BINTAR_URL="${BASE_URL}/bintar/${OS}/RelWithDebInfo/mariadb-enterprise-${VERSION}-${JENKINS_ARCH}.tar.gz"
                     info "trying to download bintar package from ${BINTAR_URL}"
                     wget --user=$(vault 'jenkins_es_package_user') \
                          --password=$(vault 'jenkins_es_package_pass') \
