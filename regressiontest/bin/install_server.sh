@@ -173,7 +173,7 @@ fi
                          --password=$(vault 'jenkins_es_package_pass') \
                          ${BINTAR_URL} && break
                 done
-                if [[ ! -f mariadb-enterprise-${RELEASE}-${JENKINS_ARCH}.tar.gz ]]
+                if [[ ! -f mariadb-enterprise-${VERSION}-${JENKINS_ARCH}.tar.gz ]]
                 then
                     cd $HERE
                     rm -rf $TMP
