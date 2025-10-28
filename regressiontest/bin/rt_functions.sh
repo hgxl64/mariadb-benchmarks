@@ -178,11 +178,6 @@ start_server() {
     #create fresh database
     [[ -d ${DATADIR} ]] && rm -rf ${DATADIR}
 
-    if [[ ${RUN_FSTRIM} ]]
-    then
-        sudo fstrim -a
-    fi
-
     my_inst_db="$my_inst_db --basedir=${TARGETDIR}/${SERVER} --datadir=${DATADIR} --verbose"
     [[ ${IS_MARIADB:-0} -eq 1 ]] && my_inst_db="$my_inst_db --auth-root-authentication-method=normal"
     [[ -e my.cnf ]] && my_inst_db="$my_inst_db --defaults-file=$PWD/my.cnf"
@@ -292,6 +287,10 @@ stop_server() {
         cp $SLOWLOG $LOGDIRECTORY/slow.log
         chmod a+r $LOGDIRECTORY/slow.log
     fi
+
+    #remove datadir
+    [[ ${KEEPDATADIR} ]] || rm -rf ${DATADIR}
+
 }
 
 
@@ -410,6 +409,13 @@ collect_server_stats() {
     do
         cat /proc/${s} > ${LOGDIRECTORY}/${prefix}_${s}.txt
     done
+    if [[ ${DATADISK} ]]
+    then
+        for d in ${DATADISK}
+        do
+            sudo smartctl -x /dev/${d} > ${LOGDIRECTORY}/${prefix}_SMART_${d}.txt 2>&1
+        done
+    fi
 }
 
 

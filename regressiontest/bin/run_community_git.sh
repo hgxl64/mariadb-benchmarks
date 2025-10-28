@@ -147,6 +147,12 @@ set_branches_tested 0
 
         fi
     done
+
+    if [[ ${RUN_FSTRIM} ]]
+    then
+        sudo fstrim -a
+    fi
+
     info $(date --utc "+%F %T setting power plan 'balanced'") >> $LOGDIRECTORY/pstate-frequency.log
     sudo pstate-frequency -S -p balanced >> $LOGDIRECTORY/pstate-frequency.log
 

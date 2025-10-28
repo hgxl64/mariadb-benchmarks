@@ -111,6 +111,11 @@ set_branches_tested 0
     echo "BINARY: $(basename ${TARGETDIR})" >> $LOGDIRECTORY/desc.yaml
     msg $(date --utc "+%F %T using server binaries from ${TARGETDIR}")
 
+    if [[ ${RUN_FSTRIM} ]]
+    then
+        sudo fstrim -a
+    fi
+
     info $(date --utc "+%F %T setting power plan 'max'") >> $LOGDIRECTORY/pstate-frequency.log
     sudo pstate-frequency -S -p max >> $LOGDIRECTORY/pstate-frequency.log
 
