@@ -10,7 +10,7 @@ export ENGINE=InnoDB
 export TABLES=16
 export ROWS=1000000
 export LUA_PREPARE=rt_read_write.lua
-export LUA_ARGS_PREPARE=""
+export LUA_ARGS_PREPARE="--create-table-options=COLLATE=utf8mb3_unicode_ci"
 export LUA_RUN=rt_collate.lua
 export LUA_ARGS_RUN="--rand-type=uniform --histogram"
 export THREADS=$(thread_range 1 $(($(n_cpu) * 4)))
