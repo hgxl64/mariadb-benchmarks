@@ -8,7 +8,7 @@ DEFAULT_DATABASE="mariadb"
 
 USAGE="usage: $0
 
-run regression tests
+run regression tests on already running server
 Options:
     --branch ...
     --commit ...
@@ -66,12 +66,17 @@ mkdir -p $LOGDIRECTORY
     echo "COMMIT: ${COMMIT}"        >> $LOGDIRECTORY/desc.yaml
     echo "VERSION(): $($MYSQL -S $SOCKET -e 'select version()' | tail -1  | cut -f 2)" >> $LOGDIRECTORY/desc.yaml
     echo "TAG: ${TAG}"              >> $LOGDIRECTORY/desc.yaml
+    echo "COMMANDLINE: $0 ${COMMAND_LINE}" >> $LOGDIRECTORY/desc.yaml
 
     msg $(date --utc "+%F %T running regression tests for ${DATABASE}")
 
     ALLTESTS=$(find ${RT_HOME}/tests -maxdepth 1 -type d -name t_\* -printf "%P\n" | sort)
-    info $(date --utc "+%F %T setting power plan 'max'") >> $LOGDIRECTORY/pstate-frequency.log
-    sudo pstate-frequency -S -p max >> $LOGDIRECTORY/pstate-frequency.log
+
+    if is_installed pstate-frequency
+    then
+        info $(date --utc "+%F %T setting power plan 'max'") >> $LOGDIRECTORY/pstate-frequency.log
+        sudo pstate-frequency -S -p max >> $LOGDIRECTORY/pstate-frequency.log
+    fi
 
     for t in ${TESTS:-$ALLTESTS}
     do
@@ -84,8 +89,12 @@ mkdir -p $LOGDIRECTORY
         fi
     done
 
-    info $(date --utc "+%F %T setting power plan 'balanced'") >> $LOGDIRECTORY/pstate-frequency.log
-    sudo pstate-frequency -S -p balanced >> $LOGDIRECTORY/pstate-frequency.log
+    if is_installed pstate-frequency
+    then
+        info $(date --utc "+%F %T setting power plan 'balanced'") >> $LOGDIRECTORY/pstate-frequency.log
+        sudo pstate-frequency -S -p balanced >> $LOGDIRECTORY/pstate-frequency.log
+    fi
+
     date --utc "+%F %T" > $LOGDIRECTORY/stop
 
     msg $(date --utc "+%F %T postprocess $(basename ${LOGDIRECTORY})")

@@ -116,8 +116,11 @@ set_branches_tested 0
         sudo fstrim -a
     fi
 
-    info $(date --utc "+%F %T setting power plan 'max'") >> $LOGDIRECTORY/pstate-frequency.log
-    sudo pstate-frequency -S -p max >> $LOGDIRECTORY/pstate-frequency.log
+    if is_installed pstate-frequency
+    then
+       info $(date --utc "+%F %T setting power plan 'max'") >> $LOGDIRECTORY/pstate-frequency.log
+       sudo pstate-frequency -S -p max >> $LOGDIRECTORY/pstate-frequency.log
+    fi
 
     for t in ${TESTS:-$ALLTESTS}
     do
@@ -130,8 +133,12 @@ set_branches_tested 0
         fi
     done
 
-    info $(date --utc "+%F %T setting power plan 'balanced'") >> $LOGDIRECTORY/pstate-frequency.log
-    sudo pstate-frequency -S -p balanced >> $LOGDIRECTORY/pstate-frequency.log
+    if is_installed pstate-frequency
+    then
+        info $(date --utc "+%F %T setting power plan 'balanced'") >> $LOGDIRECTORY/pstate-frequency.log
+        sudo pstate-frequency -S -p balanced >> $LOGDIRECTORY/pstate-frequency.log
+    fi
+
     date --utc "+%F %T" > $LOGDIRECTORY/stop
 
     msg $(date --utc "+%F %T postprocess $(basename ${LOGDIRECTORY})")

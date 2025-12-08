@@ -1870,3 +1870,7 @@ create_plots_for_test()
 }
 
 
+is_installed () {
+    type "$1" >/dev/null 2>&1
+}
+
