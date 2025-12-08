@@ -33,7 +33,7 @@ Gnuplot is used to create time series plots in the postprocessing step.
 Perl is used to extract timeseries data.
 
 
-6. git, cmake, C/C++ compiler
+6. git, cmake, C/C++ compiler etc
 
 Those tools are required only when MariaDB/MySQL is to be built from
 source GIT repositories.
@@ -51,6 +51,19 @@ This tool is needed to run test t_tprocc. Install to a location that
 fits you and set this is the host config file. I.e.
 
  config_variable HAMMERDB /opt/HammerDB-5.0
+
+
+9. pstate-frequency
+
+If your machine uses an Intel processor with the pstate cpu governor
+then this package provides a method to run the benchmarks at fixed cpu
+speed. Check out https://github.com/pyamsoft/pstate-frequency.git,
+install it and then modify /etc/pstate-frequency.d/04-max.plan to have
+
+PLAN_CPU_TURBO=off
+
+in it. The benchmarks will be run using plan 'max' and swith back to
+plan 'balanced' afterwards.
 
 
 Invocation
