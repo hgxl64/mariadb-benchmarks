@@ -4,7 +4,7 @@
 #
 #
 
-CSBRANCHES="10.5 10.6 10.11 11.4 11.7 11.8 12.0 12.1 12.2 12.3=main"
+CSBRANCHES="10.5 10.6 10.11 11.4 11.8 12.0 12.1 12.2 12.3 13.0=main"
 ESBRANCHES="10.5-enterprise 10.6-enterprise 11.4-enterprise 11.8-enterprise"
 
 STOPFILE="${HOME}/stop"
