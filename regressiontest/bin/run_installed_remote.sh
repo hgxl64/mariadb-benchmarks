@@ -49,39 +49,9 @@ done
 # setup connection variables to remote host
 if [[ ! ${MYSQL_CONNECTION} ]]
 then
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     MYSQL_CONNECTION="--host=${HOST}"
     [[ ${USER} ]]     && MYSQL_CONNECTION="${MYSQL_CONNECTION} --user=${USER}"
     [[ ${PASSWORD} ]] && MYSQL_CONNECTION="${MYSQL_CONNECTION} --password=${PASSWORD}"
-=======
-    MYSQL_CONNECTION="-h ${HOST}"
-    [[ ${USER} ]]     && MYSQL_CONNECTION="${MYSQL_CONNECTION} -u ${USER}"
-    [[ ${PASSWORD} ]] && MYSQL_CONNECTION="${MYSQL_CONNECTION} -p ${PASSWORD}"
->>>>>>> branched for use with a remote server
-=======
-    MYSQL_CONNECTION="--host=${HOST}"
-    [[ ${USER} ]]     && MYSQL_CONNECTION="${MYSQL_CONNECTION} --user=${USER}"
-    [[ ${PASSWORD} ]] && MYSQL_CONNECTION="${MYSQL_CONNECTION} --password=${PASSWORD}"
->>>>>>> misc fixes for remote testing
-=======
-    MYSQL_CONNECTION="-h ${HOST}"
-    [[ ${USER} ]]     && MYSQL_CONNECTION="${MYSQL_CONNECTION} -u ${USER}"
-    [[ ${PASSWORD} ]] && MYSQL_CONNECTION="${MYSQL_CONNECTION} -p ${PASSWORD}"
->>>>>>> branched for use with a remote server
-=======
-    MYSQL_CONNECTION="--host=${HOST}"
-    [[ ${USER} ]]     && MYSQL_CONNECTION="${MYSQL_CONNECTION} --user=${USER}"
-    [[ ${PASSWORD} ]] && MYSQL_CONNECTION="${MYSQL_CONNECTION} --password=${PASSWORD}"
->>>>>>> misc fixes for remote testing
-=======
-    MYSQL_CONNECTION="--host=${HOST}"
-    [[ ${USER} ]]     && MYSQL_CONNECTION="${MYSQL_CONNECTION} --user=${USER}"
-    [[ ${PASSWORD} ]] && MYSQL_CONNECTION="${MYSQL_CONNECTION} --password=${PASSWORD}"
->>>>>>> 771098e0710da8e5c202a59b4f22da3208c0acfb
     export MYSQL_CONNECTION
 fi
 
