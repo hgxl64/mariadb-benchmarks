@@ -12,14 +12,13 @@
 # configuration
 
 QUERY="DO SLEEP($REPORT); SHOW GLOBAL STATUS;"
-USER="root"
 
 # no servicable parts behind this line
 
 NRUN=$(($RUNTIME/$REPORT))
 while [[ $RUNTIME -eq 0 || $NRUN -ge 0 ]]
 do
-  $MYSQL -A -n -S $SOCKET -u $USER -e "$QUERY"
+  $MYSQL -A -n $MYSQL_CONNECTION -e "$QUERY"
   NRUN=$(($NRUN - 1))
 done
 

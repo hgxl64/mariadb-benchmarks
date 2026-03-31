@@ -413,7 +413,7 @@ collect_server_stats() {
     then
         for d in ${DATADISK}
         do
-            sudo smartctl -x /dev/${d} > ${LOGDIRECTORY}/${prefix}_SMART_${d}.txt 2>&1
+            $REMOTE_SHELL "sudo smartctl -x /dev/${d}" > ${LOGDIRECTORY}/${prefix}_SMART_${d}.txt 2>&1
         done
     fi
 }

@@ -64,8 +64,8 @@ mkdir -p ${LOGDIRECTORY}
 
     info $(date --utc "+%F %T   loading data set")
     {
-        $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
-        $MYSQL -S $SOCKET -u root -e "CREATE DATABASE sbtest"
+        $MYSQL $MYSQL_CONNECTION -e "DROP DATABASE IF EXISTS sbtest"
+        $MYSQL $MYSQL_CONNECTION -e "CREATE DATABASE sbtest"
     } 2>&1 > ${LOGDIRECTORY}/prepare.log
 
     if [[ ${DUMP_STATUS:-0} -eq 1 ]]
@@ -90,8 +90,10 @@ mkdir -p ${LOGDIRECTORY}
     for thread in $THREADS
     do
        info -n " ${thread} ..."
-       numactl ${CPU_MASK_SYSBENCH:-"--all"} iostat -mx $REPORT $(($RUNTIME/$REPORT+1))  >> ${LOGDIRECTORY}/iostat.$thread.log &
+       $REMOTE_SHELL "iostat -mx $REPORT $(($RUNTIME/$REPORT+1))" >> ${LOGDIRECTORY}/iostat.$thread.log &
        PIDLIST=$!
+       numactl ${CPU_MASK_SYSBENCH:-"--all"} dstat --nocolor --noupdate $REPORT $(($RUNTIME/$REPORT)) >> ${LOGDIRECTORY}/dstat.$thread.log &
+       PIDLIST="$PIDLIST $!"
        if [[ ${DUMP_STATUS:-0} -eq 1 ]]
        then
            numactl ${CPU_MASK_SYSBENCH:-"--all"} dump_status.sh >> ${LOGDIRECTORY}/status.$thread.log &
@@ -110,7 +112,7 @@ mkdir -p ${LOGDIRECTORY}
 
        numactl ${CPU_MASK_SYSBENCH:-"--all"} ${SYSBENCH} ${RT_HOME}/lua/${LUA_RUN} ${LUA_ARGS_RUN} \
          --threads=$thread --report-interval=$REPORT --time=$RUNTIME --forced-shutdown=60 --events=0 \
-         --mysql-socket=$SOCKET --mysql-user=root run 2>&1 > ${LOGDIRECTORY}/sysbench.$thread.log
+         $SYSBENCH_CONNECTION run 2>&1 > ${LOGDIRECTORY}/sysbench.$thread.log
 
        wait $PIDLIST
        summarize_sysbench ${LOGDIRECTORY}/sysbench.$thread.log >> ${LOGDIRECTORY}/summary.log
@@ -125,7 +127,7 @@ mkdir -p ${LOGDIRECTORY}
         stop_server > ${LOGDIRECTORY}/stop.server.log 2>&1
     else
         info $(date --utc "+%F %T   cleaning up")
-        $MYSQL -S $SOCKET -u root -e "DROP DATABASE IF EXISTS sbtest"
+        $MYSQL $MYSQL_CONNECTION -e "DROP DATABASE IF EXISTS sbtest"
     fi
 
 } 2>&1 | tee ${LOGDIRECTORY}/${TEST_NAME}.log
