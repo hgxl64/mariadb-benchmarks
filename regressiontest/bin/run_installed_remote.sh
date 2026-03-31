@@ -30,6 +30,7 @@ while [[ $# > 0 ]] ; do
     case ${key} in
         --branch)       BRANCH="$1"; shift;;
         --commit)       COMMIT="$1"; shift;;
+        --tag)          TAG="$1"; shift;;
         --database)     DATABASE="$1"; shift;;
         --host)         HOST="$1"; shift;;
         --user)         USER="$1"; shift;;
@@ -97,13 +98,15 @@ mkdir -p $LOGDIRECTORY
 
     echo "TIMESTAMP: $(date '+%s')" >  $LOGDIRECTORY/desc.yaml
     echo "DATABASE: ${DATABASE}"    >> $LOGDIRECTORY/desc.yaml
-    echo "BRANCH: ${BRANCH}"        >> $LOGDIRECTORY/desc.yaml
-    echo "COMMIT: ${COMMIT}"        >> $LOGDIRECTORY/desc.yaml
+    echo "BRANCH: ${BRANCH:-n/a}"   >> $LOGDIRECTORY/desc.yaml
+    echo "COMMIT: ${COMMIT:-n/a}"   >> $LOGDIRECTORY/desc.yaml
     echo "HOST: ${HOST}"            >> $LOGDIRECTORY/desc.yaml
     echo "USER: ${USER}"            >> $LOGDIRECTORY/desc.yaml
     echo "PASSWORD: ${PASSWORD}"    >> $LOGDIRECTORY/desc.yaml
     echo "SSL: ${SSL:-false}"       >> $LOGDIRECTORY/desc.yaml
     echo "VERSION(): $(${MYSQL} ${MYSQL_CONNECTION} -e 'select version()' | tail -1  | cut -f 2)" >> $LOGDIRECTORY/desc.yaml
+    echo "TAG: ${TAG}"                     >> $LOGDIRECTORY/desc.yaml
+    echo "COMMANDLINE: $0 ${COMMAND_LINE}" >> $LOGDIRECTORY/desc.yaml
 
     msg $(date --utc "+%F %T running regression tests for ${DATABASE} on ${HOST}")
 
