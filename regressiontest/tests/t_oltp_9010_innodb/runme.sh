@@ -103,7 +103,7 @@ mkdir -p ${LOGDIRECTORY}
        PIDLIST=$!
        numactl ${CPU_MASK_SYSBENCH:-"--all"} dstat --nocolor --noupdate $REPORT $(($RUNTIME/$REPORT)) >> ${LOGDIRECTORY}/dstat.$thread.log &
        PIDLIST="$PIDLIST $!"
-       if [[ -x ./dump_status.sh ]]
+       if [[ ${DUMP_STATUS:-0} -eq 1 ]]
        then
            numactl ${CPU_MASK_SYSBENCH:-"--all"} dump_status.sh >> ${LOGDIRECTORY}/status.$thread.log &
            PIDLIST="$PIDLIST $!"
