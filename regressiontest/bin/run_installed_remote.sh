@@ -16,12 +16,14 @@ Options:
     --host
     --user ....... (default: $DEFAULT_USER)
     --password ... (default: $DEFAULT_PASSWORD)
+    --ssl
     -h|--help
 Example:
     $0 --database mariadb --branch 10.6 --host aa.bb.cc.dd
 "
 
 COMMAND_LINE="$@"
+unset SSL
 
 while [[ $# > 0 ]] ; do
     key="$1"; shift;
@@ -32,6 +34,7 @@ while [[ $# > 0 ]] ; do
         --host)         HOST="$1"; shift;;
         --user)         USER="$1"; shift;;
         --password)     PASSWORD="$1"; shift;;
+        --ssl)          SSL=true;;
         -h|--help)      error "$USAGE"; exit 1;;
         *)  msg "Invalid input switch: $key"; msg "COMMAND_LINE = ${COMMAND_LINE}"; error "${USAGE}";;
     esac
@@ -52,6 +55,7 @@ then
     MYSQL_CONNECTION="--host=${HOST}"
     [[ ${USER} ]]     && MYSQL_CONNECTION="${MYSQL_CONNECTION} --user=${USER}"
     [[ ${PASSWORD} ]] && MYSQL_CONNECTION="${MYSQL_CONNECTION} --password=${PASSWORD}"
+    [[ ${SSL} = true ]] && MYSQL_CONNECTION="${MYSQL_CONNECTION} --ssl"
     export MYSQL_CONNECTION
 fi
 
@@ -60,6 +64,7 @@ then
     SYSBENCH_CONNECTION="--mysql-host=${HOST}"
     [[ ${USER} ]]     && SYSBENCH_CONNECTION="${SYSBENCH_CONNECTION} --mysql-user=${USER}"
     [[ ${PASSWORD} ]] && SYSBENCH_CONNECTION="${SYSBENCH_CONNECTION} --mysql-password=${PASSWORD}"
+    [[ ${SSL} = true ]] && SYSBENCH_CONNECTION="${SYSBENCH_CONNECTION} --mysql-ssl=on"
     export SYSBENCH_CONNECTION
 fi
 
@@ -97,6 +102,7 @@ mkdir -p $LOGDIRECTORY
     echo "HOST: ${HOST}"            >> $LOGDIRECTORY/desc.yaml
     echo "USER: ${USER}"            >> $LOGDIRECTORY/desc.yaml
     echo "PASSWORD: ${PASSWORD}"    >> $LOGDIRECTORY/desc.yaml
+    echo "SSL: ${SSL:-false}"       >> $LOGDIRECTORY/desc.yaml
     echo "VERSION(): $(${MYSQL} ${MYSQL_CONNECTION} -e 'select version()' | tail -1  | cut -f 2)" >> $LOGDIRECTORY/desc.yaml
 
     msg $(date --utc "+%F %T running regression tests for ${DATABASE} on ${HOST}")
