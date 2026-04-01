@@ -4,7 +4,31 @@
 #
 # Axel "XL" Schwenke for MariaDB
 
-source rt_functions.sh
+#set -x
+
+# unconditional message
+msg() {
+    echo "$@"
+}   
+
+
+# message ist only displayed when $VERBOSE >= 1
+info() {
+    [[ ${VERBOSE:-0} -gt 0 ]] && echo "$@"
+}   
+
+
+# message ist only displayed when $VERBOSE >= 2
+debug() {
+    [[ ${VERBOSE:-0} -gt 1 ]] && echo "$@"
+}       
+
+
+# message and exit the script/block
+error() {   
+    echo "$@"
+    exit 1
+}
 
 
 # -------------------
@@ -22,6 +46,7 @@ while [[ $# > 0 ]] ; do
         --host)         RUNHOST="$1"; shift;;
         --plot)         OUTFILE="$1"; shift;;
         --keep)         KEEP=1;;
+	--tag)		PREFER_TAG=1;;
         *) if [[ -d ${arg} ]]
            then
                RESULTS=(${RESULTS[*]} ${arg})
@@ -38,15 +63,15 @@ debug "DIRS = '${RESULTS[*]}'"
 
 
 #find tests (use first dir)
-unset TESTS
-cd ${RESULTS[0]}
-DIRS=$(ls -1d t_*)
-for DIR in $DIRS
-do
-    [[ -d ${DIR} ]] && TESTS=(${TESTS[*]} ${DIR})
-done
-cd ..
-debug "TESTS = '${TESTS[*]}'"
+#unset TESTS
+#cd ${RESULTS[0]}
+#DIRS=$(ls -1d t_*)
+#for DIR in $DIRS
+#do
+#    [[ -d ${DIR} ]] && TESTS=(${TESTS[*]} ${DIR})
+#done
+#cd ..
+#debug "TESTS = '${TESTS[*]}'"
 
 
 #creating GNUPLOT file
@@ -91,7 +116,16 @@ do
     stamp=$(grep '^TIMESTAMP:' ${RES}/commit_info.yaml | sed 's/^TIMESTAMP: //')
     date=$(date --date=@${stamp} --utc '+%Y-%m-%d %H:%M:%S UTC')
     release=$(grep '^RELEASE:' ${RES}/desc.yaml | sed 's/^RELEASE: //')
-    [[ -n ${release} ]] && title="${release}, ${date}" || title="${commit}, ${date}"
+    tag=$(grep '^TAG:' ${RES}/desc.yaml | sed 's/^TAG: //')
+    if [[ -n ${tag} && ${PREFER_TAG} == 1 ]]
+    then
+        title=$tag
+    elif [[ -n ${release} ]]
+    then
+        title="${release}, ${DATE}"
+    else
+        title="${commit}, ${date}"
+    fi
     echo "    sprintf('${RES}/%s/summary.log', test) using 2:4 with linespoints linestyle ${i} linewidth 2 pointtype 6 title '${title}',\\" >> $plotfile
     echo "    '' index 0 using 2:4:1 with labels center offset 1.5, 0.5 notitle,\\" >> $plotfile
 done
