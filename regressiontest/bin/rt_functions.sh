@@ -242,8 +242,14 @@ start_server() {
     #optional extra SQL to run
     if [[ ${EXTRASQL} ]]
     then
-        echo "running SQL from ${EXTRASQL}"
-        $MYSQL -S ${SOCKET} -u root -v -v < ${EXTRASQL}
+        if [[ -f ${EXTRASQL} ]]
+        then
+            echo "running SQL from ${EXTRASQL}"
+            $MYSQL -S ${SOCKET} -u root -v -v < ${EXTRASQL}
+        else
+            echo "running SQL: ${EXTRASQL}"
+            $MYSQL -S ${SOCKET} -u root -v -e "${EXTRASQL}"
+        fi
     fi
 
     #optional async SQL to run
