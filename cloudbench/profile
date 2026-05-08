@@ -1,0 +1,14 @@
+#
+# environment
+#
+
+export CBENCH_HOME=$PWD
+export CBENCH_LOG_HOME=${CBENCH_HOME}/log
+export PATH=${CBENCH_HOME}/experiments:${CBENCH_HOME}/bin:${PATH}
+
+#
+# modify prompt
+#
+
+export PS1='\[\033[01;34m\]${CLUSTER:-"no cluster"} \[\033[01;00m\]\h:\w \$'
+
