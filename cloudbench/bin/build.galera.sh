@@ -137,22 +137,22 @@ wsrep_cluster_address = gcomm://$(echo ${GALERA_BACKEND_IPS[*]} | sed "s/^ //g;s
 wsrep_slave_threads = ${SLAVE_THREADS}
 wsrep_sst_method = rsync_wan
 innodb_autoinc_lock_mode = 2
-                " > /data/cbench/etc/my.cnf.d/02_galera.cnf
+                " > /data/cbench/install/etc/my.cnf.d/02_galera.cnf
                 '
 
             if [[ ${OPTION_DEFERRED_FLUSH} ]] ; then
                 ssh $(get_ssh_connection ${SYSTEM} ${HOST}) '
-                    echo "innodb_flush_log_at_trx_commit = 2" >> /data/cbench/etc/my.cnf.d/02_galera.cnf'
+                    echo "innodb_flush_log_at_trx_commit = 2" >> /data/cbench/install/etc/my.cnf.d/02_galera.cnf'
             fi
 
             CLUSTER_TYPE=$(get_property ${CLUSTER} cluster.type)
             if [[ ${CLUSTER_TYPE} == 'galera_masterslave' ]] ; then
             # for Master/Slave configurations, turn off auto_increment_control so sysbench and other similar workloads will work
                 ssh $(get_ssh_connection ${SYSTEM} ${HOST}) '
-                    echo "wsrep_auto_increment_control = 0" >> /data/cbench/etc/my.cnf.d/02_galera.cnf'
+                    echo "wsrep_auto_increment_control = 0" >> /data/cbench/install/etc/my.cnf.d/02_galera.cnf'
             fi
 
-            ssh $(get_ssh_connection ${SYSTEM} ${HOST}) 'cat /data/cbench/etc/my.cnf.d/02_galera.cnf'
+            ssh $(get_ssh_connection ${SYSTEM} ${HOST}) 'cat /data/cbench/install/etc/my.cnf.d/02_galera.cnf'
         done
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).setup.galera.log 2>&1
 

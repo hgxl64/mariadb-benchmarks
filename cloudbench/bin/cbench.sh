@@ -871,12 +871,7 @@ gather_pretest() {
             if [[ $1 ]] ; then localSYSTEM=$1 ; else localSYSTEM=${CLUSTER} ; fi
             echo
             echo "    ===== Gather Pretest Snapshot ${localSYSTEM} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-            if [[ $(get_property ${localSYSTEM} database) == 'clustrix' ]] ; then
-                clustrix.snapshot.sh --cluster ${CLUSTER} --preshot
-                system.snapshot.sh --cluster ${localSYSTEM}
-                reset_stats
-                roll_logs
-            elif [[ $(get_property ${localSYSTEM} database) == 'mariadb' ]] ; then
+            if  [[ $(get_property ${localSYSTEM} database) == 'mariadb' ]] ; then
                 local BACKGROUND_PIDS=""
                 if [[ $(get_property ${localSYSTEM} mariadb.systems) ]] ; then
                     for SYSTEM in $(get_property ${localSYSTEM} mariadb.systems) ; do
@@ -891,14 +886,11 @@ gather_pretest() {
                     mariadb.snapshot.sh --cluster ${SYSTEM} &
                     BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
                 done
-                if [[ $(get_property ${localSYSTEM} clustrix.cluster) ]] ; then
-                    clustrix.snapshot.sh --cluster $(get_property ${localSYSTEM} clustrix.cluster) --preshot &
+                for SYSTEM in $(get_property ${localSYSTEM} maxscale.systems)) ; do
+                    maxscale.snapshot.sh --cluster ${SYSTEM} &
                     BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
-                fi
+                done
                 wait ${BACKGROUND_PIDS[*]}
-                system.snapshot.sh --cluster ${localSYSTEM}
-            elif [[ $(get_property ${localSYSTEM} database) == 'mysql' ]] ; then
-                mysql.snapshot.sh --cluster ${localSYSTEM}
                 system.snapshot.sh --cluster ${localSYSTEM}
             fi
         }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.pretest.snapshot.log 2>&1
@@ -937,12 +929,10 @@ gather_posttest() {
                     mariadb.snapshot.sh --cluster ${SYSTEM} &
                     BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
                 done
-                if [[ $(get_property ${localSYSTEM} clustrix.cluster) ]] ; then
-                    echo
-                    echo "    ===== Gather Clustrix Snapshot $(get_property ${localSYSTEM} clustrix.cluster) =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-                    clustrix.snapshot.sh --cluster $(get_property ${localSYSTEM} clustrix.cluster) --postshot &
+                for SYSTEM in $(get_property ${localSYSTEM} maxscale.systems)) ; do
+                    maxscale.snapshot.sh --cluster ${SYSTEM} &
                     BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
-                fi
+                done
                 wait ${BACKGROUND_PIDS[*]}
                 time system.snapshot.sh --cluster ${localSYSTEM}
             elif [[ $(get_property ${localSYSTEM} database) == mysql ]] ; then
