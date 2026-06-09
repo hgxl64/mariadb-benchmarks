@@ -657,11 +657,11 @@ mkdir -p ${LOGDIRECTORY}
         echo "    ===== Waiting for database to initialize =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S') ]"
         time {
             if [[ ${DATABASE} == 'mariadb' ]] ; then
-                while (( $( ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '/data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e "select version();"' 2>&1 | grep 'MariaDB' | wc -l ) == 0 )) ; do
+                while (( $( ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '/data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e "select version()"' 2>&1 | grep 'MariaDB' | wc -l ) == 0 )) ; do
                     echo -n "."
                     sleep 1
                 done
-                echo "        Database Initialized. Version : "$(ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) 'sudo mysql -sN -e "select version();"')
+                echo "        Database Initialized. Version : "$(ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '/data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -sN -e "select version()"')
             fi
         }
 

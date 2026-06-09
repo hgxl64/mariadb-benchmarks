@@ -108,7 +108,11 @@ mkdir -p ${LOGDIRECTORY}
             echo "    ===== Install Driver Pack =====  [ $(date -u +'%Y-%m-%d %H:%M:%S') ]"
             time {
                 ssh $(get_ssh_connection ${CLUSTER} ${DRIVER}) '
-                    [[ -d /data/cbench ]] || mkdir -p /data/cbench/driver'
+                    if [[ ! -d /data/cbench ]] ; then
+                        sudo mkdir -p /data/cbench
+                        sudo chown -R $(whoami) /data/cbench
+                    fi
+                '
                 scp -r $(get_scp_copy_to_connection ${CLUSTER} ${DRIVER} ${CBENCH_HOME}/driver /data/cbench/)
                 [[ $? -ne 0 ]] && { echo "scp command failed"; exit 1; }
             }
