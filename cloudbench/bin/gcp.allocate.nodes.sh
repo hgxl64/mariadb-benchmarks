@@ -76,7 +76,7 @@ while [[ $# > 0 ]] ; do
 done
 
 
-source ${CBENCH_HOME}/conf/gcp.conf
+source ${CBENCH_HOME}/config/gcp.conf
 
 [[ ${NUMOFSERVERS} ]] || NUMOFSERVERS=0
 [[ ${NUMOFDRIVERS} ]] || NUMOFDRIVERS=0
@@ -178,9 +178,9 @@ done
                 COMMAND="${COMMAND} --image-family=${IMAGE_FAMILY} --image-project=${IMAGE_PROJECT}"
                 # instance type
                 if (( ${N} == 0 )) ; then
-                    COMMAND="${COMMAND} --machine-type=${SERVER1_INSTANCE_TYPE}"
+                    COMMAND="${COMMAND} --machine-type=${SERVER1_INSTANCE_TYPE} --min-cpu-platform=Automatic"
                 else
-                    COMMAND="${COMMAND} --machine-type=${SERVER_INSTANCE_TYPE}"
+                    COMMAND="${COMMAND} --machine-type=${SERVER_INSTANCE_TYPE} --min-cpu-platform=Automatic"
                 fi
                 # persistent disk
                 [[ ${PERSISTENTDISK} ]] && {
@@ -194,8 +194,6 @@ done
                 done
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
-                # tags
-                #COMMAND="${COMMAND} --tags='owner:axel@mariadb.com','description:member of cbench cluster ${CLUSTER}'"
 
                 echo "${COMMAND}"
                 echo ${COMMAND} | bash
@@ -212,11 +210,9 @@ done
                 # boot image
                 COMMAND="${COMMAND} --image-family=${IMAGE_FAMILY} --image-project=${IMAGE_PROJECT}"
                 # instance type
-                COMMAND="${COMMAND} --machine-type=${MAXSCALE_INSTANCE_TYPE}"
+                COMMAND="${COMMAND} --machine-type=${MAXSCALE_INSTANCE_TYPE} --min-cpu-platform=Automatic"
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
-                # tags
-                #COMMAND="${COMMAND} --tags='owner:axel@mariadb.com','description:member of cbench cluster ${CLUSTER}'"
 
                 echo "${COMMAND}"
                 echo ${COMMAND} | bash
@@ -231,11 +227,9 @@ done
                 # boot image - our driver image
                 COMMAND="${COMMAND} --source-machine-image=${DRIVER_IMAGE}"
                 # instance type
-                COMMAND="${COMMAND} --machine-type=${DRIVER_INSTANCE_TYPE}"
+                COMMAND="${COMMAND} --machine-type=${DRIVER_INSTANCE_TYPE} --min-cpu-platform=Automatic"
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
-                # tags
-                #COMMAND="${COMMAND} --tags='owner:axel@mariadb.com','description:member of cbench cluster ${CLUSTER}'"
 
                 echo "${COMMAND}"
                 echo ${COMMAND} | bash
