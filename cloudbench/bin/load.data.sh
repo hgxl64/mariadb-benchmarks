@@ -317,7 +317,7 @@ time {
                         [[ ${STREAMS} ]] || STREAMS=${SYSBENCH_TABLES}
                         COMMAND="sysbench /data/cbench/driver/lua/${SYSBENCH_SCRIPT} $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER})"
                         COMMAND="${COMMAND} --mysql-db=${SCHEMA}"
-                        COMMAND="${COMMAND} --table-size=${SYSBENCH_TABLE_SIZE} --tables=${SYSBENCH_TABLES} --threads=${STREAMS} ${SYSBENCH_OPTIONS}"
+                        COMMAND="${COMMAND} --table-size=${SYSBENCH_TABLESIZE} --tables=${SYSBENCH_TABLES} --threads=${STREAMS} ${SYSBENCH_OPTIONS}"
                         [[ ${OPTION_ENGINE} ]] && COMMAND="${COMMAND} --mysql_storage_engine=${OPTION_ENGINE}"
                         [[ ${OPTION_CHARSET} ]] && COMMAND="${COMMAND} --create_table_options=DEFAULT CHARSET=${OPTION_CHARSET}"
                         [[ ${OPTION_NOAUTOINC} ]] && COMMAND="${COMMAND} --auto-inc=off"
