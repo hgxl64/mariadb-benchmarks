@@ -801,10 +801,10 @@ gather_after_data() {
                 wait ${BACKGROUND_PIDS[*]}
             } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.after.data.log 2>&1
 
-            START_CPU=$(cat ${LOGDIRECTORY}/data/before/proc.stat.*.txt | grep '^cpu ' | awk '{ cpu = cpu + $2 + $3 + $4 + $7 + $8 }; END { print cpu }')
+            START_CPU=$(cat ${LOGDIRECTORY}/data/before/*/proc.stat.txt | grep '^cpu ' | awk '{ cpu = cpu + $2 + $3 + $4 + $7 + $8 }; END { print cpu }')
             [[ ${START_CPU} ]] || START_CPU=0
             echo "    Start CPU = ${START_CPU} "
-            STOP_CPU=$(cat ${LOGDIRECTORY}/data/after/proc.stat.*.txt | grep '^cpu ' | awk '{ cpu = cpu + $2 + $3 + $4 + $7 + $8 }; END { print cpu }')
+            STOP_CPU=$(cat ${LOGDIRECTORY}/data/after/*/proc.stat.txt | grep '^cpu ' | awk '{ cpu = cpu + $2 + $3 + $4 + $7 + $8 }; END { print cpu }')
             [[ ${STOP_CPU} ]] || STOP_CPU=0
             echo "    Stop CPU = ${STOP_CPU} "
             TOTAL_CPU_PATH_LENGTH=$(( ${STOP_CPU} - ${START_CPU} ))

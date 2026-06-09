@@ -212,10 +212,6 @@ time {
         echo "    WORKLOAD = ${WORKLOAD}"
 
         echo
-        echo "    ===== Set Global Variables =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-        time set_global_variables
-
-        echo
         echo "    ===== Gather Pretest Snapshot =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time gather_pretest_snapshot ${CLUSTER}
 
@@ -522,10 +518,6 @@ time {
         echo
         echo "        ===== Generate Interval Graph =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time generate_interval_graph;
-
-        echo
-        echo "        ===== Reset Global Variables =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-        time reset_global_variables;
 
         if [[ ${PROFILE_TYPE} ]] ; then
             echo
