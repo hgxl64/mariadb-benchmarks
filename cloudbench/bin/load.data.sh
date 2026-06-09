@@ -209,7 +209,7 @@ time {
                         VUSER=$(ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) 'cat /proc/cpuinfo' | grep -c processor | awk '{ print int($1) }')
                         [[ ${OPTION_ENGINE} ]] || OPTION_ENGINE='innodb'
 
-                        SCRIPT="/tmp/load-tprocc.tcl"
+                        SCRIPT="/data/cbench/load-tprocc.tcl"
 
                         if [[ ${DATABASE} == 'mariadb' ]] ; then
                             ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
@@ -222,7 +222,6 @@ time {
                                 VUSER="'${VUSER}'"
                                 SCRIPT="'${SCRIPT}'"
                                 ENGINE="'${OPTION_ENGINE}'"
-                                PREPARED="'${PREPARED}'"
                                 PARTITION="'${PARTITION}'"
                                 [[ -f ${SCRIPT} ]] && rm -f ${SCRIPT}
                                 echo "dbset db maria"                         >> ${SCRIPT}
@@ -234,16 +233,12 @@ time {
                                 echo "diset tpcc maria_engine ${ENGINE}"      >> ${SCRIPT}
                                 echo "diset tpcc maria_count_ware ${DBSCALE}" >> ${SCRIPT}
                                 echo "diset tpcc maria_num_vu ${VUSER}"       >> ${SCRIPT}
-                                if [[ ${PREPARED} == TRUE ]] ; then
-                                    echo "diset tpcc maria_prepared true"     >> ${SCRIPT}
-                                fi
                                 if [[ ${PARTITION} == TRUE ]] ; then
                                     echo "diset tpcc maria_partition true"    >> ${SCRIPT}
                                 fi
                                 echo "diset tpcc maria_raiseerror true"       >> ${SCRIPT}
                                 echo "print dict"                             >> ${SCRIPT}
                                 echo "buildschema"                            >> ${SCRIPT}
-                                echo "waittocomplete"                         >> ${SCRIPT}
                                 echo
                                 echo "    ===== TCL script ${SCRIPT} created for MariaDB ====="
                                 echo
@@ -263,10 +258,13 @@ time {
                             echo "    Driver: $(uname -n)"
                             echo "    COMMAND = ${COMMAND}"
                             echo
-                            cd ClustrixBench
-                            cd clustrixbench/tools/hammerdb
-                            ${COMMAND}
-                            '
+                            cd /data/cbench/HammerDB-5.0
+                            [[ -d tmp ]] && rm -rf tmp
+                            mkdir tmp
+                            TMP=$(pwd)/tmp ${COMMAND}
+                            rm -rf tmp
+                        '
+                        scp $(get_scp_copy_from_connection ${CLUSTER} ${DRIVER_NODE} ${SCRIPT} ${LOGDIRECTORY}/. )
                         ;;
 
                     sysbench-tpcc)
