@@ -179,14 +179,8 @@ done
                 # instance type
                 if (( ${N} == 0 )) ; then
                     COMMAND="${COMMAND} --machine-type=${SERVER1_INSTANCE_TYPE}"
-                    [[ ${SERVER1_INSTANCE_TYPE} == n1-standard-* ]] && {
-                        COMMAND="${COMMAND} --min-cpu-platform='Intel Skylake'"
-                    }
                 else
                     COMMAND="${COMMAND} --machine-type=${SERVER_INSTANCE_TYPE}"
-                    [[ ${SERVER_INSTANCE_TYPE} == n1-standard-* ]] && {
-                        COMMAND="${COMMAND} --min-cpu-platform='Intel Skylake'"
-                    }
                 fi
                 # persistent disk
                 [[ ${PERSISTENTDISK} ]] && {
@@ -219,9 +213,6 @@ done
                 COMMAND="${COMMAND} --image-family=${IMAGE_FAMILY} --image-project=${IMAGE_PROJECT}"
                 # instance type
                 COMMAND="${COMMAND} --machine-type=${MAXSCALE_INSTANCE_TYPE}"
-                [[ ${MAXSCALE_INSTANCE_TYPE} == n1-standard-* ]] && {
-                    COMMAND="${COMMAND} --min-cpu-platform='Intel Skylake'"
-                }
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
                 # tags
@@ -241,9 +232,6 @@ done
                 COMMAND="${COMMAND} --source-machine-image=${DRIVER_IMAGE}"
                 # instance type
                 COMMAND="${COMMAND} --machine-type=${DRIVER_INSTANCE_TYPE}"
-                [[ ${DRIVER_INSTANCE_TYPE} == n1-standard-* ]] && {
-                    COMMAND="${COMMAND} --min-cpu-platform='Intel Skylake'"
-                }
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
                 # tags
