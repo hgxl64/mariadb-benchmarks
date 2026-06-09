@@ -657,7 +657,7 @@ mkdir -p ${LOGDIRECTORY}
         echo "    ===== Waiting for database to initialize =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S') ]"
         time {
             if [[ ${DATABASE} == 'mariadb' ]] ; then
-                while (( $( ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '/data/cbench/install/bin/mariadb -vvv -e "select version();"' 2>&1 | grep 'MariaDB' | wc -l ) == 0 )) ; do
+                while (( $( ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '/data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e "select version();"' 2>&1 | grep 'MariaDB' | wc -l ) == 0 )) ; do
                     echo -n "."
                     sleep 1
                 done
@@ -672,7 +672,7 @@ mkdir -p ${LOGDIRECTORY}
             if [[ ${DATABASE} == 'mariadb' ]] ; then
                 ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "
                     uname -n
-                    /data/cbench/install/bin/mariadb -u root -vvv -e\"
+                    /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
                         create user '${DB_USER}'@'%' identified by '${DB_PASSWORD}' ;
                         grant all on *.* to '${DB_USER}'@'%' with grant option;
                         grant reload on *.* to '${DB_USER}'@'%' with grant option;
@@ -686,7 +686,7 @@ mkdir -p ${LOGDIRECTORY}
         else
            ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "
                uname -n
-               /data/cbench/install/bin/mariadb -u root -vvv -e\"
+               /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
                    create user '${DB_USER}'@'%';
                    grant all on *.* to '${DB_USER}'@'%' with grant option;
                    grant reload on *.* to '${DB_USER}'@'%' with grant option;

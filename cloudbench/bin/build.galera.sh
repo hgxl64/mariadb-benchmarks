@@ -206,7 +206,7 @@ innodb_autoinc_lock_mode = 2
             echo
             echo "            Check Node = ${IDX} - mariadb"
             echo
-            ssh $(get_ssh_connection ${SYSTEM} ${GALERA_EXTERNAL_IPS[${IDX}]}) "/data/cbench/install/bin/mariadb -vvv -u root -e \"show global status like 'wsrep_cluster_size';\""
+            ssh $(get_ssh_connection ${SYSTEM} ${GALERA_EXTERNAL_IPS[${IDX}]}) "/data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e \"show global status like 'wsrep_cluster_size';\""
             echo
             echo "            Check Node = ${IDX} - error.log"
             echo
@@ -216,7 +216,7 @@ innodb_autoinc_lock_mode = 2
         echo
         echo "    ===== Database Security =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         ssh $(get_ssh_connection ${SYSTEM} ${GALERA_EXTERNAL_IPS[0]}) "
-            /data/cbench/install/bin/mariadb -u root -vvv -e\"
+            /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
                 create user '${DB_USER}'@'%' identified by '${DB_PASSWORD}';
                 grant all on *.* to '${DB_USER}'@'%' with grant option;
                 grant reload on *.* to '${DB_USER}'@'%' with grant option;

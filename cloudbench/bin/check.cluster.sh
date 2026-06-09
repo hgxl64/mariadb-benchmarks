@@ -80,7 +80,7 @@ mkdir -p ${LOGDIRECTORY}
         done
         echo "        DB Version per Node"
         for NODE in ${CLUSTER_NODES[*]} ; do
-            echo "            ${NODE} : $(ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "/data/cbench/install/bin/mariadb -sN -e 'select version()'" 2>/dev/null)"
+            echo "            ${NODE} : $(ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "/data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -sN -e 'select version()'" 2>/dev/null)"
         done
     fi
 
