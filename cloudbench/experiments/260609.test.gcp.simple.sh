@@ -35,11 +35,12 @@ echo "Version : $(get_database_version ${CLUSTER})"
 
 echo "sysbench"
 sysbench.load.sh --cluster ${CLUSTER} --skipcheck --load
-sysbench.curves.sh --cluster test --workload oltp_read_write --start_streams 1 --repeats 3
+sysbench.curve.sh --cluster ${CLUSTER} --skipcheck --workload oltp_read_write --start_streams 1
 
 echo "HammerDB"
-load.data.sh --cluster test --benchmark tproc-c --skipcheck --dbscale 16 --load
-hammerdb.run.sh --cluster test --skipcheck --dbscale 32 --streams 4
-hammerdb.run.sh --cluster test --skipcheck --dbscale 32 --streams 8
-hammerdb.run.sh --cluster test --skipcheck --dbscale 32 --streams 16
+load.data.sh --cluster ${CLUSTER} --benchmark tproc-c --skipcheck --dbscale 16 --load
+hammerdb.run.sh --cluster ${CLUSTER} --skipcheck --dbscale 32 --streams 4
+hammerdb.run.sh --cluster ${CLUSTER} --skipcheck --dbscale 32 --streams 8
+hammerdb.run.sh --cluster ${CLUSTER} --skipcheck --dbscale 32 --streams 16
 
+gcp.release.nodes.sh --cluster ${CLUSTER}
