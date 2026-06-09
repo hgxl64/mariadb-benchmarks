@@ -638,15 +638,14 @@ mkdir -p ${LOGDIRECTORY}
 
         time {
             if [[ ${DATABASE} == 'mariadb' ]] ; then
-                    time ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
-                        uname -n
-                        export PATH=/data/cbench/install/bin:/data/cbench/install/scripts:${PATH}
-                        mariadb-install-db --auth-root-authentication-method=normal
-                        mariadbd-safe &
-                        sleep 5
-                        cat /data/cbench/datadir/error.log
-                     '
-                fi
+                time ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+                    uname -n
+                    export PATH=/data/cbench/install/bin:/data/cbench/install/scripts:${PATH}
+                    mariadb-install-db --auth-root-authentication-method=normal
+                    mariadbd-safe &
+                    sleep 5
+                    cat /data/cbench/datadir/error.log
+                 '
             fi
         } 2>&1 | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).start.database.log
 
