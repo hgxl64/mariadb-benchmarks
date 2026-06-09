@@ -79,7 +79,7 @@ done
 [[ ${DRIVER_INSTANCE_TYPE} ]] || DRIVER_INSTANCE_TYPE='n2-standard-4'
 
 # gcp defaults
-source ${CBENCH_HOME}/conf/gcp.conf
+source ${CBENCH_HOME}/config/gcp.conf
 
 
 [[ ${TOPOLOGY} ]] || TOPOLOGY='mariadb_standalone'

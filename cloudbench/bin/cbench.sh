@@ -886,7 +886,7 @@ gather_pretest() {
                     mariadb.snapshot.sh --cluster ${SYSTEM} &
                     BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
                 done
-                for SYSTEM in $(get_property ${localSYSTEM} maxscale.systems)) ; do
+                for SYSTEM in $(get_property ${localSYSTEM} maxscale.systems) ; do
                     maxscale.snapshot.sh --cluster ${SYSTEM} &
                     BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
                 done
@@ -929,7 +929,7 @@ gather_posttest() {
                     mariadb.snapshot.sh --cluster ${SYSTEM} &
                     BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
                 done
-                for SYSTEM in $(get_property ${localSYSTEM} maxscale.systems)) ; do
+                for SYSTEM in $(get_property ${localSYSTEM} maxscale.systems) ; do
                     maxscale.snapshot.sh --cluster ${SYSTEM} &
                     BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
                 done
@@ -950,6 +950,7 @@ gather_posttest_snapshot() {
 }
 
 begin_pathlength() {
+    echo 0
 }
 
 calculate_pathlength() {
