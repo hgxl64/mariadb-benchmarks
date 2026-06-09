@@ -297,7 +297,12 @@ time {
                         echo
                         echo "    ===== Load Data =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S') ]"
                         echo "        COMMAND = ${COMMAND}"
-                        time ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '${COMMAND}'
+                        time ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
+                            COMMAND="'${COMMAND}'"
+                            echo "    Driver: $(uname -n)"
+                            echo "    COMMAND = ${COMMAND}"
+                            ${COMMAND}
+                        '
                         ;;
 
                     sysbench)
@@ -331,7 +336,12 @@ time {
                         echo "        Driver Connection : ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER})"
                         echo "        COMMAND = ${COMMAND}"
 
-                        time ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '${COMMAND}'
+                        time ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
+                            COMMAND="'${COMMAND}'"
+                            echo "    Driver: $(uname -n)"
+                            echo "    COMMAND = ${COMMAND}"
+                            ${COMMAND}
+                        '
                         ;;
 
                     *) echo "Unsupported Benchmark for loading from data generator : BENCHMARK = ${BENCHMARK}"; echo -e "$USAGE"; exit 1;;
