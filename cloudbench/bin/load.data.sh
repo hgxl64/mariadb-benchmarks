@@ -224,21 +224,21 @@ time {
                                 ENGINE="'${OPTION_ENGINE}'"
                                 PARTITION="'${PARTITION}'"
                                 [[ -f ${SCRIPT} ]] && rm -f ${SCRIPT}
-                                echo "dbset db maria"                         >> ${SCRIPT}
-                                echo "diset connection maria_host ${DBHOST}"  >> ${SCRIPT}
-                                echo "diset connection maria_port ${DBPORT}"  >> ${SCRIPT}
-                                echo "diset tpcc maria_user ${DBUSER}"        >> ${SCRIPT}
-                                echo "diset tpcc maria_pass ${DBPASS}"        >> ${SCRIPT}
-                                echo "diset tpcc maria_dbase ${SCHEMA}"       >> ${SCRIPT}
-                                echo "diset tpcc maria_engine ${ENGINE}"      >> ${SCRIPT}
-                                echo "diset tpcc maria_count_ware ${DBSCALE}" >> ${SCRIPT}
-                                echo "diset tpcc maria_num_vu ${VUSER}"       >> ${SCRIPT}
+                                echo "dbset db maria"                            >> ${SCRIPT}
+                                echo "diset connection maria_host ${DBHOST}"     >> ${SCRIPT}
+                                echo "diset connection maria_port ${DBPORT}"     >> ${SCRIPT}
+                                echo "diset tpcc maria_dbase ${SCHEMA}"          >> ${SCRIPT}
+                                echo "diset tpcc maria_user ${DBUSER}"           >> ${SCRIPT}
+                                echo "diset tpcc maria_pass ${DBPASS}"           >> ${SCRIPT}
+                                echo "diset tpcc maria_storage_engine ${ENGINE}" >> ${SCRIPT}
+                                echo "diset tpcc maria_count_ware ${DBSCALE}"    >> ${SCRIPT}
+                                echo "diset tpcc maria_num_vu ${VUSER}"          >> ${SCRIPT}
                                 if [[ ${PARTITION} == TRUE ]] ; then
-                                    echo "diset tpcc maria_partition true"    >> ${SCRIPT}
+                                    echo "diset tpcc maria_partition true"       >> ${SCRIPT}
                                 fi
-                                echo "diset tpcc maria_raiseerror true"       >> ${SCRIPT}
-                                echo "print dict"                             >> ${SCRIPT}
-                                echo "buildschema"                            >> ${SCRIPT}
+                                echo "diset tpcc maria_raiseerror true"          >> ${SCRIPT}
+                                echo "print dict"                                >> ${SCRIPT}
+                                echo "buildschema"                               >> ${SCRIPT}
                                 echo
                                 echo "    ===== TCL script ${SCRIPT} created for MariaDB ====="
                                 echo
@@ -247,7 +247,7 @@ time {
                             '
                         fi
 
-	                COMMAND="./hammerdbcli auto ${SCRIPT}"
+                        COMMAND="./hammerdbcli auto ${SCRIPT}"
 
                         echo
                         echo "    ===== Load Data =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S') ]"
