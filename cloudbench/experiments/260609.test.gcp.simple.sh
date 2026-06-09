@@ -15,8 +15,8 @@ fi
 mkdir -p ${LOGDIRECTORY}
 
 gcp.allocate.nodes.sh --cluster ${CLUSTER} \
- --server-nodes 1 --server-type n2-standard-2 \
- --driver-nodes 1 --driver-type n2-standard-1
+ --server-nodes 1 --server-type n1-standard-2 \
+ --driver-nodes 1 --driver-type n1-standard-1
 
 SYSTEMS=( $(get_property ${CLUSTER} systems) )
 echo
