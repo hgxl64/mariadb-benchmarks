@@ -6,6 +6,8 @@ export CBENCH_HOME=$PWD
 export CBENCH_LOG_HOME=${CBENCH_HOME}/log
 export PATH=${CBENCH_HOME}/experiments:${CBENCH_HOME}/bin:${PATH}
 
+source ${CBENCH_HOME}/config/global.conf
+
 #
 # modify prompt
 #
