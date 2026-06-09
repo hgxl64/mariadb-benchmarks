@@ -1,11 +1,11 @@
 #!/bin/bash
 
+source ${CBENCH_HOME}/bin/cbench.sh
+
 set -e
 set -u
 
 export CLUSTER='test'
-
-source ${CBENCH_HOME}/bin/cbench.sh
 
 # gcp defaults
 source ${CBENCH_HOME}/config/gcp.conf
