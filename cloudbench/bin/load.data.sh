@@ -202,7 +202,7 @@ time {
                             show tables;
                             "
 
-                        DBHOST=$(get_database_host ${CLUSTER})
+                        DBHOST=$(get_database_internal_host ${CLUSTER})
                         DBPORT=$(get_database_port ${CLUSTER})
                         DBUSER=$(get_database_user ${CLUSTER})
                         DBPASS=$(get_database_password ${CLUSTER})
