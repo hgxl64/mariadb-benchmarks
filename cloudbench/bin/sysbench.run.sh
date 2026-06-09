@@ -217,16 +217,6 @@ time {
 
         echo
         echo "    WORKLOAD = ${WORKLOAD}"
-        if [[ ${WORKLOAD} == 'oltp_insert' ]] ; then
-            echo
-            echo "    ===== oltp_insert Workload - Create/Truncate table(s) =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-            time for (( IDX = 1 ; IDX <= ${NUMOFDRIVERS} ; IDX++ )) ; do
-                echo "create schema if not exists ${SCHEMA}_${IDX};" | sqlci
-                echo "drop table if exists ${SCHEMA}_${IDX}.sbtest1;"
-                echo "create table ${SCHEMA}_${IDX}.sbtest1 ( id int(11), k int(11), c char(120), pad char(60), primary key (id) );" | sqlci
-                (( ${NUMOFNODES} < 32 )) && echo "alter table ${SCHEMA}_${IDX}.sbtest1 slices=32;" | sqlci
-            done
-        fi
 
         echo
         echo "    ===== Set Global Variables =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
@@ -295,7 +285,7 @@ time {
                 case ${SYSBENCH_DRIVER} in
 
                     sysbench-tpcc)
-                        COMMAND="sysbench-eh tpcc --time=${DURATION} --scale=${DBSCALE} ${SYSBENCH_OPTIONS}"
+                        COMMAND="sysbench-eh /data/cbench/driver/lua/tpcc.lua --time=${DURATION} --scale=${DBSCALE} ${SYSBENCH_OPTIONS}"
                         [[ ${REPORT_INTERVAL} ]] && COMMAND="${COMMAND} --report-interval=${REPORT_INTERVAL}"
                         [[ ${TABLES} ]] && COMMAND="${COMMAND} --tables=${TABLES}"
                         [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --mysql-ssl=on"
@@ -307,78 +297,78 @@ time {
 
                         COMMAND='sysbench-eh'
                         case ${WORKLOAD} in
-                            pointselect)        COMMAND="${COMMAND} oltp_read_write --point-selects=1 --range_selects=false --index_updates=0 --non-index_updates=0 --delete_inserts=0 --skip-trx=on";;
-                            pointupdate)        COMMAND="${COMMAND} oltp_read_write --point-selects=0 --range_selects=false --index_updates=0 --non-index_updates=1 --delete_inserts=0 --skip-trx=on";;
-                            rangequeries)       COMMAND="${COMMAND} oltp_read_write --point-selects=0 --range_selects=true --index_updates=0 --non-index_updates=0 --delete_inserts=0 --skip-trx=on";;
-                            norangequeries)     COMMAND="${COMMAND} oltp_read_write --range_selects=false";;
-                            1000|100-0)         COMMAND="${COMMAND} oltp_read_write --point-selects=10 --range-selects=false --index-updates=0 --non-index-updates=0 --delete-inserts=0";;
-                            9010|90-10)         COMMAND="${COMMAND} oltp_read_write --point-selects=9 --range-selects=false --index-updates=0 --non-index-updates=1 --delete-inserts=0";;
-                            8020|80-20)         COMMAND="${COMMAND} oltp_read_write --point-selects=8 --range-selects=false --index-updates=0 --non-index-updates=2 --delete-inserts=0";;
-                            7030|70-30)         COMMAND="${COMMAND} oltp_read_write --point-selects=7 --range-selects=false --index-updates=0 --non-index-updates=3 --delete-inserts=0";;
-                            6040|60-40)         COMMAND="${COMMAND} oltp_read_write --point-selects=6 --range-selects=false --index-updates=0 --non-index-updates=4 --delete-inserts=0";;
-                            5050|50-50)         COMMAND="${COMMAND} oltp_read_write --point-selects=5 --range-selects=false --index-updates=0 --non-index-updates=5 --delete-inserts=0";;
-                            4060|40-60)         COMMAND="${COMMAND} oltp_read_write --point-selects=4 --range-selects=false --index-updates=0 --non-index-updates=6 --delete-inserts=0";;
-                            3070|30-70)         COMMAND="${COMMAND} oltp_read_write --point-selects=3 --range-selects=false --index-updates=0 --non-index-updates=7 --delete-inserts=0";;
-                            2080|20-80)         COMMAND="${COMMAND} oltp_read_write --point-selects=2 --range-selects=false --index-updates=0 --non-index-updates=8 --delete-inserts=0";;
-                            1090|10-90)         COMMAND="${COMMAND} oltp_read_write --point-selects=1 --range-selects=false --index-updates=0 --non-index-updates=9 --delete-inserts=0";;
-                            0010|0100|0-100)    COMMAND="${COMMAND} oltp_read_write --point-selects=0 --range-selects=false --index-updates=0 --non-index-updates=10 --delete-inserts=0";;
-                            5050index)          COMMAND="${COMMAND} oltp_read_write --point-selects=5 --range-selects=false --index-updates=5 --non-index-updates=0 --delete-inserts=0";;
-                            readonly)           COMMAND="${COMMAND} oltp_read_only";;
-                            writeonly)          COMMAND="${COMMAND} oltp_write_only";;
-                            readwrite)          COMMAND="${COMMAND} oltp_read_write";;
+                            pointselect)        COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --point-selects=1 --range_selects=false --index_updates=0 --non-index_updates=0 --delete_inserts=0 --skip-trx=on";;
+                            pointupdate)        COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --point-selects=0 --range_selects=false --index_updates=0 --non-index_updates=1 --delete_inserts=0 --skip-trx=on";;
+                            rangequeries)       COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --point-selects=0 --range_selects=true --index_updates=0 --non-index_updates=0 --delete_inserts=0 --skip-trx=on";;
+                            norangequeries)     COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --range_selects=false";;
+                            1000|100-0)         COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --point-selects=10 --range-selects=false --index-updates=0 --non-index-updates=0 --delete-inserts=0";;
+                            9010|90-10)         COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --point-selects=9 --range-selects=false --index-updates=0 --non-index-updates=1 --delete-inserts=0";;
+                            8020|80-20)         COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --point-selects=8 --range-selects=false --index-updates=0 --non-index-updates=2 --delete-inserts=0";;
+                            7030|70-30)         COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --point-selects=7 --range-selects=false --index-updates=0 --non-index-updates=3 --delete-inserts=0";;
+                            6040|60-40)         COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --point-selects=6 --range-selects=false --index-updates=0 --non-index-updates=4 --delete-inserts=0";;
+                            5050|50-50)         COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --point-selects=5 --range-selects=false --index-updates=0 --non-index-updates=5 --delete-inserts=0";;
+                            4060|40-60)         COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --point-selects=4 --range-selects=false --index-updates=0 --non-index-updates=6 --delete-inserts=0";;
+                            3070|30-70)         COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --point-selects=3 --range-selects=false --index-updates=0 --non-index-updates=7 --delete-inserts=0";;
+                            2080|20-80)         COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --point-selects=2 --range-selects=false --index-updates=0 --non-index-updates=8 --delete-inserts=0";;
+                            1090|10-90)         COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --point-selects=1 --range-selects=false --index-updates=0 --non-index-updates=9 --delete-inserts=0";;
+                            0010|0100|0-100)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --point-selects=0 --range-selects=false --index-updates=0 --non-index-updates=10 --delete-inserts=0";;
+                            5050index)          COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --point-selects=5 --range-selects=false --index-updates=5 --non-index-updates=0 --delete-inserts=0";;
+                            readonly)           COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_only.lua";;
+                            writeonly)          COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_write_only.lua";;
+                            readwrite)          COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua";;
 
                             # workloads are LUA script names
-                            bulk_insert)            COMMAND="${COMMAND} ${WORKLOAD}";;
-                            oltp_delete)            COMMAND="${COMMAND} ${WORKLOAD}";;
-                            oltp_insert)            COMMAND="${COMMAND} ${WORKLOAD}";;
-                            oltp_point_select)      COMMAND="${COMMAND} ${WORKLOAD}";;
-                            oltp_read_only)         COMMAND="${COMMAND} ${WORKLOAD}";;
-                            oltp_read_write)        COMMAND="${COMMAND} ${WORKLOAD}";;
-                            oltp_update_index)      COMMAND="${COMMAND} ${WORKLOAD}";;
-                            oltp_update_index2)     COMMAND="${COMMAND} ${WORKLOAD}";;
-                            oltp_update_non_index)  COMMAND="${COMMAND} ${WORKLOAD}";;
-                            oltp_update_non_index2) COMMAND="${COMMAND} ${WORKLOAD}";;
-                            oltp_write_only)        COMMAND="${COMMAND} ${WORKLOAD}";;
-                            select_random_points)   COMMAND="${COMMAND} ${WORKLOAD}";;
-                            select_random_ranges)   COMMAND="${COMMAND} ${WORKLOAD}";;
+                            bulk_insert)            COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            oltp_delete)            COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            oltp_insert)            COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            oltp_point_select)      COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            oltp_read_only)         COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            oltp_read_write)        COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            oltp_update_index)      COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            oltp_update_index2)     COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            oltp_update_non_index)  COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            oltp_update_non_index2) COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            oltp_write_only)        COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            select_random_points)   COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            select_random_ranges)   COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
 
                             # splittable workloads for replication/galera
-                            ro_splittable)      COMMAND="${COMMAND} oltp_read_write_split";;
-                            9010_splittable)    COMMAND="${COMMAND} oltp_read_write_split --write-percentage=10";;
-                            8020_splittable)    COMMAND="${COMMAND} oltp_read_write_split --write-percentage=20";;
-                            7525_splittable)    COMMAND="${COMMAND} oltp_read_write_split --write-percentage=25";;
-                            7030_splittable)    COMMAND="${COMMAND} oltp_read_write_split --write-percentage=30";;
-                            6040_splittable)    COMMAND="${COMMAND} oltp_read_write_split --write-percentage=40";;
-                            5050_splittable)    COMMAND="${COMMAND} oltp_read_write_split --write-percentage=50";;
-                            4060_splittable)    COMMAND="${COMMAND} oltp_read_write_split --write-percentage=60";;
-                            3070_splittable)    COMMAND="${COMMAND} oltp_read_write_split --write-percentage=70";;
-                            2080_splittable)    COMMAND="${COMMAND} oltp_read_write_split --write-percentage=80";;
-                            1090_splittable)    COMMAND="${COMMAND} oltp_read_write_split --write-percentage=90";;
+                            ro_splittable)      COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua";;
+                            9010_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=10";;
+                            8020_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=20";;
+                            7525_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=25";;
+                            7030_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=30";;
+                            6040_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=40";;
+                            5050_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=50";;
+                            4060_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=60";;
+                            3070_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=70";;
+                            2080_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=80";;
+                            1090_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=90";;
                             # versions without range scans
-                            9010_split_nr)      COMMAND="${COMMAND} oltp_read_write_split --write-percentage=10 --range-selects=false";;
-                            8020_split_nr)      COMMAND="${COMMAND} oltp_read_write_split --write-percentage=20 --range-selects=false";;
-                            7525_split_nr)      COMMAND="${COMMAND} oltp_read_write_split --write-percentage=25 --range-selects=false";;
-                            7030_split_nr)      COMMAND="${COMMAND} oltp_read_write_split --write-percentage=30 --range-selects=false";;
-                            6040_split_nr)      COMMAND="${COMMAND} oltp_read_write_split --write-percentage=40 --range-selects=false";;
-                            5050_split_nr)      COMMAND="${COMMAND} oltp_read_write_split --write-percentage=50 --range-selects=false";;
-                            4060_split_nr)      COMMAND="${COMMAND} oltp_read_write_split --write-percentage=60 --range-selects=false";;
-                            3070_split_nr)      COMMAND="${COMMAND} oltp_read_write_split --write-percentage=70 --range-selects=false";;
-                            2080_split_nr)      COMMAND="${COMMAND} oltp_read_write_split --write-percentage=80 --range-selects=false";;
-                            1090_split_nr)      COMMAND="${COMMAND} oltp_read_write_split --write-percentage=90 --range-selects=false";;
+                            9010_split_nr)      COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=10 --range-selects=false";;
+                            8020_split_nr)      COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=20 --range-selects=false";;
+                            7525_split_nr)      COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=25 --range-selects=false";;
+                            7030_split_nr)      COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=30 --range-selects=false";;
+                            6040_split_nr)      COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=40 --range-selects=false";;
+                            5050_split_nr)      COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=50 --range-selects=false";;
+                            4060_split_nr)      COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=60 --range-selects=false";;
+                            3070_split_nr)      COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=70 --range-selects=false";;
+                            2080_split_nr)      COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=80 --range-selects=false";;
+                            1090_split_nr)      COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=90 --range-selects=false";;
                             # and alternate names
-                            wl1_9010)           COMMAND="${COMMAND} oltp_read_write_split --write-percentage=10";;
-                            wl1_8020)           COMMAND="${COMMAND} oltp_read_write_split --write-percentage=20";;
-                            wl1_7525)           COMMAND="${COMMAND} oltp_read_write_split --write-percentage=25";;
-                            wl1_7030)           COMMAND="${COMMAND} oltp_read_write_split --write-percentage=30";;
-                            wl1_6040)           COMMAND="${COMMAND} oltp_read_write_split --write-percentage=40";;
-                            wl1_5050)           COMMAND="${COMMAND} oltp_read_write_split --write-percentage=50";;
-                            wl2_9010)           COMMAND="${COMMAND} oltp_read_write_split --write-percentage=10 --range-selects=false";;
-                            wl2_8020)           COMMAND="${COMMAND} oltp_read_write_split --write-percentage=20 --range-selects=false";;
-                            wl2_7525)           COMMAND="${COMMAND} oltp_read_write_split --write-percentage=25 --range-selects=false";;
-                            wl2_7030)           COMMAND="${COMMAND} oltp_read_write_split --write-percentage=30 --range-selects=false";;
-                            wl2_6040)           COMMAND="${COMMAND} oltp_read_write_split --write-percentage=40 --range-selects=false";;
-                            wl2_5050)           COMMAND="${COMMAND} oltp_read_write_split --write-percentage=50 --range-selects=false";;
-                            *)                  COMMAND="${COMMAND} ${WORKLOAD}";;
+                            wl1_9010)           COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=10";;
+                            wl1_8020)           COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=20";;
+                            wl1_7525)           COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=25";;
+                            wl1_7030)           COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=30";;
+                            wl1_6040)           COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=40";;
+                            wl1_5050)           COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=50";;
+                            wl2_9010)           COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=10 --range-selects=false";;
+                            wl2_8020)           COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=20 --range-selects=false";;
+                            wl2_7525)           COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=25 --range-selects=false";;
+                            wl2_7030)           COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=30 --range-selects=false";;
+                            wl2_6040)           COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=40 --range-selects=false";;
+                            wl2_5050)           COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=50 --range-selects=false";;
+                            *)                  COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
                         esac
 
                         [[ ${SKIP_TRANSACTION} ]] && COMMAND="${COMMAND} --skip-trx=on"
@@ -391,8 +381,6 @@ time {
                         [[ ${TABLESIZE} ]] && COMMAND="${COMMAND} --table-size=${TABLESIZE}"
 
                         COMMAND="${COMMAND} --time=${DURATION} ${SYSBENCH_OPTIONS}"
-                        [[ ${WORKLOAD} == 'oltp_insert' ]] && COMMAND="${COMMAND} --mysql-db=${SCHEMA}_${DRIVERID}"
-                        [[ ${WORKLOAD} == 'oltp_insert' ]] || COMMAND="${COMMAND} --mysql-db=${SCHEMA}"
                         # 190920  Added Errno 8005 - a tiDB write conflict
                         [[ ${OPTION_IGNORE_ERRORS} ]] && COMMAND="${COMMAND} --mysql-ignore-errors=1180,1213,1317,8005"
                         [[ ${OPTION_IGNORE_ALL_ERRORS} ]] && COMMAND="${COMMAND} --mysql-ignore-errors=all"
@@ -413,11 +401,6 @@ time {
                         SYSBENCH_DRIVER="'${SYSBENCH_DRIVER}'"
                         TIMEOUT="'${TIMEOUT}'"
                         uname -a
-                        cat /etc/system-release
-                        case $(cat /etc/system-release) in
-                            "CentOS release 6"*)            ulimit -n 20000; ulimit -u 4096;;
-                            "Amazon Linux AMI release"*)    ulimit -n 20000; ulimit -u 4096;;
-                        esac
                         echo
                         echo "        DRIVERID = ${DRIVERID}, DRIVER_NODE = $(uname -n) "
                         echo "        ulimit -n = $(ulimit -n),  ulimit -u = $(ulimit -u) "
