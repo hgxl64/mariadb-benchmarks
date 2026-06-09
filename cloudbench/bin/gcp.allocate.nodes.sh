@@ -106,7 +106,7 @@ mkdir -p ${LOGDIRECTORY}
 
 
 # set system ids based on cluster and number
-(( NUMOFNODES = ${NUMOFSERVERS} + ${NUMOFDRIVERS} + ${NUMOFMAXSCALE} + ${NUMOFMARIADB} ))
+(( NUMOFNODES = ${NUMOFSERVERS} + ${NUMOFDRIVERS} + ${NUMOFMAXSCALE} ))
 for (( IDX = 1 ; IDX <= ${NUMOFSERVERS} ; IDX++ )) ; do
     INSTANCE_IDS=( ${INSTANCE_IDS[*]} $(echo ${CLUSTER} | sed 's/\./-/g' | sed 's/_/-/g')-server-${IDX} )
     SERVER_INSTANCE_IDS=( ${SERVER_INSTANCE_IDS[*]} $(echo ${CLUSTER} | sed 's/\./-/g' | sed 's/_/-/g')-server-${IDX} )
@@ -201,7 +201,7 @@ done
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
                 # tags
-                COMMAND="${COMMAND} --tags='owner:axel@mariadb.com','description:member of cbench cluster ${CLUSTER}'"
+                #COMMAND="${COMMAND} --tags='owner:axel@mariadb.com','description:member of cbench cluster ${CLUSTER}'"
 
                 echo "${COMMAND}"
                 echo ${COMMAND} | bash
@@ -225,7 +225,7 @@ done
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
                 # tags
-                COMMAND="${COMMAND} --tags='owner:axel@mariadb.com','description:member of cbench cluster ${CLUSTER}'"
+                #COMMAND="${COMMAND} --tags='owner:axel@mariadb.com','description:member of cbench cluster ${CLUSTER}'"
 
                 echo "${COMMAND}"
                 echo ${COMMAND} | bash
