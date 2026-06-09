@@ -116,7 +116,7 @@ case ${BENCHMARK} in
         [[ ${DBSCALE} ]] || DBSCALE=10
         [[ ${SYSBENCH_TABLES} ]] || SYSBENCH_TABLES=${DBSCALE}
         [[ ${SYSBENCH_TABLESIZE} ]] || (( SYSBENCH_TABLESIZE = ${DBSCALE} * 1000000 / ${SYSBENCH_TABLES} ))
-        [[ ${SYSBENCH_SCRIPT} ]] || SYSBENCH_SCRIPT='oltp_read_write'
+        [[ ${SYSBENCH_SCRIPT} ]] || SYSBENCH_SCRIPT='oltp_read_write.lua'
         ;;
     *) echo "Unsupported Benchmark : BENCHMARK = ${BENCHMARK}"; echo -e "$USAGE"; exit 1;;
 esac
@@ -285,7 +285,7 @@ time {
                             "
                         [[ ${STREAMS} ]] || STREAMS=${SYSBENCH_TABLES}
 
-                        COMMAND="sysbench tpcc $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER}) --scale=${DBSCALE} --use_fk=0 ${SYSBENCH_OPTIONS}"
+                        COMMAND="sysbench /data/cbench/driver/lua/tpcc.lua $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER}) --scale=${DBSCALE} --use_fk=0 ${SYSBENCH_OPTIONS}"
                         [[ ${OPTION_ENGINE} ]] && COMMAND="${COMMAND} --mysql_storage_engine=${OPTION_ENGINE}"
                         [[ ${SYSBENCH_TABLES} ]] && COMMAND="${COMMAND} --tables=${SYSBENCH_TABLES} --threads=${SYSBENCH_TABLES}"
                         [[ ${OPTION_NOAUTOINC} ]] && COMMAND="${COMMAND} --auto-inc=off"
@@ -297,21 +297,13 @@ time {
                         echo
                         echo "    ===== Load Data =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S') ]"
                         echo "        COMMAND = ${COMMAND}"
-                        time ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
-                            COMMAND="'${COMMAND}'"
-                            echo "    Driver: $(uname -n)"
-                            cd ClustrixBench
-                            . profile
-                            echo "    COMMAND = ${COMMAND}"
-                            ${COMMAND}
-                            '
+                        time ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '${COMMAND}'
                         ;;
 
                     sysbench)
                         # Only use 1 driver
                         echo "        Driver : ${HEADDRIVER}"
                         check_and_update_remote_drivers;
-                        if [[ ${DATABASE} == 'clustrix' ]] ; then set_durability ; fi
                         echo "        Drop and recreate database"
                         echo "            mariadb -vvv $(get_database_connection)"
                         [[ ${OPTION_SKIP_DROP} ]] || mariadb -vvv $(get_database_connection) -e "drop database if exists ${SCHEMA}"
@@ -323,9 +315,9 @@ time {
                             show tables;
                             "
                         [[ ${STREAMS} ]] || STREAMS=${SYSBENCH_TABLES}
-                        COMMAND="sysbench ${SYSBENCH_SCRIPT} $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER})"
+                        COMMAND="sysbench /data/cbench/driver/lua/${SYSBENCH_SCRIPT} $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER})"
                         COMMAND="${COMMAND} --mysql-db=${SCHEMA}"
-                        COMMAND="${COMMAND} --table-size=${TABLE_LOAD_SIZE} --tables=${SYSBENCH_TABLES} --threads=${STREAMS} ${SYSBENCH_OPTIONS}"
+                        COMMAND="${COMMAND} --table-size=${SYSBENCH_TABLE_SIZE} --tables=${SYSBENCH_TABLES} --threads=${STREAMS} ${SYSBENCH_OPTIONS}"
                         [[ ${OPTION_ENGINE} ]] && COMMAND="${COMMAND} --mysql_storage_engine=${OPTION_ENGINE}"
                         [[ ${OPTION_CHARSET} ]] && COMMAND="${COMMAND} --create_table_options=DEFAULT CHARSET=${OPTION_CHARSET}"
                         [[ ${OPTION_NOAUTOINC} ]] && COMMAND="${COMMAND} --auto-inc=off"
@@ -339,18 +331,7 @@ time {
                         echo "        Driver Connection : ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER})"
                         echo "        COMMAND = ${COMMAND}"
 
-                        time ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
-                            COMMAND="'${COMMAND}'"
-                            echo "    Driver: $(uname -n)"
-                            cd ClustrixBench
-                            . profile
-                            case $(cat /etc/system-release) in
-                                "CentOS release 6"*)            ulimit -n 20000;;
-                                "Amazon Linux AMI release"*)    ulimit -n 20000;;
-                            esac
-                            echo "    COMMAND = ${COMMAND}"
-                            ${COMMAND}
-                            '
+                        time ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '${COMMAND}'
                         ;;
 
                     *) echo "Unsupported Benchmark for loading from data generator : BENCHMARK = ${BENCHMARK}"; echo -e "$USAGE"; exit 1;;
