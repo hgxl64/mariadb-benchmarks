@@ -191,7 +191,7 @@ mkdir -p ${LOGDIRECTORY}
 
                 # make this atomic
                 lock_semaphore
-                rm build.properties
+                [[ -f build.properties ]] && rm build.properties
                 BASE_URL="https://es-repo.mariadb.net/jenkins/${BRANCH}/${COMMIT}"
                 if ( ! wget --user=$(vault 'jenkins_es_package_user') \
                             --password=$(vault 'jenkins_es_package_pass') \
@@ -211,7 +211,7 @@ mkdir -p ${LOGDIRECTORY}
                     BINTAR_URL="${BASE_URL}/bintar/${OS}/RelWithDebInfo/mariadb-enterprise-${VERSION}-Linux-${ARCH}.tar.gz"
                     if ( wget --user=$(vault 'jenkins_es_package_user') \
                               --password=$(vault 'jenkins_es_package_pass') \
-                              ${BINTAR_URL} -O ${TARGET})
+                              --quiet ${BINTAR_URL} -O ${TARGET})
                     then
                         echo "        downloaded '${TARGET}'"
                         echo "        from '${BINTAR_URL}'"
@@ -231,6 +231,7 @@ mkdir -p ${LOGDIRECTORY}
                 fi
 
                 ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+                    sudo apt-get -y install liburing2
                     cd /data/cbench
                     [[ -d install ]] || mkdir install
                     tar xfz '$(basename ${TARGET})' -C install --strip-components=1
@@ -257,7 +258,7 @@ mkdir -p ${LOGDIRECTORY}
 
                     # make this atomic
                     lock_semaphore
-                    rm build.properties
+                    [[ -f build.properties ]] && rm build.properties
                     BASE_URL="https://es-repo.mariadb.net/jenkins/${GALERA_BRANCH}/${GALERA_COMMIT}"
                     if ( ! wget --user=$(vault 'jenkins_es_package_user') \
                                 --password=$(vault 'jenkins_es_package_pass') \
@@ -323,7 +324,7 @@ mkdir -p ${LOGDIRECTORY}
 
                     # make this atomic
                     lock_semaphore
-                    rm build.properties
+                    [[ -f build.properties ]] && rm build.properties
                     BASE_URL="https://es-repo.mariadb.net/jenkins/${RAFT_BRANCH}/${RAFT_COMMIT}"
                     if ( ! wget --user=$(vault 'jenkins_es_package_user') \
                                 --password=$(vault 'jenkins_es_package_pass') \
@@ -402,14 +403,17 @@ mkdir -p ${LOGDIRECTORY}
                 echo
 
                 #2023-10-18 buffer pool size is (80% * RAM) or (RAM-10G), whichever is smaller
-                BUFFER_POOL_SIZE1=$( ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) 'cat /proc/meminfo' | grep MemTotal | awk '{ print int($2/1024/1024*0.8) }')
-                BUFFER_POOL_SIZE2=$( ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) 'cat /proc/meminfo' | grep MemTotal | awk '{ print int($2/1024/1024)-10 }')
-                if [[ ${BUFFER_POOL_SIZE1} < ${BUFFER_POOL_SIZE2} ]] ; then
-                    BUFFER_POOL_SIZE=${BUFFER_POOL_SIZE1}
-                else
-                    BUFFER_POOL_SIZE=${BUFFER_POOL_SIZE2}
-                fi
-                echo BUFFER_POOL_SIZE = ${BUFFER_POOL_SIZE}
+                #BUFFER_POOL_SIZE1=$( ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) 'cat /proc/meminfo' | grep MemTotal | awk '{ print int($2/1024/1024*0.8) }')
+                #BUFFER_POOL_SIZE2=$( ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) 'cat /proc/meminfo' | grep MemTotal | awk '{ print int($2/1024/1024)-10 }')
+                #if [[ ${BUFFER_POOL_SIZE1} < ${BUFFER_POOL_SIZE2} ]] ; then
+                #    BUFFER_POOL_SIZE=${BUFFER_POOL_SIZE1}
+                #else
+                #    BUFFER_POOL_SIZE=${BUFFER_POOL_SIZE2}
+                #fi
+
+                #revert to old formula, BP = 80% * RAM, SIZE in MB
+                BUFFER_POOL_SIZE=$( ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) 'cat /proc/meminfo' | grep MemTotal | awk '{ print int($2/1024*0.8) }')
+                echo "BUFFER_POOL_SIZE = ${BUFFER_POOL_SIZE}M"
 
                 ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
                     BUFFER_POOL_SIZE="'${BUFFER_POOL_SIZE}'"
@@ -518,9 +522,9 @@ mkdir -p ${LOGDIRECTORY}
                         if [[ ${OPTION_INNODB_BUFFER_POOL_SIZE} ]] ; then
                             echo "innodb_buffer_pool_size = ${OPTION_INNODB_BUFFER_POOL_SIZE}"
                         else
-                            echo "innodb_buffer_pool_size = ${BUFFER_POOL_SIZE}G"
+                            echo "innodb_buffer_pool_size = ${BUFFER_POOL_SIZE}M"
                         fi
-                        echo "innodb_log_file_size = $(( ${BUFFER_POOL_SIZE} / 2))G"
+                        echo "innodb_log_file_size = $(( ${BUFFER_POOL_SIZE} / 2))M"
                         if [[ ${OPTION_INNODB_LOG_BUFFER_SIZE} ]] ; then
                             echo "innodb_log_buffer_size = ${OPTION_INNODB_LOG_BUFFER_SIZE}"
                         else
