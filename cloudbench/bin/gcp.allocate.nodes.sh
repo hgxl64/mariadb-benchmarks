@@ -247,7 +247,7 @@ done
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
                 # tags
-                COMMAND="${COMMAND} --tags='owner:axel@mariadb.com','description:member of cbench cluster ${CLUSTER}'"
+                #COMMAND="${COMMAND} --tags='owner:axel@mariadb.com','description:member of cbench cluster ${CLUSTER}'"
 
                 echo "${COMMAND}"
                 echo ${COMMAND} | bash
