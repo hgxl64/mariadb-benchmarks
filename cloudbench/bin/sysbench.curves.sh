@@ -119,7 +119,7 @@ mkdir -p ${LOGDIRECTORY}
         TESTS=( $(ls -d1 ${LOGDIRECTORY}/*.curve) )
         LABELS=( ${LABELS[*]} 'Pass-'${IDX} )
         {
-            echo "set terminal png size 960,480 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
+            echo "set terminal png size 960,480 noenhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
             echo "set yrange [0:${MAXLATENCY}]"
             echo "set xrange [0:]"
             echo "set grid ytics lc rgb '#bbbbbb' lw 1 lt 0"

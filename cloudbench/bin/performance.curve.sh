@@ -51,10 +51,10 @@ while [[ $# > 0 ]] ; do
         --testid)               TESTID="$1"; shift;;
 
         # Sysbench Options
-        --tables)               JAVABENCH_ARGS="${JAVABENCH_ARGS} --tables $1";SYSBENCH_TABLE_ARGS="${SYSBENCH_TABLE_ARGS} --tables $1"; shift;;
+        --tables)               SYSBENCH_TABLE_ARGS="${SYSBENCH_TABLE_ARGS} --tables $1"; shift;;
         --sbtables)             SYSBENCH_TABLE_ARGS="${SYSBENCH_TABLE_ARGS} --tables $1"; shift;;
         --dbtables)             SYSBENCH_TABLE_ARGS="${SYSBENCH_TABLE_ARGS} --tables $1"; shift;;
-        --tablesize)            JAVABENCH_ARGS="${JAVABENCH_ARGS} --tablesize $1";SYSBENCH_TABLE_ARGS="${SYSBENCH_TABLE_ARGS} --tablesize $1"; shift;;
+        --tablesize)            SYSBENCH_TABLE_ARGS="${SYSBENCH_TABLE_ARGS} --tablesize $1"; shift;;
         --sbtablesize)          SYSBENCH_TABLE_ARGS="${SYSBENCH_TABLE_ARGS} --tablesize $1"; shift;;
         --randtype)             SYSBENCH_ARGS="${SYSBENCH_ARGS} --randtype $1"; shift;;
         --threadinittimeout)    SYSBENCH_ARGS="${SYSBENCH_ARGS} --threadinittimeout $1"; shift;;
@@ -215,10 +215,6 @@ time {
         fi
 
         echo
-        echo "    ===== Set Global Variables =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-        time set_global_variables;
-
-        echo
         echo "    ===== Gather Pretest Snapshot =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time {
             gather_pretest_snapshot ${CLUSTER}
@@ -233,21 +229,15 @@ time {
 
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).preprocessing.log 2>&1
 
-    echo
-    echo "    ===== Start Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-    time start_performance_monitor ${CLUSTER} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).start.performance.monitor 2>&1
+#    echo
+#    echo "    ===== Start Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+#    time start_performance_monitor ${CLUSTER} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).start.performance.monitor 2>&1
 
     echo
     echo "    ===== Run Performance Curve =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     time {
 
-        if [[ ${BENCHMARK_DRIVER} == 'ycsb' ]] ; then
-            echo -e 'streams''\t''throughput''\t''avg_latency''\t''elapsed_secs''\t''operations''\t''path_length'  > ${LOGDIRECTORY}/test.data
-        elif [[ ${BENCHMARK,,} == 'orderentry' ]] ; then
-            echo -e 'streams''\t''throughput''\t''avg_latency''\t''elapsed_secs''\t''transactions''\t''path_length''\t''totalerrors''\t''avgthinktime''\t''tpmC''\t''tpmC_latency' > ${LOGDIRECTORY}/test.data
-        else
-            echo -e 'streams''\t''throughput''\t''avg_latency''\t''elapsed_secs''\t''transactions''\t''path_length''\t''qps''\t''errors'  > ${LOGDIRECTORY}/test.data
-        fi
+        echo -e 'streams''\t''throughput''\t''avg_latency''\t''elapsed_secs''\t''transactions''\t''path_length''\t''qps''\t''errors'  > ${LOGDIRECTORY}/test.data
 
         CURRENT_LATENCY=0.0
 
@@ -286,15 +276,7 @@ time {
                 echo
                 echo "        Running ${BENCHMARK_DRIVER} driver, ${STREAMS} total streams."
 
-                if [[ ${BENCHMARK_DRIVER} == javabench ]] ; then
-                    COMMAND="javabench.run.sh --cluster ${CLUSTER} --skipcheck --benchmark ${BENCHMARK}"
-                    [[ ${WORKLOAD} ]] && COMMAND="${COMMAND} --workload ${WORKLOAD}"
-                    [[ ${SCHEMA} ]] && COMMAND="${COMMAND} --schema ${SCHEMA}"
-                    [[ ${DBSCALE} ]] && COMMAND="${COMMAND} --dbscale ${DBSCALE}"
-                    [[ ${STREAMS} ]] && COMMAND="${COMMAND} --totalstreams ${STREAMS}"
-                    [[ ${CBENCH_ARGS} ]] && COMMAND="${COMMAND} ${CBENCH_ARGS}"
-                    [[ ${JAVABENCH_ARGS} ]] && COMMAND="${COMMAND} ${JAVABENCH_ARGS}"
-                elif [[ ${BENCHMARK_DRIVER} == sysbench* ]] ; then
+                if [[ ${BENCHMARK_DRIVER} == sysbench* ]] ; then
                     COMMAND="sysbench.run.sh --cluster ${CLUSTER} --skipcheck --benchmark ${BENCHMARK}"
                     [[ ${WORKLOAD} ]] && COMMAND="${COMMAND} --workload ${WORKLOAD}"
                     [[ ${BENCHMARK_DRIVER} ]] && COMMAND="${COMMAND} --driver ${BENCHMARK_DRIVER}"
@@ -304,45 +286,12 @@ time {
                     [[ ${CBENCH_ARGS} ]] && COMMAND="${COMMAND} ${CBENCH_ARGS}"
                     [[ ${SYSBENCH_TABLE_ARGS} ]] && COMMAND="${COMMAND} ${SYSBENCH_TABLE_ARGS}"
                     [[ ${SYSBENCH_ARGS} ]] && COMMAND="${COMMAND} ${SYSBENCH_ARGS}"
-                elif [[ ${BENCHMARK} == ycsb ]] ; then
-                    COMMAND="ycsb.run.sh --cluster ${CLUSTER} --skipcheck"
-                    [[ ${WORKLOAD} ]] && COMMAND="${COMMAND} --workload ${WORKLOAD}"
-                    [[ ${SCHEMA} ]] && COMMAND="${COMMAND} --schema ${SCHEMA}"
-                    [[ ${DBSCALE} ]] && COMMAND="${COMMAND} --dbscale ${DBSCALE}"
-                    [[ ${STREAMS} ]] && COMMAND="${COMMAND} --totalstreams ${STREAMS}"
-                    [[ ${CBENCH_ARGS} ]] && COMMAND="${COMMAND} ${CBENCH_ARGS}"
-                    [[ ${YCSB_ARGS} ]] && COMMAND="${COMMAND} ${YCSB_ARGS}"
                 fi
                 echo "        COMMAND = ${COMMAND}"
 
                 time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${BENCHMARK}.run.${STREAMS}.log 2>&1
 
-                if [[ ${BENCHMARK_DRIVER} == 'javabench' ]] ; then
-
-                    {
-                        echo ${CLUSTER}
-                        echo
-                        echo "${TESTID}.${TEST_NAME}"
-                        printf "%-11s %12s %12s %12s %12s %12s %8s\n" 'concurrency' 'throughput' 'avg_latency' '90th_latency' '95th_latency' '99th_latency' 'errors'
-                        for RESULT_FILE in ${LOGDIRECTORY}/*.run/*.consolidated.test.results.txt ; do
-                            cat ${RESULT_FILE} | awk '
-                                / Concurrency : / { concurrency = $3 }
-                                / Throughput \(tpm\) : / { throughput = $4 }
-                                / Average Latency \(ms\) : / { avg_latency = $5 }
-                                / Estimated 90th Percentile Response Time \(ms\) : / { latency_90th = $8 }
-                                / Estimated 95th Percentile Response Time \(ms\) : / { latency_95th = $8 }
-                                / Estimated 99th Percentile Response Time \(ms\) : / { latency_99th = $8 }
-                                / Total Failures : / { errors = $4 }
-                                END {
-                                    printf "%-11d %12.1f %12.3f %12.3f %12.3f %12.3f %8d\n", concurrency, throughput, avg_latency, latency_90th, latency_95th, latency_99th, errors;
-                                }
-                                '
-                        done
-                    } > ${LOGDIRECTORY}/test.data
-
-                    ERRORS=$( tail -1 ${LOGDIRECTORY}/test.data | awk '{ print $7 }')
-
-                elif [[ ${BENCHMARK_DRIVER} == sysbench* ]] ; then
+                if [[ ${BENCHMARK_DRIVER} == sysbench* ]] ; then
 
                     {
                         echo ${CLUSTER}
@@ -364,10 +313,6 @@ time {
                     } > ${LOGDIRECTORY}/test.data
 
                     ERRORS=$( tail -1 ${LOGDIRECTORY}/test.data | awk '{ print $5 }')
-
-                elif [[ ${BENCHMARK} == 'ycsb' ]] ; then
-
-                    tail -1 $( ls -1d ${LOGDIRECTORY}/*.run | tail -1 )/test.data >> ${LOGDIRECTORY}/test.data
 
                 fi
 
@@ -416,13 +361,12 @@ time {
     echo
     echo "    ===== Post Processing =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     time {
-        stop_monitors;
+#        stop_monitors;
         gather_posttest_snapshot ${CLUSTER};
         if [[ ${OPTION_CLEANUP} ]] ; then
             echo "    ===== Clean Up : Delete Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
             mysql -vvv $(get_database_connection) -e "drop database ${SCHEMA}" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).delete.data.log 2>&1
         fi
-        reset_global_variables;
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).post.processing.log 2>&1
 
     echo

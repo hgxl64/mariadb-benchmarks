@@ -815,17 +815,6 @@ gather_after_data() {
 
 gather_logs_from_drivers() {
     echo
-# 200506 This is not working and currently dragging Cbench.1.xxxx.tar over
-# Aside from javabench, I'm not sure what other logs would be there to collection
-#    echo "    ===== Gather Logs from Drivers =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-#    time {
-#        LOCALDRIVER=$(uname -n | awk -F. '{print $1}')
-#        for DRIVER_NODE in ${DRIVER_NODES[*]} ; do
-#            if [[ ${DRIVER_NODE} != ${LOCALDRIVER} ]] ; then
-#                scp $( get_scp_copy_from_connection ${CLUSTER} ${DRIVER_NODE} '~/Cbench/log/${TESTID}.*/*' ${LOGDIRECTORY}/. )
-#            fi
-#        done
-#    } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.logs.from.drivers.log 2>&1
 }
 
 transpose_table() {
@@ -1021,7 +1010,7 @@ generate_interval_graph() {
 
         echo "
             set datafile separator '${FIELD_SEPERATOR}'
-            set terminal png size 960,480 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2
+            set terminal png size 960,480 noenhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2
             set yrange [0:]
             set xrange [0:]
             set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
@@ -1042,7 +1031,7 @@ generate_performance_curve_graph() {
         if [[ ${BENCHMARK} == 'orderentry' ]] ; then
              {
                 echo "
-                    set terminal png size 960,480 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2
+                    set terminal png size 960,480 noenhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2
                     set yrange [0:${TARGET_LATENCY}]
                     set xrange [0:]
                     set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
@@ -1058,7 +1047,7 @@ generate_performance_curve_graph() {
         else
             {
                 echo "
-                    set terminal png size 960,480 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2
+                    set terminal png size 960,480 noenhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2
                     set yrange [0:${TARGET_LATENCY}]
                     set xrange [0:]
                     set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
@@ -1076,7 +1065,7 @@ generate_performance_curve_graph() {
         if [[ ${BENCHMARK} == 'sysbench' ]] ; then
             {
                 echo "
-                    set terminal png size 960,480 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2
+                    set terminal png size 960,480 noenhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2
                     set yrange [0:]
                     set xrange [0:]
                     set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
@@ -1118,7 +1107,7 @@ generate_curve_interval_graph() {
 
         echo "
             set datafile separator '${FIELD_SEPERATOR}'
-            set terminal png size 960,480 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2
+            set terminal png size 960,480 noenhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2
             set yrange [0:]
             set xrange [0:]
             set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
