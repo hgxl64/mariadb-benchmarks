@@ -196,7 +196,7 @@ old_master_position() {
     # prints <binlog file number>-<binlog offset> for specified host and binlog
     local MASTER=$(gethost $1)
     local BINLOG=$2
-    mysql -sN $(get_database_connection ${MASTER}) -e "show master status ${BINLOG}" \
+    mariadb -sN $(get_database_connection ${MASTER}) -e "show master status ${BINLOG}" \
         | awk '{split($1,seq,"."); {print seq[2]+0"-"$2}}'
 }
 
@@ -205,7 +205,7 @@ old_slave_position() {
     local MASTER=$(gethost $1)
     local SLAVE=$(gethost $2)
     local BINLOG=$3
-    mysql -sN $(get_database_connection ${SLAVE}) -e "show slave status" | \
+    mariadb -sN $(get_database_connection ${SLAVE}) -e "show slave status" | \
         awk -v master=${MASTER} -v binlog=${BINLOG} '$3==master && $6==binlog {print $8"-"$9}'
 }
 
@@ -213,7 +213,7 @@ old_binlogs_for_slave() {
     # prints the name of each binlog configured between a master and slave cluster
     local MASTER=$(gethost $1)
     local SLAVE=$(gethost $2)
-    mysql -sN $(get_database_connection ${SLAVE}) \
+    mariadb -sN $(get_database_connection ${SLAVE}) \
         -e "select master_log_file from system.mysql_repconfig where master_host='${MASTER}' and protocol=0"
 }
 
@@ -221,7 +221,7 @@ new_master_position() {
     # prints <binlog file number>-<binlog offset> for specified host and binlog
     local MASTER=$(gethost $1)
     local BINLOG=$2
-    local MASTER_POS=$(mysql -sN $(get_database_connection ${MASTER}) -e "show master status parallel ${BINLOG}" \
+    local MASTER_POS=$(mariadb -sN $(get_database_connection ${MASTER}) -e "show master status parallel ${BINLOG}" \
         | awk -v binlog=${BINLOG} '{print $2}')
     if echo ${MASTER_POS} | grep "x" >/dev/null; then
         # Bug 34015, we found hex, convert to int
@@ -235,7 +235,7 @@ new_slave_position() {
     local MASTER=$(gethost $1)
     local SLAVE=$(gethost $2)
     local BINLOG=$3
-    mysql -sN $(get_database_connection ${SLAVE}) -e "show slave status" | \
+    mariadb -sN $(get_database_connection ${SLAVE}) -e "show slave status" | \
         awk -v master=${MASTER} -v binlog=${BINLOG} '$3==master && $6==binlog {print $8}'
 }
 
@@ -243,7 +243,7 @@ new_binlogs_for_slave() {
     # prints the name of each binlog configured between a master and slave cluster
     local MASTER=$(gethost $1)
     local SLAVE=$(gethost $2)
-    mysql -sN $(get_database_connection ${SLAVE}) \
+    mariadb -sN $(get_database_connection ${SLAVE}) \
         -e "select master_log_file from system.mysql_repconfig where master_host='${MASTER}' and protocol=1"
 }
 
@@ -253,7 +253,7 @@ slave_caught_up() {
     # Args: <slave host/cluster>
     local SLAVE=$1
     if [[ $(get_property ${SLAVE} database) == 'clustrix' ]] ; then
-        for MASTER in $(mysql -sN $(get_database_connection ${SLAVE}) -e "select distinct master_host from system.mysql_repconfig"); do
+        for MASTER in $(mariadb -sN $(get_database_connection ${SLAVE}) -e "select distinct master_host from system.mysql_repconfig"); do
             echo "DEBUG: Checking binlogs between master ${MASTER} ($(gethost ${MASTER})) and slave ${slave} ($(gethost ${SLAVE}))..."
             for BINLOG in $(old_binlogs_for_slave ${MASTER} ${SLAVE}); do
                 [[ $(old_slave_position ${MASTER} ${SLAVE} ${BINLOG}) == $(old_master_position ${MASTER} ${BINLOG}) ]] || return 1
@@ -268,17 +268,17 @@ slave_caught_up() {
             return 0
         done
     elif [[ $(get_property ${SLAVE} database) == 'mariadb' ]] ; then
-        local MASTER=$(mysql -sN $(get_database_connection ${SLAVE}) -e "show slave status" | grep 'Master_Host:' | awk '{print $2}')
+        local MASTER=$(mariadb -sN $(get_database_connection ${SLAVE}) -e "show slave status" | grep 'Master_Host:' | awk '{print $2}')
         # Is IO Thread up to date (file and position)?
-        # echo "DEBUG: $(mysql -vvv $(get_database_connection ${MASTER}) -e 'show master status\G' | grep ' File:' | awk '{print $2}') == $(mysql -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Master_Log_File:' | awk '{print $2}')"
-        if [[ $(mysql -vvv $(get_database_connection ${MASTER}) -e 'show master status\G' | grep ' File:' | awk '{print $2}') != $(mysql -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Master_Log_File:' | awk '{print $2}') ]] ; then return 1 ; fi
-        # echo "DEBUG: $(mysql -vvv $(get_database_connection ${MASTER}) -e 'show master status\G' | grep ' Position:' | awk '{print $2}') == $(mysql -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Read_Master_Log_Pos:' | awk '{print $2}')"
-        if [[ $(mysql -vvv $(get_database_connection ${MASTER}) -e 'show master status\G' | grep ' Position:' | awk '{print $2}') != $(mysql -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Read_Master_Log_Pos:' | awk '{print $2}') ]] ; then return 1 ; fi
+        # echo "DEBUG: $(mariadb -vvv $(get_database_connection ${MASTER}) -e 'show master status\G' | grep ' File:' | awk '{print $2}') == $(mariadb -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Master_Log_File:' | awk '{print $2}')"
+        if [[ $(mariadb -vvv $(get_database_connection ${MASTER}) -e 'show master status\G' | grep ' File:' | awk '{print $2}') != $(mariadb -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Master_Log_File:' | awk '{print $2}') ]] ; then return 1 ; fi
+        # echo "DEBUG: $(mariadb -vvv $(get_database_connection ${MASTER}) -e 'show master status\G' | grep ' Position:' | awk '{print $2}') == $(mariadb -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Read_Master_Log_Pos:' | awk '{print $2}')"
+        if [[ $(mariadb -vvv $(get_database_connection ${MASTER}) -e 'show master status\G' | grep ' Position:' | awk '{print $2}') != $(mariadb -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Read_Master_Log_Pos:' | awk '{print $2}') ]] ; then return 1 ; fi
         # Is SQL Thread up to date (file and position)?
-        # echo "DEBUG: $(mysql -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Master_Log_File:' | awk '{print $2}') == $(mysql -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Relay_Master_Log_File:' | awk '{print $2}')"
-        if [[ $(mysql -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Master_Log_File:' | awk '{print $2}') != $(mysql -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Relay_Master_Log_File:' | awk '{print $2}') ]] ; then return 1 ; fi
-        # echo "DEBUG: $(mysql -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Read_Master_Log_Pos:' | awk '{print $2}') == $(mysql -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Exec_Master_Log_Pos:' | awk '{print $2}')"
-        if [[ $(mysql -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Read_Master_Log_Pos:' | awk '{print $2}') != $(mysql -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Exec_Master_Log_Pos:' | awk '{print $2}') ]]; then return 1 ; fi
+        # echo "DEBUG: $(mariadb -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Master_Log_File:' | awk '{print $2}') == $(mariadb -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Relay_Master_Log_File:' | awk '{print $2}')"
+        if [[ $(mariadb -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Master_Log_File:' | awk '{print $2}') != $(mariadb -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Relay_Master_Log_File:' | awk '{print $2}') ]] ; then return 1 ; fi
+        # echo "DEBUG: $(mariadb -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Read_Master_Log_Pos:' | awk '{print $2}') == $(mariadb -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Exec_Master_Log_Pos:' | awk '{print $2}')"
+        if [[ $(mariadb -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Read_Master_Log_Pos:' | awk '{print $2}') != $(mariadb -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Exec_Master_Log_Pos:' | awk '{print $2}') ]]; then return 1 ; fi
         return 0
     fi
 }
@@ -365,7 +365,7 @@ process_connection_info() {
     fi
     if [[ ${HOST} ]] ; then
         if [[ ! ${DATABASE} ]] ; then
-            VERSION=$(mysql -sN --host ${HEADNODE} ${DB_USER_OPTION} -e "select version()")
+            VERSION=$(mariadb -sN --host ${HEADNODE} ${DB_USER_OPTION} -e "select version()")
             if [[ ${VERSION} == *MariaDB* ]] ; then
                 DATABASE=mariadb
             else
@@ -662,7 +662,7 @@ get_database_version() {
     elif [[ ${DATABASE} == 'postgres' ]] ; then
         echo "$(psql -t $(get_psql_database_connection ${SYSTEM}) --command='select version();')"
     else
-        echo "$(mysql -sN $(get_database_connection ${SYSTEM}) -e 'select @@version')"
+        echo "$(mariadb -sN $(get_database_connection ${SYSTEM}) -e 'select @@version')"
     fi
 }
 
@@ -1149,11 +1149,11 @@ set_max_prepared_stmt_count() {
         DATABASE=$(get_property $1 database)
         echo "            System : ${SYSTEM} , Database : ${DATABASE}"
         if [[ ${DATABASE} == 'mysql' || ${DATABASE} == 'mariadb' || ${DATABASE} == 'aurora' ]] ; then
-            CURRENT=$(mysql -sN $(get_database_connection ${SYSTEM}) -e "select @@max_prepared_stmt_count")
+            CURRENT=$(mariadb -sN $(get_database_connection ${SYSTEM}) -e "select @@max_prepared_stmt_count")
             echo "            System : ${SYSTEM} , Current max_prepared_stmt_count :  ${CURRENT} , Required max_prepared_stmt_count : $2"
             if (( $2 > ${CURRENT} )) ; then
-                mysql -vvv $(get_database_connection ${SYSTEM}) -e "set global max_prepared_stmt_count=$2"
-                mysql -vvv $(get_database_connection ${SYSTEM}) -e "select @@max_prepared_stmt_count"
+                mariadb -vvv $(get_database_connection ${SYSTEM}) -e "set global max_prepared_stmt_count=$2"
+                mariadb -vvv $(get_database_connection ${SYSTEM}) -e "select @@max_prepared_stmt_count"
             fi
         fi
     done
@@ -1170,11 +1170,11 @@ set_max_connections() {
         local SYSTEMS=( $(get_property $1 mariadb.systems) )
         [[ ${SYSTEMS} ]] || SYSTEMS=( $1 )
         for SYSTEM in ${SYSTEMS[*]} ; do
-            local CURRENT=$(mysql -sN $(get_database_connection ${SYSTEM}) -e "select @@max_connections")
+            local CURRENT=$(mariadb -sN $(get_database_connection ${SYSTEM}) -e "select @@max_connections")
             echo "            System : ${SYSTEM} , Current max_connections :  ${CURRENT} , Required max_connections : $2"
             if (( $2 > ${CURRENT} )) ; then
-                mysql -vvv $(get_database_connection ${SYSTEM}) -e "set global max_connections=$2"
-                mysql -vvv $(get_database_connection ${SYSTEM}) -e "select @@max_connections"
+                mariadb -vvv $(get_database_connection ${SYSTEM}) -e "set global max_connections=$2"
+                mariadb -vvv $(get_database_connection ${SYSTEM}) -e "select @@max_connections"
             fi
         done
     fi
@@ -1184,30 +1184,30 @@ force_innodb_checkpoint() {
     local SYSTEM=$1
     [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
     [[ ${DATABASE} ]] || DATABASE=$(get_property ${CLUSTER} database)
-    if [[ ${DATABASE} == 'mariadb' || ${DATABASE} == 'mysqld' ]] ; then
+    if [[ ${DATABASE} == 'mariadb' || ${DATABASE} == 'mysql' ]] ; then
         # 200930 This logic comes from Axel's run.sysbench script
         echo
         echo "        Forcing InnoDB Checkpoint"
-        local MAX_DIRTY_PAGES_PCT_SAVE=$(mysql -sN $(get_database_connection ${SYSTEM}) -e 'select @@innodb_max_dirty_pages_pct;')
-        local MAX_DIRTY_PAGES_PCT_LWM_SAVE=$(mysql -sN $(get_database_connection ${SYSTEM}) -e 'select @@innodb_max_dirty_pages_pct_lwm;')
-        mysql -vvv $(get_database_connection ${SYSTEM}) -e "set global innodb_max_dirty_pages_pct=0;"
+        local MAX_DIRTY_PAGES_PCT_SAVE=$(mariadb -sN $(get_database_connection ${SYSTEM}) -e 'select @@innodb_max_dirty_pages_pct;')
+        local MAX_DIRTY_PAGES_PCT_LWM_SAVE=$(mariadb -sN $(get_database_connection ${SYSTEM}) -e 'select @@innodb_max_dirty_pages_pct_lwm;')
+        mariadb -vvv $(get_database_connection ${SYSTEM}) -e "set global innodb_max_dirty_pages_pct=0;"
         echo
         echo "        Waiting for buffer_pool to clear"
         local PAGES_DIRTY_OLD=0
         local REPEAT=5
-        local BUFFER_POOL_PAGES_DIRTY=$(mysql -sN $(get_database_connection ${SYSTEM}) -e "show global status like 'innodb_buffer_pool_pages_dirty';" | awk '{print $2}')
+        local BUFFER_POOL_PAGES_DIRTY=$(mariadb -sN $(get_database_connection ${SYSTEM}) -e "show global status like 'innodb_buffer_pool_pages_dirty';" | awk '{print $2}')
         while (( ${BUFFER_POOL_PAGES_DIRTY} >= 100 && ${REPEAT} >= 0 )) ; do
             sleep 5
-            BUFFER_POOL_PAGES_DIRTY=$(mysql -sN $(get_database_connection ${SYSTEM}) -e "show global status like 'innodb_buffer_pool_pages_dirty';" | awk '{print $2}')
+            BUFFER_POOL_PAGES_DIRTY=$(mariadb -sN $(get_database_connection ${SYSTEM}) -e "show global status like 'innodb_buffer_pool_pages_dirty';" | awk '{print $2}')
             echo -n ".${BUFFER_POOL_PAGES_DIRTY}"
             if (( ${BUFFER_POOL_PAGES_DIRTY} == ${PAGES_DIRTY_OLD} )) ; then (( REPEAT = ${REPEAT} - 1 )) ; fi
             PAGES_DIRTY_OLD=${BUFFER_POOL_PAGES_DIRTY}
         done
         echo ".${BUFFER_POOL_PAGES_DIRTY}.done"
-        mysql -vvv $(get_database_connection ${SYSTEM}) -e "set global innodb_max_dirty_pages_pct=${MAX_DIRTY_PAGES_PCT_SAVE};"
-        mysql -vvv $(get_database_connection ${SYSTEM}) -e "set global innodb_max_dirty_pages_pct_lwm=${MAX_DIRTY_PAGES_PCT_LWM_SAVE};"
+        mariadb -vvv $(get_database_connection ${SYSTEM}) -e "set global innodb_max_dirty_pages_pct=${MAX_DIRTY_PAGES_PCT_SAVE};"
+        mariadb -vvv $(get_database_connection ${SYSTEM}) -e "set global innodb_max_dirty_pages_pct_lwm=${MAX_DIRTY_PAGES_PCT_LWM_SAVE};"
         #finally unblock any blocked hosts
-        mysql -vvv $(get_database_connection ${SYSTEM}) -e "FLUSH HOSTS"
+        mariadb -vvv $(get_database_connection ${SYSTEM}) -e "FLUSH HOSTS"
     fi
 }
 

@@ -130,13 +130,6 @@ else
     [[ ! ${DISTRIBUTION} ]] && DISTRIBUTION='uniform'
 fi
 
-if [[ ${WORKLOAD} == 'oltp_insert' ]] ; then
-#    NUMOFDRIVERS=1
-#    DRIVER_NODES=( ${DRIVER_NODES[0]} )
-    TABLES=1
-    TABLESIZE=1000000000
-fi
-
 # TOTAL_STREAMS overrides STREAMS
 [[ ${STREAMSPERDRIVER} ]] || STREAMSPERDRIVER=100
 [[ ${TOTAL_STREAMS} ]] && (( STREAMSPERDRIVER = ${TOTAL_STREAMS} / ${NUMOFDRIVERS} ))
@@ -176,7 +169,7 @@ time {
     DB_OPTIONS="$(get_database_connection)"
 
     echo "$0 ${COMMAND_LINE}"
-    print_variable_report 12 TESTID "" BENCHMARK WORKLOAD SYSBENCH_DRIVER "" CLUSTER DATABASE HOST "" \
+    print_variable_report 12 TESTID "" BENCHMARK WORKLOAD SYSBENCH_DRIVER "" CLUSTER DATABASE "" \
         NUMOFNODES CLUSTER_NODES NUMOFDRIVERS DRIVER_NODES "" \
         SCHEMA DBSCALE TABLES TABLESIZE TOTAL_STREAMS STREAMS DURATION REPORT_INTERVAL \
         LOAD_OPTIONS "" OPTION_SEEDED SYSBENCH_OPTIONS ""
@@ -285,7 +278,7 @@ time {
                 case ${SYSBENCH_DRIVER} in
 
                     sysbench-tpcc)
-                        COMMAND="sysbench-eh /data/cbench/driver/lua/tpcc.lua --time=${DURATION} --scale=${DBSCALE} ${SYSBENCH_OPTIONS}"
+                        COMMAND="sysbench /data/cbench/driver/lua/tpcc.lua --time=${DURATION} --scale=${DBSCALE} ${SYSBENCH_OPTIONS}"
                         [[ ${REPORT_INTERVAL} ]] && COMMAND="${COMMAND} --report-interval=${REPORT_INTERVAL}"
                         [[ ${TABLES} ]] && COMMAND="${COMMAND} --tables=${TABLES}"
                         [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --mysql-ssl=on"
@@ -295,7 +288,7 @@ time {
 
                     sysbench*)
 
-                        COMMAND='sysbench-eh'
+                        COMMAND='sysbench'
                         case ${WORKLOAD} in
                             pointselect)        COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --point-selects=1 --range_selects=false --index_updates=0 --non-index_updates=0 --delete_inserts=0 --skip-trx=on";;
                             pointupdate)        COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua --point-selects=0 --range_selects=false --index_updates=0 --non-index_updates=1 --delete_inserts=0 --skip-trx=on";;
@@ -379,7 +372,7 @@ time {
                         [[ ${WARMUP_TIME} ]] && COMMAND="${COMMAND} --warmup-time=${WARMUP_TIME}"
                         [[ ${TABLES} ]] && COMMAND="${COMMAND} --tables=${TABLES}"
                         [[ ${TABLESIZE} ]] && COMMAND="${COMMAND} --table-size=${TABLESIZE}"
-
+                        COMMAND="${COMMAND} --mysql-db=${SCHEMA}"
                         COMMAND="${COMMAND} --time=${DURATION} ${SYSBENCH_OPTIONS}"
                         # 190920  Added Errno 8005 - a tiDB write conflict
                         [[ ${OPTION_IGNORE_ERRORS} ]] && COMMAND="${COMMAND} --mysql-ignore-errors=1180,1213,1317,8005"
@@ -523,7 +516,7 @@ time {
         if [[ ${OPTION_CLEANUP} ]] ; then
             echo
             echo "        ===== Clean Up:  Delete Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-            time mysql -vvv $(get_database_connection) -e "drop database ${SCHEMA}"
+            time mariadb -vvv $(get_database_connection) -e "drop database ${SCHEMA}"
         fi
 
         echo
