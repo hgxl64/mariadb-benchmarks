@@ -133,7 +133,7 @@ fi
 TEST_NAME=${BENCHMARK}.run
 [[ ${TESTID} ]] || TESTID=$(date +%y%m%d.%H%M%S).${CLUSTER}
 if [[ ! ${LOGDIRECTORY} ]] ; then
-    export LOGDIRECTORY=${BENCH_LOG_HOME}/${CLUSTER}/${TESTID}.${TEST_NAME}
+    export LOGDIRECTORY=${CBENCH_LOG_HOME}/${CLUSTER}/${TESTID}.${TEST_NAME}
 else
     LOGDIRECTORY=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${TEST_NAME}
 fi
@@ -267,9 +267,9 @@ time {
                         echo "vucreate"                                      >> ${SCRIPT}
                         echo "tcstart"                                       >> ${SCRIPT}
                         echo "vurun"                                         >> ${SCRIPT}
-                        echo "after 10000"                                   >> ${SCRIPT}
+                        echo "after 5000"                                    >> ${SCRIPT}
                         echo "tcstop"                                        >> ${SCRIPT}
-                        echo "after 10000"                                   >> ${SCRIPT}
+                        echo "after 5000"                                    >> ${SCRIPT}
                         echo "vudestroy"                                     >> ${SCRIPT}
                         echo
                         echo "    ===== TCL script ${SCRIPT} created for MariaDB ====="
@@ -306,6 +306,11 @@ time {
         scp $(get_scp_copy_from_connection ${CLUSTER} ${DRIVER_NODE} ${SCRIPT} ${LOGDIRECTORY}/. )
         scp $(get_scp_copy_from_connection ${CLUSTER} ${DRIVER_NODE} /data/cbench/HammerDB-5.0/tmp/hdbxtprofile.log ${LOGDIRECTORY}/. )
         scp $(get_scp_copy_from_connection ${CLUSTER} ${DRIVER_NODE} /data/cbench/HammerDB-5.0/tmp/hdbtcount.log    ${LOGDIRECTORY}/. )
+
+        ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
+            cd /data/cbench/HammerDB-5.0
+            [[ -d tmp ]] && rm -rf tmp
+        '
 
         touch ${LOGDIRECTORY}/hdbxtprofile.log
         touch ${LOGDIRECTORY}/hdbtcount.log

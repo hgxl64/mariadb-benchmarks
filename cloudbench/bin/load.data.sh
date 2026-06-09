@@ -355,12 +355,9 @@ time {
             echo "    ===== Analyze Tables  =====       [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
             time {
                 for TABLE in $(mariadb -sN $(get_database_connection) -e 'show tables' ${SCHEMA}) ; do
-                    if [[ ${BENCHMARK} == 'sysbench' ]] ; then
-                        mariadb -vvv $(get_database_connection) -e "analyze table ${TABLE}" ${SCHEMA}
-                    fi
+                    mariadb -vvv $(get_database_connection) -e "analyze table ${TABLE}" ${SCHEMA}
                 done
             } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).analyze.tables.log 2>&1
-
         fi
 
         LOADTIME=$(stop_timer)
@@ -376,7 +373,7 @@ time {
                 select version();
                 show tables;
                 " ${SCHEMA}
-            TABLES=( $(mariadb -sN $(get_database_connection) -e 'show tables' ${SCHEMA} | tr '[:upper:]' '[:lower:]') )
+            TABLES=( $(mariadb -sN $(get_database_connection) -e 'show tables' ${SCHEMA}) )
             for TABLE in ${TABLES[@]:0:10} ; do
                 mariadb -vvv $(get_database_connection) -e "
                     show create table ${TABLE}\G
