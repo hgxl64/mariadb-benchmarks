@@ -27,7 +27,7 @@ done
 [[ ${CLUSTER} ]] || { echo "Required CLUSTER not specified: CLUSTER = ${CLUSTER} "; exit 1; }
 
 # defaults
-source ${CBENCH_HOME}/conf.gcp.conf
+source ${CBENCH_HOME}/config/gcp.conf
 
 # logging
 TEST_NAME=gcp.release.nodes
