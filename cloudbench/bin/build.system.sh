@@ -208,7 +208,7 @@ mkdir -p ${LOGDIRECTORY}
                     echo "        ${TARGET} already exists, not downloading"
                 else
                     VERSION=$(fgrep FULL_VERSION build.properties | cut -d= -f 2)
-                    BINTAR_URL="${BASE_URL}/bintar/${OS}/RelWithDebInfo/mariadb-enterprise-${VERSION}-${ARCH}.tar.gz"
+                    BINTAR_URL="${BASE_URL}/bintar/${OS}/RelWithDebInfo/mariadb-enterprise-${VERSION}-Linux-${ARCH}.tar.gz"
                     if ( wget --user=$(vault 'jenkins_es_package_user') \
                               --password=$(vault 'jenkins_es_package_pass') \
                               ${BINTAR_URL} -O ${TARGET})
