@@ -227,6 +227,7 @@ time {
                                 echo "dbset db maria"                            >> ${SCRIPT}
                                 echo "diset connection maria_host ${DBHOST}"     >> ${SCRIPT}
                                 echo "diset connection maria_port ${DBPORT}"     >> ${SCRIPT}
+                                echo "diset connection maria_socket null"        >> ${SCRIPT}
                                 echo "diset tpcc maria_dbase ${SCHEMA}"          >> ${SCRIPT}
                                 echo "diset tpcc maria_user ${DBUSER}"           >> ${SCRIPT}
                                 echo "diset tpcc maria_pass ${DBPASS}"           >> ${SCRIPT}
@@ -264,7 +265,7 @@ time {
                             TMP=$(pwd)/tmp ${COMMAND}
                             rm -rf tmp
                         '
-                        scp $(get_scp_copy_from_connection ${CLUSTER} ${DRIVER_NODE} ${SCRIPT} ${LOGDIRECTORY}/. )
+                        scp $(get_scp_copy_from_connection ${CLUSTER} ${HEADDRIVER} ${SCRIPT} ${LOGDIRECTORY}/. )
                         ;;
 
                     sysbench-tpcc)
