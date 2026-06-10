@@ -108,7 +108,7 @@ mkdir -p ${LOGDIRECTORY}
             else
                 if ( wget --user=$(vault 'maxscale_packages_user') \
                           --password=$(vault 'maxscale_packages_pass') \
-                          ${BASE_URL}/${DISTFILE} -O ${TARGET})
+                          --quiet ${BASE_URL}/${DISTFILE} -O ${TARGET})
                 then
                     echo "        downloaded '${TARGET}'"
                     echo "        from '${BASE_URL}/${DISTFILE}'"
@@ -129,7 +129,7 @@ mkdir -p ${LOGDIRECTORY}
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
                     if [[ ! -d /data/cbench/install ]]; then
                         sudo mkdir -p /data/cbench/install
-                        sudo chown -R /data $(whoami)
+                        sudo chown -R $(whoami) /data
                     fi
                 '
                 if ( scp $(get_scp_copy_to_connection ${SYSTEM} ${NODE} ${TARGET} /data/cbench/) ) ; then
