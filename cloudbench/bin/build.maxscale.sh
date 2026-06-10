@@ -138,6 +138,7 @@ mkdir -p ${LOGDIRECTORY}
                     error "        scp to ${SYSTEM} failed"
                 fi
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
+                    cd /data/cbench
                     tar xfz '$(basename ${TARGET})' -C install --strip-components=1
                 '
             done
