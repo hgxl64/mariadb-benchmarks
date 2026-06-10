@@ -127,13 +127,13 @@ mkdir -p ${LOGDIRECTORY}
                 echo "        Cluster = ${CLUSTER}, System = ${SYSTEM}, Node = ${NODE}"
                 echo
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
-                    if [[ ! -d /data/cbench/install ]]; then
+                    if [[ ! -d /data/cbench/install ]] ; then
                         sudo mkdir -p /data/cbench
                         sudo chmod -R a+rwx /data
                     fi
                     mkdir /data/cbench/install
                 '
-                if ( scp $(get_scp_copy_to_connection ${SYSTEM} ${NODE} ${TARGET} /data/cbench/) ) ; then
+                if ( time scp $(get_scp_copy_to_connection ${SYSTEM} ${NODE} ${TARGET} /data/cbench/) ) ; then
                     echo "        copied ${TARGET} to ${SYSTEM}"
                 else
                     error "        scp to ${SYSTEM} failed"
@@ -360,7 +360,6 @@ mkdir -p ${LOGDIRECTORY}
                     echo "servers=${SERVERS}"
                     echo "user=${DBUSER}"
                     echo "password=${DBPASSWORD}"
-                    echo "max_slave_replication_lag=${MAX_SLAVE_LAG}"
                     echo "slave_selection_criteria=${SLAVE_SELECTION}"
                     echo "master_accept_reads=${MASTER_READS}"
                     echo
@@ -419,7 +418,10 @@ mkdir -p ${LOGDIRECTORY}
                     uname -n
                     export PATH=/data/cbench/install/bin:${PATH}
                     maxscale --nodaemon --basedir=/data/cbench/install --config=/data/cbench/install/etc/maxscale.cnf &
-                    sleep 5
+                    sleep 10
+                    echo "----- maxscale log -----"
+                    cat /data/cbench/install/var/log/maxscale/maxscale.log
+                    echo "----- process list -----"
                     ps fax
                '
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) 'cat /data/cbench/install/var/log/maxscale/maxscale.log' \

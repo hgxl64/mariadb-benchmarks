@@ -110,7 +110,7 @@ mkdir -p ${LOGDIRECTORY}
                 ssh $(get_ssh_connection ${CLUSTER} ${DRIVER}) '
                     if [[ ! -d /data/cbench ]] ; then
                         sudo mkdir -p /data/cbench
-                        sudo chown -R $(whoami) /data/cbench
+                        sudo chmod -R a+rwx /data/cbench
                     fi
                 '
                 scp -r $(get_scp_copy_to_connection ${CLUSTER} ${DRIVER} ${CBENCH_HOME}/driver /data/cbench/)
