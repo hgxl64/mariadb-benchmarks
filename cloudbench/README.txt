@@ -49,6 +49,8 @@ as well as necessary software. The list of software includes
 - https://github.com/hgxl64/sysbench-1.x-mariadb; a fork of sysbench1.1
   with enhanced histograms and extra P25, P50 and P75 stats
 
+- HammerDB in /data/cbench/HammerDB-5.0
+
 - the MariaDB client in a version that does *not* enforce SSL
 
 Sysbench LUA scripts are shipped separately. They are contained in
@@ -78,8 +80,8 @@ pseudo-cluster can then be used for benchmarks.
 2.1 MariaDB Standalone
 
 This cluster type has one server node running a MariaDB server. The
-configuration is created automatically to make best use of CPU and
-Memory resources.
+my.cnf is created automatically to make best use of CPU and Memory
+resources.
 
 
 2.2 MariaDB Replication
@@ -108,7 +110,7 @@ router separates read-only and read-write transactions.
 This is like Galera Master-Slave but now all nodes are treated as
 equal. There is no need to deploy MaxScale with this cluster type.
 By default a driver accesses all server nodes using the builtin load
-valancing mechanism of sysbench.
+balancing mechanism of sysbench.
 
 
 2.5 Raft Master-Slave
