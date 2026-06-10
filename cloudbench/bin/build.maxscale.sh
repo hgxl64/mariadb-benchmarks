@@ -440,8 +440,7 @@ mkdir -p ${LOGDIRECTORY}
             echo
             echo "        Cluster = ${CLUSTER}, System = ${SYSTEM}, Node = ${NODE}"
             echo
-            ssh $(get_ssh_connection ${SYSTEM} ${NODE}) "cat > ${CONFIG_FILE}" \
-                | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${NODE}.maxscale.conf 2>&1
+            ssh $(get_ssh_connection ${SYSTEM} ${NODE}) "cat ${CONFIG_FILE}" | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${NODE}.maxscale.cnf 2>&1
         done
     done
 
