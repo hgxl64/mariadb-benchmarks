@@ -128,9 +128,10 @@ mkdir -p ${LOGDIRECTORY}
                 echo
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
                     if [[ ! -d /data/cbench/install ]]; then
-                        sudo mkdir -p /data/cbench/install
-                        sudo chown -R $(whoami) /data
+                        sudo mkdir -p /data/cbench
+                        sudo chmod -R
                     fi
+                    mkdir /data/cbench/install
                 '
                 if ( scp $(get_scp_copy_to_connection ${SYSTEM} ${NODE} ${TARGET} /data/cbench/) ) ; then
                     echo "        copied ${TARGET} to ${SYSTEM}"
