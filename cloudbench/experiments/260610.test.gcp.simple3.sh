@@ -5,7 +5,7 @@ source ${CBENCH_HOME}/config/gcp.conf
 
 export CLUSTER='test'
 
-TEST_NAME="gcp.test.simple2"
+TEST_NAME="gcp.test.simple3"
 [[ ${TESTID} ]] || TESTID=$(date +%y%m%d.%H%M%S).${TEST_NAME}
 if [[ ! ${LOGDIRECTORY} ]] ; then
     export LOGDIRECTORY=${CBENCH_LOG_HOME}/${TESTID}
@@ -17,7 +17,8 @@ mkdir -p ${LOGDIRECTORY}
 {
     gcp.allocate.nodes.sh --cluster ${CLUSTER} \
      --server-nodes 1 --server-type n2-standard-8 \
-     --driver-nodes 2 --driver-type n2-standard-2
+     --driver-nodes 2 --driver-type n2-standard-2 \
+     --maxscale-nodes 1 --maxscale-type n2-standard-2
 
     SYSTEMS=( $(get_property ${CLUSTER} systems) )
     echo
@@ -25,8 +26,8 @@ mkdir -p ${LOGDIRECTORY}
     [[ ${SYSTEMS} ]] || { echo "ERROR Unable to allocate nodes."; exit 1; }
 
     configure.cluster.sh --cluster ${CLUSTER} --cluster-type mariadb \
-     --mariadb-system ${CLUSTER}-server-1 --driver-system ${CLUSTER}-driver-1 \
-     --driver-system ${CLUSTER}-driver-2
+     --mariadb-system ${CLUSTER}-server-1 --maxscale-system ${CLUSTER}-maxscale-1 \
+     --driver-system ${CLUSTER}-driver-1 --driver-system ${CLUSTER}-driver-2
 
     echo "Properties File:"
     showproperties
@@ -34,10 +35,11 @@ mkdir -p ${LOGDIRECTORY}
     build.cluster.sh --cluster ${CLUSTER}
     check.cluster.sh --cluster ${CLUSTER}
 
-    echo "Version : $(get_database_version ${CLUSTER})"
+    echo "Version (direct) :          $(get_database_version ${CLUSTER})"
+    echo "Version (through MaxScale): $(get_database_version ${CLUSTER}.maxscale)"
 
     sysbench.load.sh --cluster ${CLUSTER} --skipcheck --load
-    sysbench.curves.sh --cluster ${CLUSTER} --skipcheck --workload oltp_read_write --start_streams 8 --repeats 3
+    sysbench.curves.sh --cluster ${CLUSTER}.maxscale --workload oltp_read_write --start_streams 4 --repeats 3
 
     gcp.release.nodes.sh --cluster ${CLUSTER}
 
