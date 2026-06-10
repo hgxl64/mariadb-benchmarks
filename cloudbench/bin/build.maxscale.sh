@@ -150,6 +150,7 @@ mkdir -p ${LOGDIRECTORY}
     echo "    ===== Step 2:  Configure MaxScale =====  [ $(date -u '+%Y-%m-%d %H:%M:%S') ]"
 
     CLUSTER_TYPE=$(get_property ${CLUSTER} cluster.type)
+    CONFIG_FILE="/data/cbench/install/etc/maxscale.cnf"
 
     if [[ ${CLUSTER_TYPE} == 'mariadb_replication' ]] ; then
 
@@ -161,28 +162,43 @@ mkdir -p ${LOGDIRECTORY}
         for SYSTEM in ${MAXSCALE_SYSTEMS[*]} ; do
             for NODE in $(getproperty ${SYSTEM} nodes) ; do
                 echo
-                echo "        Cluster = ${CLUSTER}, System = ${SYSTEM}, Node = ${NODE}"
+                echo "        Cluster-Type = ${CLUSTER_TYPE}, Node = ${NODE}"
                 echo
-                {
-                    echo "[maxscale]"
-                    echo "threads=auto"
-                    echo "syslog=0"
-                    echo "maxlog=1"
-                    echo
+                ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
+                    SERVER_NODES=( "'${SERVER_NODES[*]}'" )
+                    DBUSER="'$(get_database_user)'"
+                    DBPASSWORD="'$(get_database_password)'"
+                    DBPORT="'$(get_database_port)'"
+                    OPTION_SSL="'${OPTION_SSL}'"
+                    MAX_SLAVE_LAG="'${MAX_SLAVE_LAG}'"
+                    SLAVE_SELECTION="'${SLAVE_SELECTION}'"
+                    MASTER_READS="'${MASTER_READS}'"
+                    CONFIG_FILE="'${CONFIG_FILE}'"
+
+                    [[ -f ${CONFIG_FILE} ]] && rm ${CONFIG_FILE}
+
+                    echo "[maxscale]"                                       >> ${CONFIG_FILE}
+                    echo "threads=auto"                                     >> ${CONFIG_FILE}
+                    echo "syslog=0"                                         >> ${CONFIG_FILE}
+                    echo "maxlog=1"                                         >> ${CONFIG_FILE}
+                    echo                                                    >> ${CONFIG_FILE}
+
                     if [[ ${OPTION_SSL} == TRUE ]] ; then
-                        echo "ssl_cert = /data/cbench/install/etc/certificates/server-cert.pem"
-                        echo "ssl_key = /data/cbench/install/etc/certificates/server-key.pem"
-                        echo "ssl_ca_cert = /data/cbench/install/etc/certificates/ca.pem"
-                        echo "ssl = true"
+                        echo "ssl_cert = /data/cbench/install/etc/certificates/server-cert.pem" >> ${CONFIG_FILE}
+                        echo "ssl_key = /data/cbench/install/etc/certificates/server-key.pem"   >> ${CONFIG_FILE}
+                        echo "ssl_ca_cert = /data/cbench/install/etc/certificates/ca.pem"       >> ${CONFIG_FILE}
+                        echo "ssl = true"                                                       >> ${CONFIG_FILE}
+                        echo                                                                    >> ${CONFIG_FILE}
                     fi
-                    echo
+
                     IDX=1
                     for SERVER in ${SERVER_NODES[*]} ; do
-                        echo "[MariaDBServer${IDX}]"
-                        echo "type=server"
-                        echo "address=${SERVER}"
-                        echo "port=${DBPORT}"
-                        echo
+                        echo "[MariaDBServer${IDX}]"                        >> ${CONFIG_FILE}
+                        echo "type=server"                                  >> ${CONFIG_FILE}
+                        echo "address=${SERVER}"                            >> ${CONFIG_FILE}
+                        echo "port=${DBPORT}"                               >> ${CONFIG_FILE}
+                        echo "priority=${IDX}"                              >> ${CONFIG_FILE}
+                        echo                                                >> ${CONFIG_FILE}
                         if (( ${IDX} == 1 )) ; then
                             SERVERS="MariaDBServer${IDX}"
                         else
@@ -196,31 +212,30 @@ mkdir -p ${LOGDIRECTORY}
                         (( IDX = ${IDX} + 1 ))
                     done
 
-                    echo "[MariaDBMonitor]"
-                    echo "type=monitor"
-                    echo "module=mariadbmon"
-                    echo "servers=${SERVERS}"
-                    echo "user=${DBUSER}"
-                    echo "password=${DBPASSWORD}"
-                    echo
-                    echo "[ReadWriteService]"
-                    echo "type=service"
-                    echo "router=readwritesplit"
-                    echo "servers=${SERVERS}"
-                    echo "user=${DBUSER}"
-                    echo "password=${DBPASSWORD}"
-                    echo "max_slave_replication_lag=${MAX_SLAVE_LAG}"
-                    echo "slave_selection_criteria=${SLAVE_SELECTION}"
-                    echo "master_accept_reads=${MASTER_READS}"
-                    echo
-                    echo "[ReadWriteListener]"
-                    echo "type=listener"
-                    echo "service=ReadWriteService"
-                    echo "address=0.0.0.0"
-                    echo "port=${DBPORT}"
-                    echo
-
-                } | ssh $(get_ssh_connection ${SYSTEM} ${NODE}) "cat > /data/cbench/install/etc/maxscale.cnf"
+                    echo "[MariaDBMonitor]"                                 >> ${CONFIG_FILE}
+                    echo "type=monitor"                                     >> ${CONFIG_FILE}
+                    echo "module=mariadbmon"                                >> ${CONFIG_FILE}
+                    echo "servers=${SERVERS}"                               >> ${CONFIG_FILE}
+                    echo "user=${DBUSER}"                                   >> ${CONFIG_FILE}
+                    echo "password=${DBPASSWORD}"                           >> ${CONFIG_FILE}
+                    echo                                                    >> ${CONFIG_FILE}
+                    echo "[ReadWriteService]"                               >> ${CONFIG_FILE}
+                    echo "type=service"                                     >> ${CONFIG_FILE}
+                    echo "router=readwritesplit"                            >> ${CONFIG_FILE}
+                    echo "servers=${SERVERS}"                               >> ${CONFIG_FILE}
+                    echo "user=${DBUSER}"                                   >> ${CONFIG_FILE}
+                    echo "password=${DBPASSWORD}"                           >> ${CONFIG_FILE}
+                    echo "max_slave_replication_lag=${MAX_SLAVE_LAG}"       >> ${CONFIG_FILE}
+                    echo "slave_selection_criteria=${SLAVE_SELECTION}"      >> ${CONFIG_FILE}
+                    echo "master_accept_reads=${MASTER_READS}"              >> ${CONFIG_FILE}
+                    echo                                                    >> ${CONFIG_FILE}
+                    echo "[ReadWriteListener]"                              >> ${CONFIG_FILE}
+                    echo "type=listener"                                    >> ${CONFIG_FILE}
+                    echo "service=ReadWriteService"                         >> ${CONFIG_FILE}
+                    echo "address=0.0.0.0"                                  >> ${CONFIG_FILE}
+                    echo "port=${DBPORT}"                                   >> ${CONFIG_FILE}
+                    echo                                                    >> ${CONFIG_FILE}
+                '
             done
         done
 
@@ -236,28 +251,40 @@ mkdir -p ${LOGDIRECTORY}
         for SYSTEM in ${MAXSCALE_SYSTEMS[*]} ; do
             for NODE in $(getproperty ${SYSTEM} nodes) ; do
                 echo
-                echo "        Cluster = ${CLUSTER}, System = ${SYSTEM}, Node = ${NODE}"
+                echo "        Cluster-Type = ${CLUSTER_TYPE}, Node = ${NODE}"
                 echo
-                {
-                    echo "[maxscale]"
-                    echo "threads=auto"
-                    echo "syslog=0"
-                    echo "maxlog=1"
-                    echo
+                ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
+                    SERVER_NODES=( "'${SERVER_NODES[*]}'" )
+                    DBUSER="'$(get_database_user)'"
+                    DBPASSWORD="'$(get_database_password)'"
+                    DBPORT="'$(get_database_port)'"
+                    OPTION_SSL="'${OPTION_SSL}'"
+                    CONFIG_FILE="'${CONFIG_FILE}'"
+
+                    [[ -f ${CONFIG_FILE} ]] && rm ${CONFIG_FILE}
+
+                    echo "[maxscale]"                                       >> ${CONFIG_FILE}
+                    echo "threads=auto"                                     >> ${CONFIG_FILE}
+                    echo "syslog=0"                                         >> ${CONFIG_FILE}
+                    echo "maxlog=1"                                         >> ${CONFIG_FILE}
+                    echo                                                    >> ${CONFIG_FILE}
+
                     if [[ ${OPTION_SSL} == TRUE ]] ; then
-                        echo "ssl_cert = /data/cbench/install/etc/certificates/server-cert.pem"
-                        echo "ssl_key = /data/cbench/install/etc/certificates/server-key.pem"
-                        echo "ssl_ca_cert = /data/cbench/install/etc/certificates/ca.pem"
-                        echo "ssl = true"
+                        echo "ssl_cert = /data/cbench/install/etc/certificates/server-cert.pem" >> ${CONFIG_FILE}
+                        echo "ssl_key = /data/cbench/install/etc/certificates/server-key.pem"   >> ${CONFIG_FILE}
+                        echo "ssl_ca_cert = /data/cbench/install/etc/certificates/ca.pem"       >> ${CONFIG_FILE}
+                        echo "ssl = true"                                                       >> ${CONFIG_FILE}
+                        echo                                                                    >> ${CONFIG_FILE}
                     fi
-                    echo
+
                     IDX=1
                     for SERVER in ${SERVER_NODES[*]} ; do
-                        echo "[MariaDBServer${IDX}]"
-                        echo "type=server"
-                        echo "address=${SERVER}"
-                        echo "port=${DBPORT}"
-                        echo
+                        echo "[MariaDBServer${IDX}]"                        >> ${CONFIG_FILE}
+                        echo "type=server"                                  >> ${CONFIG_FILE}
+                        echo "address=${SERVER}"                            >> ${CONFIG_FILE}
+                        echo "port=${DBPORT}"                               >> ${CONFIG_FILE}
+                        echo "priority=${IDX}"                              >> ${CONFIG_FILE}
+                        echo                                                >> ${CONFIG_FILE}
                         if (( ${IDX} == 1 )) ; then
                             SERVERS="MariaDBServer${IDX}"
                         else
@@ -266,28 +293,27 @@ mkdir -p ${LOGDIRECTORY}
                         (( IDX = ${IDX} + 1 ))
                     done
 
-                    echo "[MariaDBMonitor]"
-                    echo "type=monitor"
-                    echo "module=mariadbmon"
-                    echo "servers=${SERVERS}"
-                    echo "user=${DBUSER}"
-                    echo "password=${DBPASSWORD}"
-                    echo
-                    echo "[RoundRobinService]"
-                    echo "type=service"
-                    echo "router=readconnroute"
-                    echo "servers=${SERVERS}"
-                    echo "user=${DBUSER}"
-                    echo "password=${DBPASSWORD}"
-                    echo
-                    echo "[RoundRobinListener]"
-                    echo "type=listener"
-                    echo "service=RoundRobinService"
-                    echo "address=0.0.0.0"
-                    echo "port=${DBPORT}"
-                    echo
-
-                } | ssh $(get_ssh_connection ${SYSTEM} ${NODE}) "cat > /data/cbench/install/etc/maxscale.cnf"
+                    echo "[MariaDBMonitor]"                                 >> ${CONFIG_FILE}
+                    echo "type=monitor"                                     >> ${CONFIG_FILE}
+                    echo "module=mariadbmon"                                >> ${CONFIG_FILE}
+                    echo "servers=${SERVERS}"                               >> ${CONFIG_FILE}
+                    echo "user=${DBUSER}"                                   >> ${CONFIG_FILE}
+                    echo "password=${DBPASSWORD}"                           >> ${CONFIG_FILE}
+                    echo                                                    >> ${CONFIG_FILE}
+                    echo "[RoundRobinService]"                              >> ${CONFIG_FILE}
+                    echo "type=service"                                     >> ${CONFIG_FILE}
+                    echo "router=readconnroute"                             >> ${CONFIG_FILE}
+                    echo "servers=${SERVERS}"                               >> ${CONFIG_FILE}
+                    echo "user=${DBUSER}"                                   >> ${CONFIG_FILE}
+                    echo "password=${DBPASSWORD}"                           >> ${CONFIG_FILE}
+                    echo                                                    >> ${CONFIG_FILE}
+                    echo "[RoundRobinListener]"                             >> ${CONFIG_FILE}
+                    echo "type=listener"                                    >> ${CONFIG_FILE}
+                    echo "service=RoundRobinService"                        >> ${CONFIG_FILE}
+                    echo "address=0.0.0.0"                                  >> ${CONFIG_FILE}
+                    echo "port=${DBPORT}"                                   >> ${CONFIG_FILE}
+                    echo                                                    >> ${CONFIG_FILE}
+                '
             done
         done
 
@@ -307,29 +333,43 @@ mkdir -p ${LOGDIRECTORY}
         for SYSTEM in ${MAXSCALE_SYSTEMS[*]} ; do
             for NODE in $(getproperty ${SYSTEM} nodes) ; do
                 echo
-                echo "        Cluster = ${CLUSTER}, System = ${SYSTEM}, Node = ${NODE}"
+                echo "        Cluster-Type = ${CLUSTER_TYPE}, Node = ${NODE}"
                 echo
-                {
-                    echo "[maxscale]"
-                    echo "threads=auto"
-                    echo "syslog=0"
-                    echo "maxlog=1"
-                    echo
+                ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
+                    SERVER_NODES=( "'${SERVER_NODES[*]}'" )
+                    DBUSER="'$(get_database_user)'"
+                    DBPASSWORD="'$(get_database_password)'"
+                    DBPORT="'$(get_database_port)'"
+                    OPTION_SSL="'${OPTION_SSL}'"
+                    MAX_SLAVE_LAG="'${MAX_SLAVE_LAG}'"
+                    SLAVE_SELECTION="'${SLAVE_SELECTION}'"
+                    MULTIMASTER="'${MULTIMASTER}'"
+                    CONFIG_FILE="'${CONFIG_FILE}'"
+
+                    [[ -f ${CONFIG_FILE} ]] && rm ${CONFIG_FILE}
+
+                    echo "[maxscale]"                                       >> ${CONFIG_FILE}
+                    echo "threads=auto"                                     >> ${CONFIG_FILE}
+                    echo "syslog=0"                                         >> ${CONFIG_FILE}
+                    echo "maxlog=1"                                         >> ${CONFIG_FILE}
+                    echo                                                    >> ${CONFIG_FILE}
+
                     if [[ ${OPTION_SSL} == TRUE ]] ; then
-                        echo "ssl_cert = /data/cbench/install/etc/certificates/server-cert.pem"
-                        echo "ssl_key = /data/cbench/install/etc/certificates/server-key.pem"
-                        echo "ssl_ca_cert = /data/cbench/install/etc/certificates/ca.pem"
-                        echo "ssl = true"
+                        echo "ssl_cert = /data/cbench/install/etc/certificates/server-cert.pem" >> ${CONFIG_FILE}
+                        echo "ssl_key = /data/cbench/install/etc/certificates/server-key.pem"   >> ${CONFIG_FILE}
+                        echo "ssl_ca_cert = /data/cbench/install/etc/certificates/ca.pem"       >> ${CONFIG_FILE}
+                        echo "ssl = true"                                                       >> ${CONFIG_FILE}
+                        echo                                                                    >> ${CONFIG_FILE}
                     fi
-                    echo
+
                     IDX=1
                     for SERVER in ${SERVER_NODES[*]} ; do
-                        echo "[Galera${IDX}]"
-                        echo "type=server"
-                        echo "address=${SERVER}"
-                        echo "port=${DBPORT}"
-                        echo "priority=${IDX}"
-                        echo
+                        echo "[Galera${IDX}]"                               >> ${CONFIG_FILE}
+                        echo "type=server"                                  >> ${CONFIG_FILE}
+                        echo "address=${SERVER}"                            >> ${CONFIG_FILE}
+                        echo "port=${DBPORT}"                               >> ${CONFIG_FILE}
+                        echo "priority=${IDX}"                              >> ${CONFIG_FILE}
+                        echo                                                >> ${CONFIG_FILE}
                         if (( ${IDX} == 1 )) ; then
                             SERVERS="Galera${IDX}"
                         else
@@ -338,39 +378,38 @@ mkdir -p ${LOGDIRECTORY}
                         (( IDX = ${IDX} + 1 ))
                     done
 
-                    echo "[GaleraMonitor]"
-                    echo "type=monitor"
-                    echo "module=galeramon"
-                    echo "servers=${SERVERS}"
-                    echo "use_priority=true"
-                    echo "user=${DBUSER}"
-                    echo "password=${DBPASSWORD}"
-                    echo
-                    echo "[GaleraService]"
-                    echo "type=service"
+                    echo "[GaleraMonitor]"                                  >> ${CONFIG_FILE}
+                    echo "type=monitor"                                     >> ${CONFIG_FILE}
+                    echo "module=galeramon"                                 >> ${CONFIG_FILE}
+                    echo "servers=${SERVERS}"                               >> ${CONFIG_FILE}
+                    echo "use_priority=true"                                >> ${CONFIG_FILE}
+                    echo "user=${DBUSER}"                                   >> ${CONFIG_FILE}
+                    echo "password=${DBPASSWORD}"                           >> ${CONFIG_FILE}
+                    echo                                                    >> ${CONFIG_FILE}
+                    echo "[GaleraService]"                                  >> ${CONFIG_FILE}
+                    echo "type=service"                                     >> ${CONFIG_FILE}
                     if [[ ${MULTIMASTER} == TRUE ]] ; then
-                        echo "router=readconnroute"
-                        echo "router_options=running"
+                        echo "router=readconnroute"                         >> ${CONFIG_FILE}
+                        echo "router_options=running"                       >> ${CONFIG_FILE}
                     else
-                        echo "router=readwritesplit"
-                        echo "router_options=synced"
-                        echo "slave_selection_criteria=${SLAVE_SELECTION}"
-                        echo "master_accept_reads=${MASTER_READS}"
+                        echo "router=readwritesplit"                        >> ${CONFIG_FILE}
+                        echo "router_options=synced"                        >> ${CONFIG_FILE}
+                        echo "slave_selection_criteria=${SLAVE_SELECTION}"  >> ${CONFIG_FILE}
+                        echo "master_accept_reads=${MASTER_READS}"          >> ${CONFIG_FILE}
                     fi
-                    echo "servers=${SERVERS}"
-                    echo "user=${DBUSER}"
-                    echo "password=${DBPASSWORD}"
-                    echo "slave_selection_criteria=${SLAVE_SELECTION}"
-                    echo "master_accept_reads=${MASTER_READS}"
-                    echo
-                    echo "[GaleraListener]"
-                    echo "type=listener"
-                    echo "service=GaleraService"
-                    echo "address=0.0.0.0"
-                    echo "port=${DBPORT}"
-                    echo
-
-                } | ssh $(get_ssh_connection ${SYSTEM} ${NODE}) "cat > /data/cbench/install/etc/maxscale.cnf"
+                    echo "servers=${SERVERS}"                               >> ${CONFIG_FILE}
+                    echo "user=${DBUSER}"                                   >> ${CONFIG_FILE}
+                    echo "password=${DBPASSWORD}"                           >> ${CONFIG_FILE}
+                    echo "slave_selection_criteria=${SLAVE_SELECTION}"      >> ${CONFIG_FILE}
+                    echo "master_accept_reads=${MASTER_READS}"              >> ${CONFIG_FILE}
+                    echo                                                    >> ${CONFIG_FILE}
+                    echo "[GaleraListener]"                                 >> ${CONFIG_FILE}
+                    echo "type=listener"                                    >> ${CONFIG_FILE}
+                    echo "service=GaleraService"                            >> ${CONFIG_FILE}
+                    echo "address=0.0.0.0"                                  >> ${CONFIG_FILE}
+                    echo "port=${DBPORT}"                                   >> ${CONFIG_FILE}
+                    echo                                                    >> ${CONFIG_FILE}
+                '
             done
         done
     fi
@@ -401,7 +440,7 @@ mkdir -p ${LOGDIRECTORY}
             echo
             echo "        Cluster = ${CLUSTER}, System = ${SYSTEM}, Node = ${NODE}"
             echo
-            ssh $(get_ssh_connection ${SYSTEM} ${NODE}) "cat > /data/cbench/install/etc/maxscale.cnf" \
+            ssh $(get_ssh_connection ${SYSTEM} ${NODE}) "cat > ${CONFIG_FILE}" \
                 | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${NODE}.maxscale.conf 2>&1
         done
     done
@@ -417,15 +456,13 @@ mkdir -p ${LOGDIRECTORY}
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
                     uname -n
                     export PATH=/data/cbench/install/bin:${PATH}
-                    maxscale --nodaemon --basedir=/data/cbench/install --config=/data/cbench/install/etc/maxscale.cnf &
+                    maxscale --nodaemon --basedir=/data/cbench/install --config='${CONFIG_FILE}' &
                     sleep 10
                     echo "----- maxscale log -----"
                     cat /data/cbench/install/var/log/maxscale/maxscale.log
                     echo "----- process list -----"
                     ps fax
-               '
-                ssh $(get_ssh_connection ${SYSTEM} ${NODE}) 'cat /data/cbench/install/var/log/maxscale/maxscale.log' \
-                | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${NODE}.maxscale.log 2>&1
+                '
             done
         done
     }
