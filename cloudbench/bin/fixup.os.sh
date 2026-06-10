@@ -62,9 +62,7 @@ time {
                     if fgrep -i "ubuntu 24." /etc/lsb-release &>/dev/null ; then
                         echo "Ubuntu 24 detected, installing packages"
                         sudo apt-get update
-                        sudo apt-get -y install ntpdate
-                        sudo apt-get -y install liburing2
-                        sudo apt-get -y install libodbc2 libprotobuf32t64 libmicrohttpd12
+                        sudo apt-get -y install ntpdate liburing2 libodbc2 libprotobuf32t64 libmicrohttpd12
                     fi
                 '
             } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).fixup.os.${NODE}.log 2>&1 &
