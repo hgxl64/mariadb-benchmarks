@@ -106,8 +106,8 @@ mkdir -p ${LOGDIRECTORY}
             if [[ -f ${TARGET} ]] ; then
                 echo "        ${TARGET} already exists, not downloading"
             else
-                if ( wget --user=$(vault 'maxscale_package_user') \
-                          --password=$(vault 'maxscale_package_pass') \
+                if ( wget --user=$(vault 'maxscale_packages_user') \
+                          --password=$(vault 'maxscale_packages_pass') \
                           ${BASE_URL}/${DISTFILE} -O ${TARGET})
                 then
                     echo "        downloaded '${TARGET}'"
