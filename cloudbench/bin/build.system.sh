@@ -246,7 +246,7 @@ mkdir -p ${LOGDIRECTORY}
 # include *.cnf from the config directory
 #
 !includedir /data/cbench/install/etc/my.cnf.d
-" > my.cnf
+" | sudo tee /etc/my.cnf > my.cnf
                 '
             else
                 echo "Invalid source specified: $SOURCE"; exit 1;
