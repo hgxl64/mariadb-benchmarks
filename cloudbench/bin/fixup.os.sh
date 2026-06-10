@@ -34,7 +34,7 @@ if [[ ! ${TESTID} ]] ; then TESTID=$(date +%y%m%d.%H%M%S).${CLUSTER}; fi
 if [[ ! ${LOGDIRECTORY} ]] ; then
     export LOGDIRECTORY=${CBENCH_LOG_HOME}/${CLUSTER}/${TESTID}.${TEST_NAME}
 else
-    LOGDIRECTORY=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${TEST_NAME}.${CLUSTER}
+    LOGDIRECTORY=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${TEST_NAME}
 fi
 mkdir -p ${LOGDIRECTORY}
 
@@ -55,16 +55,15 @@ time {
     echo "    ===== Fixup known OS problems =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
     NODES=( $(get_property ${CLUSTER} nodes) )
-    if [[ $(get_property ${CLUSTER} maxscale.systems) ]] ; then
-        for SYSTEM in $(get_property ${CLUSTER} maxscale.systems) ; do
-            for NODE in $(get_property ${SYSTEM} nodes) ; do
-                if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
-                    # if the node is not already in the list of hardware nodes, add it
-                    NODES=( ${NODES[*]} ${NODE} )
-                fi
-            done
+
+    for SYSTEM in $(get_property ${CLUSTER} maxscale.systems) ; do
+        for NODE in $(get_property ${SYSTEM} nodes) ; do
+            if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
+                # if the node is not already in the list of hardware nodes, add it
+                NODES=( ${NODES[*]} ${NODE} )
+            fi
         done
-    fi
+    done
     for NODE in ${DRIVER_NODES[*]}; do
         if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
             # if the node is not already in the list of hardware nodes, add it
@@ -73,8 +72,9 @@ time {
     done
 
     echo "        NODES = ${NODES[*]}"
+
+    unset BACKGROUND_PIDS
     for NODE in ${NODES[*]} ; do
-        unset BACKGROUND_PIDS
         time {
             ssh $(get_ssh_connection ${CLUSTER} ${NODE}) '
                 if fgrep -i "ubuntu 24." /etc/lsb-release &>/dev/null ; then
@@ -86,7 +86,7 @@ time {
                 fi
             '
         } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).fixup.os.${NODE}.log 2>&1 &
-       BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
+        BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
     done
     wait ${BACKGROUND_PIDS[*]}
 
