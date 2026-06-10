@@ -303,8 +303,7 @@ done
     lock_semaphore
     for NODE in ${EXTERNAL_IPS[*]} ; do
         echo "Node = ${NODE}"
-        grep -v "${NODE,,}" ~/.ssh/known_hosts > /tmp/${NODE}.temp
-        mv -f /tmp/${NODE}.temp ~/.ssh/known_hosts
+        ssh-keygen -f ${HOME}/.ssh/known_hosts -R ${NODE}
     done
     unlock_semaphore
 
@@ -430,6 +429,12 @@ done
     echo
 
     echo
+    echo "    ===== Fixup OS : CLUSTER = ${CLUSTER} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    COMMAND="fixup.os.sh --cluster ${CLUSTER}"
+    echo "        COMMAND = ${COMMAND}"
+    time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).fixup.os.log 2>&1
+
+    echo
     echo "    ===== Format Data Disks  =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     echo
     time {
@@ -533,7 +538,7 @@ done
 
                 echo 'sudo chmod a+w /data/cbench'
                 echo 'df -h'
-            } | ssh -o "StrictHostKeyChecking no" -i ${SSH_PEM_FILE} ${SSH_USER}@${NODE}
+            } | ssh -T -o "StrictHostKeyChecking no" -i ${SSH_PEM_FILE} ${SSH_USER}@${NODE}
         done
         wait
         sleep 10

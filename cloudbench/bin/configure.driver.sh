@@ -131,7 +131,7 @@ mkdir -p ${LOGDIRECTORY}
         echo "    ===== Sync Clocks =====  [ $(date -u +'%Y-%m-%d %H:%M:%S') ]"
         echo
         echo "            Before : $(date) , $(ssh $(get_ssh_connection ${CLUSTER} ${DRIVER}) 'date')"
-        ssh $(get_ssh_connection ${CLUSTER} ${DRIVER}) "sudo date --set '$(date)'" >/null
+        ssh $(get_ssh_connection ${CLUSTER} ${DRIVER}) "sudo date --set '$(date)'" > /dev/null
         echo "            After  : $(date) , $(ssh $(get_ssh_connection ${CLUSTER} ${DRIVER}) 'date')"
 
         echo ""

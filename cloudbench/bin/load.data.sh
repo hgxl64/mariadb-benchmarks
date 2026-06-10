@@ -256,14 +256,13 @@ time {
                         time ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
                             COMMAND="'${COMMAND}'"
                             SCRIPT="'${SCRIPT}'"
-                            echo "    Driver: $(uname -n)"
-                            echo "    COMMAND = ${COMMAND}"
+                            echo "        Driver: $(uname -n)"
+                            echo "        COMMAND = ${COMMAND}"
                             echo
                             cd /data/cbench/HammerDB-5.0
                             [[ -d tmp ]] && rm -rf tmp
                             mkdir tmp
                             TMP=$(pwd)/tmp ${COMMAND}
-                            rm -rf tmp
                         '
                         scp $(get_scp_copy_from_connection ${CLUSTER} ${HEADDRIVER} ${SCRIPT} ${LOGDIRECTORY}/. )
                         ;;
@@ -298,8 +297,8 @@ time {
                         echo "        COMMAND = ${COMMAND}"
                         time ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
                             COMMAND="'${COMMAND}'"
-                            echo "    Driver: $(uname -n)"
-                            echo "    COMMAND = ${COMMAND}"
+                            echo "        Driver: $(uname -n)"
+                            echo "        COMMAND = ${COMMAND}"
                             ${COMMAND}
                         '
                         ;;
@@ -337,8 +336,8 @@ time {
 
                         time ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
                             COMMAND="'${COMMAND}'"
-                            echo "    Driver: $(uname -n)"
-                            echo "    COMMAND = ${COMMAND}"
+                            echo "        Driver: $(uname -n)"
+                            echo "        COMMAND = ${COMMAND}"
                             ${COMMAND}
                         '
                         ;;

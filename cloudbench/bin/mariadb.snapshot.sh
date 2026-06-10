@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source clustrixbench.sh
+source ${CBENCH_HOME}/bin/cbench.sh
 
 USAGE="usage: $0
 

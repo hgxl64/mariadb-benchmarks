@@ -141,6 +141,9 @@ fi
 # default: no SSL
 [[ ${OPTION_SSL} ]] || OPTION_SSL=FALSE
 
+# default: replicate in GTID mode
+[[ ${OPTION_GTID} ]] || OPTION_GTID=TRUE
+
 # allocate a unique server_id
 SERVER_ID=$(echo $(get_database_backend_ips ${CLUSTER}) | tr . '\n' | awk '{s = s*256 + $1} END{print s}')
 
@@ -223,7 +226,7 @@ mkdir -p ${LOGDIRECTORY}
                 rm build.properties
                 unlock_semaphore
 
-                if ( scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
+                if ( time scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
                     echo "        copied ${TARGET} to ${SYSTEM}"
                 else
                     echo "        scp to ${SYSTEM} failed"
@@ -231,11 +234,10 @@ mkdir -p ${LOGDIRECTORY}
                 fi
 
                 ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
-                    sudo apt-get -y install liburing2
                     cd /data/cbench
                     [[ -d install ]] || mkdir install
                     tar xfz '$(basename ${TARGET})' -C install --strip-components=1
-                    mkdir datadir
+                    [[ -d datadir ]] || mkdir datadir
                     cd install
                     ln -s ../datadir var
                     cd etc
@@ -244,7 +246,7 @@ mkdir -p ${LOGDIRECTORY}
 # include *.cnf from the config directory
 #
 !includedir /data/cbench/install/etc/my.cnf.d
-" | sudo tee --append /etc/my.cnf > my.cnf
+" > my.cnf
                 '
             else
                 echo "Invalid source specified: $SOURCE"; exit 1;
@@ -299,7 +301,7 @@ mkdir -p ${LOGDIRECTORY}
                     rm build.properties
                     unlock_semaphore
 
-                    if ( scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
+                    if ( time scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
                         echo "        copied ${TARGET} to ${SYSTEM}"
                     else
                         echo "        scp to ${SYSTEM} failed"
@@ -365,7 +367,7 @@ mkdir -p ${LOGDIRECTORY}
                     rm build.properties
                     unlock_semaphore
 
-                    if ( scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
+                    if ( time scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
                         echo "        copied ${TARGET} to ${SYSTEM}"
                     else
                         echo "        scp to ${SYSTEM} failed"

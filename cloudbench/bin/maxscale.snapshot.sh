@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source clustrixbench.sh
+source ${CBENCH_HOME}/bin/cbench.sh
 
 USAGE="usage: $0
 
@@ -90,7 +90,7 @@ time {
                     echo
                     echo "            Data Size"
                     time {
-                        ssh $(get_ssh_connection ${SYSTEM} ${NODE}) 'sudo du -sh /data/clustrix/mariadb/*' > ${LOGDIRECTORY}/${SYSTEM}/${NODE}/du.txt
+                        ssh $(get_ssh_connection ${SYSTEM} ${NODE}) 'sudo du -sh /data/cbench/install/var/*' > ${LOGDIRECTORY}/${SYSTEM}/${NODE}/du.txt
                     }
                 done
             fi

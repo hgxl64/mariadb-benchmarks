@@ -71,8 +71,7 @@ mkdir -p ${LOGDIRECTORY}
         echo "        Node Connectivity - OS Version "
         lock_semaphore
         for NODE in ${CLUSTER_NODES[*]} ; do
-            grep -v "${NODE,,}" ~/.ssh/known_hosts > /tmp/${NODE}.temp
-            mv -f /tmp/${NODE}.temp ~/.ssh/known_hosts
+            ssh-keygen -f ${HOME}/.ssh/known_hosts -R ${NODE}
         done
         unlock_semaphore
         for NODE in ${CLUSTER_NODES[*]} ; do
@@ -91,8 +90,7 @@ mkdir -p ${LOGDIRECTORY}
         echo "        Node Connectivity - OS Version "
         lock_semaphore
         for NODE in ${MAXSCALE_NODES[*]} ; do
-            grep -v "${NODE,,}" ~/.ssh/known_hosts > /tmp/${NODE}.temp
-            mv -f /tmp/${NODE}.temp ~/.ssh/known_hosts
+            ssh-keygen -f ${HOME}/.ssh/known_hosts -R ${NODE}
         done
         unlock_semaphore
         for NODE in ${MAXSCALE_NODES[*]} ; do
@@ -111,7 +109,7 @@ mkdir -p ${LOGDIRECTORY}
         echo "        Driver Node Connectivity - OS Version"
         lock_semaphore
         for NODE in ${DRIVER_NODES[*]} ; do
-            grep -v ${NODE,,} ~/.ssh/known_hosts > /tmp/${NODE}.temp && mv -f /tmp/${NODE}.temp ~/.ssh/known_hosts
+            ssh-keygen -f ${HOME}/.ssh/known_hosts -R ${NODE}
         done
         unlock_semaphore
         for NODE in ${DRIVER_NODES[*]} ; do
