@@ -94,15 +94,15 @@ mkdir -p ${LOGDIRECTORY}
     time {
 
         if [[ ${MAXSCALE_SOURCE} = 'jenkins' ]] ; then
-            BASE_URL="https://mdbe-ci-repo.mariadb.net/MaxscaleEnterprise/${MAXSCALE_RELEASE}/bintar/ubuntu/noble/${MAXSCALE_ARCH}/"
+            BASE_URL="https://mdbe-ci-repo.mariadb.net/MaxscaleEnterprise/${MAXSCALE_RELEASE}/bintar/ubuntu/noble/${MAXSCALE_ARCH}"
             if ( ! wget --user=$(vault 'maxscale_packages_user') \
                         --password=$(vault 'maxscale_packages_pass') \
-                        ${BASE_URL} -O dirlist)
+                        ${BASE_URL}/ -O dirlist)
             then
                 error "        failed to download '${BASE_URL}'"
             fi
-            DISTFILE=$(cat dirlist | perl -ne 'print "$1\n" if (/<a href="(.*?)\.tar\.gz"/)' | head -1)
-            TARGET="${DOWNLOAD_DIR}/${DISTFILE%.tar.gz}-${ARCH}.tar.gz"
+            DISTFILE=$(cat dirlist | perl -ne 'print "$1\n" if (/<a href="(.*?\.tar\.gz)"/)' | head -1)
+            TARGET="${DOWNLOAD_DIR}${DISTFILE%.tar.gz}-${ARCH}.tar.gz"
             if [[ -f ${TARGET} ]] ; then
                 echo "        ${TARGET} already exists, not downloading"
             else
