@@ -127,7 +127,10 @@ mkdir -p ${LOGDIRECTORY}
                 echo "        Cluster = ${CLUSTER}, System = ${SYSTEM}, Node = ${NODE}"
                 echo
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
-                    [[ -d /data/cbench/install ]] || mkdir -p /data/cbench/install
+                    if ! -d /data/cbench/install; then
+                        sudo mkdir -p /data/cbench/install
+                        sudo chown -R /data $(whoami)
+                    fi
                 '
                 if ( scp $(get_scp_copy_to_connection ${SYSTEM} ${NODE} ${TARGET} /data/cbench/) ) ; then
                     echo "        copied ${TARGET} to ${SYSTEM}"
