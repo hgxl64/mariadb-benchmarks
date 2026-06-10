@@ -127,7 +127,7 @@ mkdir -p ${LOGDIRECTORY}
                 echo "        Cluster = ${CLUSTER}, System = ${SYSTEM}, Node = ${NODE}"
                 echo
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
-                    if ! -d /data/cbench/install; then
+                    if [[ ! -d /data/cbench/install ]]; then
                         sudo mkdir -p /data/cbench/install
                         sudo chown -R /data $(whoami)
                     fi
