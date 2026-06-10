@@ -129,7 +129,7 @@ mkdir -p ${LOGDIRECTORY}
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
                     if [[ ! -d /data/cbench/install ]]; then
                         sudo mkdir -p /data/cbench
-                        sudo chmod -R
+                        sudo chmod -R a+rwx /data
                     fi
                     mkdir /data/cbench/install
                 '
