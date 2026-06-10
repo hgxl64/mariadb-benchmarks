@@ -94,7 +94,7 @@ mkdir -p ${LOGDIRECTORY}
     time {
 
         if [[ ${MAXSCALE_SOURCE} = 'jenkins' ]] ; then
-            BASE_URL="https://mdbe-ci-repo.mariadb.net/MaxscaleEnterprise/${MAXSCALE_RELEASE}/bintar/ubuntu/noble/${MAXSCALE_ARCH}"
+            BASE_URL="https://mdbe-ci-repo.mariadb.net/MaxscaleEnterprise/${MAXSCALE_RELEASE}/bintar/ubuntu/noble/${MAXSCALE_ARCH}/"
             if ( ! wget --user=$(vault 'maxscale_packages_user') \
                         --password=$(vault 'maxscale_packages_pass') \
                         ${BASE_URL} -O dirlist)
