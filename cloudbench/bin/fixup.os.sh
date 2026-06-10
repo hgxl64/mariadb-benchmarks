@@ -54,39 +54,22 @@ time {
     echo
     echo "    ===== Fixup known OS problems =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-    NODES=( $(get_property ${CLUSTER} nodes) )
-
-    for SYSTEM in $(get_property ${CLUSTER} maxscale.systems) ; do
-        for NODE in $(get_property ${SYSTEM} nodes) ; do
-            if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
-                # if the node is not already in the list of hardware nodes, add it
-                NODES=( ${NODES[*]} ${NODE} )
-            fi
-        done
-    done
-    for NODE in ${DRIVER_NODES[*]}; do
-        if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
-            # if the node is not already in the list of hardware nodes, add it
-            NODES=( ${NODES[*]} ${NODE} )
-        fi
-    done
-
-    echo "        NODES = ${NODES[*]}"
-
     unset BACKGROUND_PIDS
-    for NODE in ${NODES[*]} ; do
-        time {
-            ssh $(get_ssh_connection ${CLUSTER} ${NODE}) '
-                if fgrep -i "ubuntu 24." /etc/lsb-release &>/dev/null ; then
-                    echo "Ubuntu 24 detected, installing packages"
-                    sudo apt-get update
-                    sudo apt-get -y install ntpdate
-                    sudo apt-get -y install liburing2
-                    sudo apt-get -y install libodbc2 libprotobuf32t64 libmicrohttpd12
-                fi
-            '
-        } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).fixup.os.${NODE}.log 2>&1 &
-        BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
+    for SYSTEM in $(get_property ${CLUSTER} systems) ; do
+        for NODE in $(get_property ${SYSTEM} system.external.ip) ; do
+            time {
+                ssh $(get_ssh_connection ${CLUSTER} ${NODE}) '
+                    if fgrep -i "ubuntu 24." /etc/lsb-release &>/dev/null ; then
+                        echo "Ubuntu 24 detected, installing packages"
+                        sudo apt-get update
+                        sudo apt-get -y install ntpdate
+                        sudo apt-get -y install liburing2
+                        sudo apt-get -y install libodbc2 libprotobuf32t64 libmicrohttpd12
+                    fi
+                '
+            } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).fixup.os.${NODE}.log 2>&1 &
+            BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
+        done
     done
     wait ${BACKGROUND_PIDS[*]}
 
