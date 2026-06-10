@@ -102,7 +102,7 @@ mkdir -p ${LOGDIRECTORY}
                 error "        failed to download '${BASE_URL}'"
             fi
             DISTFILE=$(cat dirlist | perl -ne 'print "$1\n" if (/<a href="(.*?\.tar\.gz)"/)' | head -1)
-            TARGET="${DOWNLOAD_DIR}/${DISTFILE%.tar.gz}-${ARCH}.tar.gz"
+            TARGET="${DOWNLOAD_DIR}/${DISTFILE%.tar.gz}-${MAXSCALE_ARCH}.tar.gz"
             if [[ -f ${TARGET} ]] ; then
                 echo "        ${TARGET} already exists, not downloading"
             else
