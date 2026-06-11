@@ -37,20 +37,17 @@ while [[ $# > 0 ]] ; do
         # MariaDB Options
         --source)                   OPTION_SOURCE="$1"; shift;;
         --branch)                   OPTION_BRANCH="$1"; shift;;
-        --release)                  OPTION_RELEASE="$1"; shift;;
         --commit)                   OPTION_COMMIT="$1"; shift;;
 
         # Galera options
         --galera-source)            OPTION_GALERA_SOURCE="$1"; shift;;
         --galera-branch)            OPTION_GALERA_BRANCH="$1"; shift;;
         --galera-commit)            OPTION_GALERA_COMMIT="$1"; shift;;
-        --galera-release)           OPTION_GALERA_RELEASE="$1"; shift;;
 
         # Raft options
         --raft-source)              OPTION_RAFT_SOURCE="$1"; shift;;
         --raft-branch)              OPTION_RAFT_BRANCH="$1"; shift;;
         --raft-commit)              OPTION_RAFT_COMMIT="$1"; shift;;
-        --raft-release)             OPTION_RAFT_RELEASE="$1"; shift;;
 
         # MaxScele options
         --maxscale-source)          OPTION_MAXSCALE_SOURCE="$1"; shift;;
@@ -117,7 +114,6 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
                 [[ ${OPTION_SOURCE} ]] && COMMAND="${COMMAND} --source ${OPTION_SOURCE}"
                 [[ ${OPTION_BRANCH} ]] && COMMAND="${COMMAND} --branch ${OPTION_BRANCH}"
-                [[ ${OPTION_RELEASE} ]] && COMMAND="${COMMAND} --release ${OPTION_RELEASE}"
                 [[ ${OPTION_COMMIT} ]] && COMMAND="${COMMAND} --commit ${OPTION_COMMIT}"
                 [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
                 echo "        COMMAND = ${COMMAND}"
@@ -139,7 +135,6 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
                 [[ ${OPTION_SOURCE} ]] && COMMAND="${COMMAND} --source ${OPTION_SOURCE}"
                 [[ ${OPTION_BRANCH} ]] && COMMAND="${COMMAND} --branch ${OPTION_BRANCH}"
-                [[ ${OPTION_RELEASE} ]] && COMMAND="${COMMAND} --release ${OPTION_RELEASE}"
                 [[ ${OPTION_COMMIT} ]] && COMMAND="${COMMAND} --commit ${OPTION_COMMIT}"
                 [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
                 echo "        COMMAND = ${COMMAND}"
@@ -158,7 +153,6 @@ mkdir -p ${LOGDIRECTORY}
                         [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
                         [[ ${OPTION_SOURCE} ]] && COMMAND="${COMMAND} --source ${OPTION_SOURCE}"
                         [[ ${OPTION_BRANCH} ]] && COMMAND="${COMMAND} --branch ${OPTION_BRANCH}"
-                        [[ ${OPTION_RELEASE} ]] && COMMAND="${COMMAND} --release ${OPTION_RELEASE}"
                         [[ ${OPTION_COMMIT} ]] && COMMAND="${COMMAND} --commit ${OPTION_COMMIT}"
                         [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
                         echo "        COMMAND = ${COMMAND}"
@@ -177,11 +171,9 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${OPTION_DEFERRED_FLUSH} ]] && COMMAND="${COMMAND} --deferflush"
                 [[ ${OPTION_SOURCE} ]] && COMMAND="${COMMAND} --source ${OPTION_SOURCE}"
                 [[ ${OPTION_BRANCH} ]] && COMMAND="${COMMAND} --branch ${OPTION_BRANCH}"
-                [[ ${OPTION_RELEASE} ]] && COMMAND="${COMMAND} --release ${OPTION_RELEASE}"
                 [[ ${OPTION_COMMIT} ]] && COMMAND="${COMMAND} --commit ${OPTION_COMMIT}"
                 [[ ${OPTION_GALERA_SOURCE} ]] && COMMAND="${COMMAND} --galera-source ${OPTION_GALERA_SOURCE}"
                 [[ ${OPTION_GALERA_BRANCH} ]] && COMMAND="${COMMAND} --galera-branch ${OPTION_GALERA_BRANCH}"
-                [[ ${OPTION_GALERA_RELEASE} ]] && COMMAND="${COMMAND} --galera-release ${OPTION_GALERA_RELEASE}"
                 [[ ${OPTION_GALERA_COMMIT} ]] && COMMAND="${COMMAND} --galera-commit ${OPTION_GALERA_COMMIT}"
                 echo "        COMMAND = ${COMMAND}"
                 time ${COMMAND}
@@ -195,11 +187,9 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${OPTION_DEFERRED_FLUSH} ]] && COMMAND="${COMMAND} --deferflush"
                 [[ ${OPTION_SOURCE} ]] && COMMAND="${COMMAND} --source ${OPTION_SOURCE}"
                 [[ ${OPTION_BRANCH} ]] && COMMAND="${COMMAND} --branch ${OPTION_BRANCH}"
-                [[ ${OPTION_RELEASE} ]] && COMMAND="${COMMAND} --release ${OPTION_RELEASE}"
                 [[ ${OPTION_COMMIT} ]] && COMMAND="${COMMAND} --commit ${OPTION_COMMIT}"
                 [[ ${OPTION_RAFT_SOURCE} ]] && COMMAND="${COMMAND} --raft-source ${OPTION_RAFT_SOURCE}"
                 [[ ${OPTION_RAFT_BRANCH} ]] && COMMAND="${COMMAND} --raft-branch ${OPTION_RAFT_BRANCH}"
-                [[ ${OPTION_RAFT_RELEASE} ]] && COMMAND="${COMMAND} --raft-release ${OPTION_RAFT_RELEASE}"
                 [[ ${OPTION_RAFT_COMMIT} ]] && COMMAND="${COMMAND} --raft-commit ${OPTION_RAFT_COMMIT}"
                 echo "        COMMAND = ${COMMAND}"
                 time ${COMMAND}
@@ -234,6 +224,7 @@ mkdir -p ${LOGDIRECTORY}
     echo "    ===== Cluster properties : CLUSTER = ${CLUSTER}  =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     echo
     cat properties/${CLUSTER}.properties
+
     echo
     echo "    ===== Check Cluster : CLUSTER = ${CLUSTER}  =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     echo

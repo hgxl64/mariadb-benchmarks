@@ -28,8 +28,8 @@ while [[ $# > 0 ]] ; do
 
         # where to install from
         --source)                       SOURCE="$1"; shift;;
-        --release)                      RELEASE="$1"; shift;;
         --branch)                       BRANCH="$1"; shift;;
+        --commit)                       COMMIT="$1"; shift;;
 
         --aws|--gcp|--cloud)            OPTION_CLOUD="--cloud";;
         --arm)                          OPTION_ARM=TRUE;;
@@ -115,19 +115,10 @@ process_connection_info;
 [[ ${BRANCH} ]] || BRANCH="ENTERPRISE/11.4-enterprise"
 [[ ${COMMIT} ]] || COMMIT="latest"
 
-# default Galera source
-if [[ ${OPTION_GALERA} = TRUE ]] ; then
-    [[ ${GALERA_SOURCE} ]] || GALERA_SOURCE="jenkins"
-    [[ ${GALERA_BRANCH} ]] || GALERA_BRANCH="GALERA-ENTERPRISE/es-mariadb-4.x"
-    [[ ${GALERA_COMMIT} ]] || GALERA_COMMIT="latest"
-fi
-
 # default Raft source
-if [[ ${OPTION_RAFT} = TRUE ]] ; then
-    [[ ${RAFT_SOURCE} ]] || RAFT_SOURCE="jenkins"
-    [[ ${RAFT_BRANCH} ]] || RAFT_BRANCH="CRAFT/main"
-    [[ ${RAFT_COMMIT} ]] || RAFT_COMMIT="latest"
-fi
+[[ ${RAFT_SOURCE} ]] || RAFT_SOURCE="jenkins"
+[[ ${RAFT_BRANCH} ]] || RAFT_BRANCH="CRAFT/main"
+[[ ${RAFT_COMMIT} ]] || RAFT_COMMIT="latest"
 
 # target OS
 if [[ ! ${OS} ]] ; then
@@ -169,11 +160,32 @@ mkdir -p ${LOGDIRECTORY}
     echo "
         $0 $COMMAND_LINE
 
-            CLUSTER     = ${CLUSTER}
-            DATABASE    = ${DATABASE}
-            SOURCE      = ${SOURCE}
+            CLUSTER       = ${CLUSTER}
+            DATABASE      = ${DATABASE}
+            SOURCE        = ${SOURCE}
+            BRANCH        = ${BRANCH}
+            COMMIT        = ${COMMIT}
+
+            CONFIG        = ${OPTION_CONFIG}
+            BINLOG        = ${OPTION_MASTER}
 
     "
+    if [[ ${OPTION_GALERA} == TRUE ]] ; then
+        echo "
+                OPTION_GALERA = ${OPTION_GALERA}
+                GALERA_SOURCE = ${GALERA_SOURCE}
+                GALERA_BRANCH = ${GALERA_BRANCH}
+                GALERA_COMMIT = ${GALERA_COMMIT}
+        "
+    fi
+    if [[ ${OPTION_RAFT} == TRUE ]] ; then
+        echo "
+                OPTION_RAFT   = ${OPTION_RAFT}
+                RAFT_SOURCE   = ${RAFT_SOURCE}
+                RAFT_BRANCH   = ${RAFT_BRANCH}
+                RAFT_COMMIT   = ${RAFT_COMMIT}
+        "
+    fi
 
     echo "        Properties File:"
     showproperties
@@ -240,8 +252,7 @@ mkdir -p ${LOGDIRECTORY}
                     cd /data/cbench
                     [[ -d install ]] || mkdir install
                     tar xfz '$(basename ${TARGET})' -C install --strip-components=1
-                    [[ -d datadir ]] || rm -rf datadir
-                    mkdir datadir
+                    [[ -d datadir ]] || mkdir datadir
                     cd install
                     ln -s ../datadir var
                     cd etc
@@ -288,7 +299,7 @@ mkdir -p ${LOGDIRECTORY}
                             echo "        failed to download '${DIR_URL}'"
                             exit 1
                         fi
-                        DISTFILE=$(cat dirlist | perl -ne 'print "$1\n" if (/<a href="(.*?)\.tar\.gz"/)' | head -1)
+                        DISTFILE=$(cat dirlist | perl -ne 'print "$1\n" if (/<a href="(.*?\.tar\.gz)"/)' | head -1)
                         BINTAR_URL="${BASE_URL}/bintar/${OS}/RelWithDebInfo/${DISTFILE}"
                         if ( wget --user=$(vault 'jenkins_es_package_user') \
                                   --password=$(vault 'jenkins_es_package_pass') \
@@ -302,7 +313,7 @@ mkdir -p ${LOGDIRECTORY}
                         fi
                         rm -f dirlist
                     fi
-                    rm build.properties
+                    rm -f build.properties
                     unlock_semaphore
 
                     if ( time scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
@@ -354,7 +365,7 @@ mkdir -p ${LOGDIRECTORY}
                             echo "        failed to download '${DIR_URL}'"
                             exit 1
                         fi
-                        DISTFILE=$(cat dirlist | perl -ne 'print "$1\n" if (/<a href="(.*?)\.tar\.gz"/)' | head -1)
+                        DISTFILE=$(cat dirlist | perl -ne 'print "$1\n" if (/<a href="(.*?\.tar\.gz)"/)' | head -1)
                         BINTAR_URL="${BASE_URL}/bintar/${OS}/RelWithDebInfo/${DISTFILE}"
                         if ( wget --user=$(vault 'jenkins_es_package_user') \
                                   --password=$(vault 'jenkins_es_package_pass') \
@@ -641,7 +652,7 @@ mkdir -p ${LOGDIRECTORY}
     ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "cat ${CONFIG_FILE}"
 
 
-    if [[ ! (${OPTION_GALERA} == TRUE || ${OPTION_RAFT} == TRUE) ]] ; then
+    if [[ ! ( ${OPTION_GALERA} == TRUE || ${OPTION_RAFT} == TRUE ) ]] ; then
 
         echo
         echo "    ===== Starting Database =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
@@ -680,11 +691,11 @@ mkdir -p ${LOGDIRECTORY}
                     uname -n
                     /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
                         create user '${DB_USER}'@'%' identified by '${DB_PASSWORD}' ;
-                        grant all on *.* to '${DB_USER}'@'%' with grant option;
-                        grant reload on *.* to '${DB_USER}'@'%' with grant option;
+                        grant all on *.* to '${DB_USER}'@'%';
+                        grant reload on *.* to '${DB_USER}'@'%';
                         create user '${DB_USER}'@'127.0.0.1' identified by '${DB_PASSWORD}' ;
-                        grant all on *.* to '${DB_USER}'@'127.0.0.1' with grant option;
-                        grant reload on *.* to '${DB_USER}'@'%' with grant option;
+                        grant all on *.* to '${DB_USER}'@'127.0.0.1';
+                        grant reload on *.* to '${DB_USER}'@'%';
                         flush privileges;
                     \"
                     "
@@ -694,8 +705,8 @@ mkdir -p ${LOGDIRECTORY}
                uname -n
                /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
                    create user '${DB_USER}'@'%';
-                   grant all on *.* to '${DB_USER}'@'%' with grant option;
-                   grant reload on *.* to '${DB_USER}'@'%' with grant option;
+                   grant all on *.* to '${DB_USER}'@'%';
+                   grant reload on *.* to '${DB_USER}'@'%';
                    flush privileges;
                \"
            "
@@ -752,7 +763,7 @@ mkdir -p ${LOGDIRECTORY}
         echo "    ===== Check Database Connection =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         mariadb -vvv $(get_database_connection) -e "
             create schema if not exists test;
-            select @@innodb_buffer_pool_size;
+            select @@innodb_buffer_pool_size/1024/1024 AS `InnoDB Buffer Pool Size [MB]`;
             select version();
         "
         if [[ ${OPTION_MASTER} == TRUE ]] ; then
