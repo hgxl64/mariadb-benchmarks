@@ -1054,9 +1054,11 @@ generate_performance_curve_graph() {
                     set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
                     set ylabel 'Avg Latency (ms)'
                     set xlabel 'Throughput (tps)'
+                    set key top left
                     set output '${LOGDIRECTORY}/performance.curve.png'
                     set title '${TESTID} - ${BENCHMARK}.${WORKLOAD} - Performance Curve'
-                    plot  '${LOGDIRECTORY}/test.data' using 2:3 title '${TESTID}' with linespoint pointtype 7
+                    plot  '${LOGDIRECTORY}/test.data' using 2:3 title '${TESTID}' with linespoint pointtype 7, \
+                      '' using 2:3:1 with labels center offset 1.5, 0.5 notitle
                     exit
                 "
             } | gnuplot
@@ -1072,6 +1074,7 @@ generate_performance_curve_graph() {
                     set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
                     set ylabel 'Throughput (tps)'
                     set xlabel 'Scale'
+                    set key bottom right
                     set output '${LOGDIRECTORY}/throughput.curve.png'
                     set title '${TESTID} - ${BENCHMARK}.${WORKLOAD} - Throughput Curve'
                     plot  '${LOGDIRECTORY}/test.data' using 1:2 title '${TESTID}' with linespoint pointtype 7
@@ -1114,6 +1117,7 @@ generate_curve_interval_graph() {
             set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
             set ylabel 'Throughput'
             set xlabel 'Time(Intervals)'
+            set key bottom right
             set output '${LOGDIRECTORY}/throughput.interval.png'
             set title 'Throughput Over Time'
             plot '${LOGDIRECTORY}/test.interval.data' using ${INTERVAL_FIELD} title '${TESTID}' with lines
