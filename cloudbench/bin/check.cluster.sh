@@ -96,8 +96,8 @@ mkdir -p ${LOGDIRECTORY}
             ssh $(get_ssh_connection ${CLUSTER} ${NODE}) '
                 echo "uname: $(uname -a)"
                 /data/cbench/install/bin/maxscale --version
-                /data/cbench/install/bin/maxctrl list servers
-                /data/cbench/install/bin/maxctrl list services
+                /data/cbench/install/bin/maxctrl --tsv list servers
+                /data/cbench/install/bin/maxctrl --tsv list services
             '
         done
     fi
