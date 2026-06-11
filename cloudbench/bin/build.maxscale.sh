@@ -392,7 +392,6 @@ mkdir -p ${LOGDIRECTORY}
                         echo "router=readconnroute"                         >> ${CONFIG_FILE}
                     else
                         echo "router=readwritesplit"                        >> ${CONFIG_FILE}
-                        echo "router_options=synced"                        >> ${CONFIG_FILE}
                         echo "slave_selection_criteria=${SLAVE_SELECTION}"  >> ${CONFIG_FILE}
                         echo "master_accept_reads=${MASTER_READS}"          >> ${CONFIG_FILE}
                     fi
