@@ -32,9 +32,8 @@ mkdir -p ${LOGDIRECTORY}
     showproperties
 
     build.cluster.sh --cluster ${CLUSTER}
-    check.cluster.sh --cluster ${CLUSTER}
 
-    echo "Version (direct) :          $(get_database_version ${CLUSTER})"
+    echo "Version : $(get_database_version ${CLUSTER})"
 
     sysbench.load.sh --cluster ${CLUSTER} --skipcheck --load
     sysbench.curve.sh --cluster ${CLUSTER} --skipcheck --workload oltp_read_write --start_streams 4
