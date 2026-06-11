@@ -172,18 +172,18 @@ mkdir -p ${LOGDIRECTORY}
     "
     if [[ ${OPTION_GALERA} == TRUE ]] ; then
         echo "
-                OPTION_GALERA = ${OPTION_GALERA}
-                GALERA_SOURCE = ${GALERA_SOURCE}
-                GALERA_BRANCH = ${GALERA_BRANCH}
-                GALERA_COMMIT = ${GALERA_COMMIT}
+            OPTION_GALERA = ${OPTION_GALERA}
+            GALERA_SOURCE = ${GALERA_SOURCE}
+            GALERA_BRANCH = ${GALERA_BRANCH}
+            GALERA_COMMIT = ${GALERA_COMMIT}
         "
     fi
     if [[ ${OPTION_RAFT} == TRUE ]] ; then
         echo "
-                OPTION_RAFT   = ${OPTION_RAFT}
-                RAFT_SOURCE   = ${RAFT_SOURCE}
-                RAFT_BRANCH   = ${RAFT_BRANCH}
-                RAFT_COMMIT   = ${RAFT_COMMIT}
+            OPTION_RAFT   = ${OPTION_RAFT}
+            RAFT_SOURCE   = ${RAFT_SOURCE}
+            RAFT_BRANCH   = ${RAFT_BRANCH}
+            RAFT_COMMIT   = ${RAFT_COMMIT}
         "
     fi
 
@@ -227,47 +227,54 @@ mkdir -p ${LOGDIRECTORY}
                 else
                     VERSION=$(fgrep FULL_VERSION build.properties | cut -d= -f 2)
                     BINTAR_URL="${BASE_URL}/bintar/${OS}/RelWithDebInfo/mariadb-enterprise-${VERSION}-Linux-${ARCH}.tar.gz"
-                    if ( wget --user=$(vault 'jenkins_es_package_user') \
-                              --password=$(vault 'jenkins_es_package_pass') \
-                              --quiet ${BINTAR_URL} -O ${TARGET})
-                    then
-                        echo "        downloaded '${TARGET}'"
-                        echo "        from '${BINTAR_URL}'"
-                    else
-                        echo "        failed to download '${BINTAR_URL}'"
-                        exit 1
-                    fi
+                    time {
+                        if ( wget --user=$(vault 'jenkins_es_package_user') \
+                                  --password=$(vault 'jenkins_es_package_pass') \
+                                  --quiet ${BINTAR_URL} -O ${TARGET})
+                        then
+                            echo "        downloaded '${TARGET}'"
+                            echo "        from '${BINTAR_URL}'"
+                        else
+                            echo "        failed to download '${BINTAR_URL}'"
+                            exit 1
+                        fi
+                    }
                 fi
                 rm build.properties
                 unlock_semaphore
 
-                if ( time scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
-                    echo "        copied ${TARGET} to ${SYSTEM}"
-                else
-                    echo "        scp to ${SYSTEM} failed"
-                    exit 1;
-                fi
+                time {
+                    if ( scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
+                        echo "        copied ${TARGET} to ${SYSTEM}"
+                    else
+                        echo "        scp to ${SYSTEM} failed"
+                        exit 1;
+                    fi
+                }
 
-                ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
-                    cd /data/cbench
-                    [[ -d install ]] || mkdir install
-                    tar xfz '$(basename ${TARGET})' -C install --strip-components=1
-                    [[ -d datadir ]] || mkdir datadir
-                    cd install
-                    ln -s ../datadir var
-                    cd etc
-                    mkdir my.cnf.d
-                    echo "#
+                time {
+                    echo "        unpacking MariaDB"
+                    ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+                        cd /data/cbench
+                        [[ -d install ]] || mkdir install
+                        tar xfz '$(basename ${TARGET})' -C install --strip-components=1
+                        [[ -d datadir ]] || mkdir datadir
+                        cd install
+                        ln -s ../datadir var
+                        cd etc
+                        mkdir my.cnf.d
+                        echo "#
 # include *.cnf from the config directory
 #
 !includedir /data/cbench/install/etc/my.cnf.d
 " | sudo tee /etc/my.cnf > my.cnf
-                '
-            else
-                echo "Invalid source specified: $SOURCE"; exit 1;
-            fi
+                    '
+                }
+                else
+                    echo "Invalid source specified: $SOURCE"; exit 1;
+                fi
 
-            if [[ ${OPTION_GALER} == TRUE ]] ; then
+            if [[ ${OPTION_GALER} ]] ; then
                 if [[ ${GALERA_SOURCE} == 'jenkins' ]] ; then
                     echo
                     echo "        Installing Galera from es-repo.mariadb.net/jenkins"
@@ -301,39 +308,46 @@ mkdir -p ${LOGDIRECTORY}
                         fi
                         DISTFILE=$(cat dirlist | perl -ne 'print "$1\n" if (/<a href="(.*?\.tar\.gz)"/)' | head -1)
                         BINTAR_URL="${BASE_URL}/bintar/${OS}/RelWithDebInfo/${DISTFILE}"
-                        if ( wget --user=$(vault 'jenkins_es_package_user') \
-                                  --password=$(vault 'jenkins_es_package_pass') \
-                                  ${BINTAR_URL} -O ${TARGET})
-                        then
-                            echo "        downloaded '${TARGET}'"
-                            echo "        from '${BINTAR_URL}'"
-                        else
-                            echo "        failed to download '${BINTAR_URL}'"
-                            exit 1
-                        fi
+                        time {
+                            if ( wget --user=$(vault 'jenkins_es_package_user') \
+                                      --password=$(vault 'jenkins_es_package_pass') \
+                                      ${BINTAR_URL} -O ${TARGET})
+                            then
+                                echo "        downloaded '${TARGET}'"
+                                echo "        from '${BINTAR_URL}'"
+                            else
+                                echo "        failed to download '${BINTAR_URL}'"
+                                exit 1
+                            fi
+                        }
                         rm -f dirlist
                     fi
                     rm -f build.properties
                     unlock_semaphore
 
-                    if ( time scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
-                        echo "        copied ${TARGET} to ${SYSTEM}"
-                    else
-                        echo "        scp to ${SYSTEM} failed"
-                        exit 1;
-                    fi
+                    time {
+                         if ( scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
+                             echo "        copied ${TARGET} to ${SYSTEM}"
+                         else
+                             echo "        scp to ${SYSTEM} failed"
+                             exit 1;
+                         fi
+                    }
 
-                    ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
-                        cd /data/cbench
-                        [[ -d install ]] || mkdir install
-                        tar xfz '$(basename ${TARGET})' -C install --strip-components=1
-                    '
+                    time {
+                        echo "        unpacking Galera"
+                        ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+                            cd /data/cbench
+                            [[ -d install ]] || mkdir install
+                            tar xfz '$(basename ${TARGET})' -C install --strip-components=1
+                        '
+                    }
                 else
                     echo "Invalid Galera source specified: $GALERA_SOURCE"; exit 1;
                 fi
             fi
 
-            if [[ ${OPTION_RAFT} == TRUE ]] ; then
+            if [[ ${OPTION_RAFT} ]] ; then
                 if [[ ${RAFT_SOURCE} == 'jenkins' ]] ; then
                     echo
                     echo "        Installing Raft from es-repo.mariadb.net/jenkins"
@@ -367,33 +381,40 @@ mkdir -p ${LOGDIRECTORY}
                         fi
                         DISTFILE=$(cat dirlist | perl -ne 'print "$1\n" if (/<a href="(.*?\.tar\.gz)"/)' | head -1)
                         BINTAR_URL="${BASE_URL}/bintar/${OS}/RelWithDebInfo/${DISTFILE}"
-                        if ( wget --user=$(vault 'jenkins_es_package_user') \
-                                  --password=$(vault 'jenkins_es_package_pass') \
-                                  ${BINTAR_URL} -O ${TARGET})
-                        then
-                            echo "        downloaded '${TARGET}'"
-                            echo "        from '${BINTAR_URL}'"
-                        else
-                            echo "        failed to download '${BINTAR_URL}'"
-                            exit 1
-                        fi
+                        time {
+                            if ( wget --user=$(vault 'jenkins_es_package_user') \
+                                      --password=$(vault 'jenkins_es_package_pass') \
+                                      ${BINTAR_URL} -O ${TARGET})
+                            then
+                                echo "        downloaded '${TARGET}'"
+                                echo "        from '${BINTAR_URL}'"
+                            else
+                                echo "        failed to download '${BINTAR_URL}'"
+                                exit 1
+                            fi
+                        }
                         rm -f dirlist
                     fi
                     rm build.properties
                     unlock_semaphore
 
-                    if ( time scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
-                        echo "        copied ${TARGET} to ${SYSTEM}"
-                    else
-                        echo "        scp to ${SYSTEM} failed"
-                        exit 1;
-                    fi
+                    time {
+                        if ( time scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
+                            echo "        copied ${TARGET} to ${SYSTEM}"
+                        else
+                            echo "        scp to ${SYSTEM} failed"
+                            exit 1;
+                        fi
+                    }
 
-                    ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
-                        cd /data/cbench
-                        [[ -d install ]] || mkdir install
-                        tar xfz '$(basename ${TARGET})' -C install --strip-components=1
-                    '
+                    time {
+                        echo "        unpacking Galera"
+                        ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+                            cd /data/cbench
+                            [[ -d install ]] || mkdir install
+                            tar xfz '$(basename ${TARGET})' -C install --strip-components=1
+                        '
+                    }
                 else
                     echo "Invalid Raft source specified: $RAFT_SOURCE"; exit 1;
                 fi
