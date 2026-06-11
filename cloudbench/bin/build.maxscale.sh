@@ -455,30 +455,27 @@ mkdir -p ${LOGDIRECTORY}
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
                     uname -n
                     export PATH=/data/cbench/install/bin:${PATH}
-                    maxscale --nodaemon --basedir=/data/cbench/install --config='${CONFIG_FILE}' &
+                    maxscale --nodaemon --basedir=/data/cbench/install --config='${CONFIG_FILE}' &> maxstart.log &
                     sleep 10
+                    echo "----- maxscale startup messages -----"
+                    cat maxstart.log
                     echo "----- maxscale log -----"
                     cat /data/cbench/install/var/log/maxscale/maxscale.log
-                    echo "----- process list -----"
-                    ps fax
+                    maxctrl list servers
+                    maxctrl list services
+                    exit
                 '
             done
         done
     }
 
     echo
-    echo "    ===== Step 5:  Check Cluster =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-    time {
-        check.cluster.sh --cluster ${CLUSTER}
-    }
-
-    echo
     echo "    Cluster = ${CLUSTER}"
-    echo "        Database Connection: mysql $(get_database_connection ${CLUSTER})"
+    echo "        Database Connection: mariadb $(get_database_connection ${CLUSTER})"
     if [[ ${OPTION_SSL} == TRUE ]] ; then
-        echo "        Version: $(mysql -sN $(get_database_connection ${CLUSTER}) --ssl -e 'select version();')"
+        echo "        Version: $(mariadb -sN $(get_database_connection ${CLUSTER}) --ssl -e 'select version();')"
     else
-        echo "        Version: $(mysql -sN $(get_database_connection ${CLUSTER}) -e 'select version();')"
+        echo "        Version: $(mariadb -sN $(get_database_connection ${CLUSTER}) -e 'select version();')"
     fi
     echo
     echo "    ===== End $0 ( Elapsed Seconds = $(( $SECONDS - $STARTSECONDS )) ) =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"

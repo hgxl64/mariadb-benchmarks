@@ -87,18 +87,18 @@ mkdir -p ${LOGDIRECTORY}
         echo
         echo "    ===== Check MaxScale Nodes. =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S.%3N') ]"
         echo
-        echo "        Node Connectivity - OS Version "
         lock_semaphore
         for NODE in ${MAXSCALE_NODES[*]} ; do
             ssh-keygen -f ${HOME}/.ssh/known_hosts -R ${NODE}
         done
         unlock_semaphore
         for NODE in ${MAXSCALE_NODES[*]} ; do
-            echo "            ${NODE} : $(ssh $(get_ssh_connection ${MAXSCALE} ${NODE}) 'uname -a' 2>/dev/null)"
-        done
-        echo "        MaxScale Version per Node"
-        for NODE in ${MAXSCALE_NODES[*]} ; do
-            echo "            ${NODE} : $(ssh $(get_ssh_connection ${CLUSTER} ${NODE}) '/data/cbench/install/bin/maxscale --version')"
+            ssh $(get_ssh_connection ${CLUSTER} ${NODE}) '
+                echo "uname: $(uname -a)"
+                /data/cbench/install/bin/maxscale --version
+                /data/cbench/install/bin/maxctrl list servers
+                /data/cbench/install/bin/maxctrl list services
+            '
         done
     fi
 
