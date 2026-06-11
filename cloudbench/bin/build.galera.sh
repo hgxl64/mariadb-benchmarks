@@ -64,7 +64,7 @@ DB_PASSWORD=$(getproperty ${CLUSTER} database.password)
 [[ ${GALERA_COMMIT} ]] || GALERA_COMMIT="latest"
 
 # default config options
-[[ ${SLAVE_THREADS} ]]         || SLAVE_THREADS=0 #0 means auto-size
+[[ ${OPTION_SLAVE_THREADS} ]]  || OPTION_SLAVE_THREADS=0       #0 means auto-size
 [[ ${OPTION_DEFERRED_FLUSH} ]] || OPTION_DEFERRED_FLUSH=TRUE
 
 # logging
@@ -89,7 +89,7 @@ mkdir -p ${LOGDIRECTORY}
     echo "        GALERA_EXTERNAL_IPS   = ( ${GALERA_EXTERNAL_IPS[*]} )"
     echo "        GALERA_BACKEND_IPS    = ( ${GALERA_BACKEND_IPS[*]} )"
     echo
-    echo "        SLAVE_THREADS         = ${SLAVE_THREADS}"
+    echo "        OPTION_SLAVE_THREADS  = ${OPTION_SLAVE_THREADS}"
     echo "        OPTION_DEFERRED_FLUSH = ${OPTION_DEFERRED_FLUSH}"
     echo "        LOGDIRECTORY          = ${LOGDIRECTORY}"
     echo
@@ -129,7 +129,7 @@ mkdir -p ${LOGDIRECTORY}
             echo "        HOST = ${HOST}"
             ssh $(get_ssh_connection ${SYSTEM} ${HOST}) '
                 GALERA_BACKEND_IPS=("'${GALERA_BACKEND_IPS[*]}'")
-                SLAVE_THREADS="'${SLAVE_THREADS}'"
+                SLAVE_THREADS="'${OPTION_SLAVE_THREADS}'"
                 CONFIG_FILE="'${CONFIG_FILE}'"
                 (( ${SLAVE_THREADS} == 0 )) || ((SLAVE_THREADS=$(grep -c processor /proc/cpuinfo) * 3))
                 LIBGALERA=$(find /data/cbench/install/lib/galera -name libgalera_smm.so)
@@ -144,8 +144,7 @@ wsrep_provider_options = \"gcache.size = 1G; evs.user_send_window = 128; evs.sen
 wsrep_cluster_address = gcomm://$(echo ${GALERA_BACKEND_IPS[*]} | sed "s/^ //g;s/ /,/g" )
 wsrep_slave_threads = ${SLAVE_THREADS}
 wsrep_sst_method = rsync_wan
-innodb_autoinc_lock_mode = 2
-                " > ${CONFIG_FILE}
+innodb_autoinc_lock_mode = 2" > ${CONFIG_FILE}
                 '
 
             if [[ ${OPTION_DEFERRED_FLUSH} == TRUE ]] ; then
@@ -204,7 +203,7 @@ innodb_autoinc_lock_mode = 2
             ' &
             PIDS=( ${PIDS[*]} $! )
             # delay a bit after starting donor node
-            [[ ${IDX} = 0 ]] && sleep 10
+            sleep 20
         done
         wait ${PIDS[*]}
 

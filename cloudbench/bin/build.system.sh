@@ -313,7 +313,7 @@ mkdir -p ${LOGDIRECTORY}
                             echo
                             if ( wget --user=$(vault 'jenkins_es_package_user') \
                                       --password=$(vault 'jenkins_es_package_pass') \
-                                      ${BINTAR_URL} -O ${TARGET})
+                                      --quiet ${BINTAR_URL} -O ${TARGET})
                             then
                                 echo "        downloaded '${TARGET}'"
                                 echo "        from '${BINTAR_URL}'"
