@@ -131,7 +131,7 @@ mkdir -p ${LOGDIRECTORY}
                 GALERA_BACKEND_IPS=("'${GALERA_BACKEND_IPS[*]}'")
                 SLAVE_THREADS="'${OPTION_SLAVE_THREADS}'"
                 CONFIG_FILE="'${CONFIG_FILE}'"
-                (( ${SLAVE_THREADS} == 0 )) || ((SLAVE_THREADS=$(grep -c processor /proc/cpuinfo) * 3))
+                (( ${SLAVE_THREADS} == 0 )) && ((SLAVE_THREADS = $(grep -c processor /proc/cpuinfo) * 3))
                 LIBGALERA=$(find /data/cbench/install/lib/galera -name libgalera_smm.so)
                 LIBGALERA=$(find /data/cbench/install/lib/galera -name libgalera_enterprise_smm.so)
                 echo "
@@ -195,7 +195,7 @@ innodb_autoinc_lock_mode = 2" > ${CONFIG_FILE}
                 timeout=180
                 while [[ ${timeout} -gt 0 ]]
                 do
-                  mariadb-admin -u root -b -s ping && break
+                  mariadb-admin -S /data/cbench/mariadb.sock -u root -b -s ping && break
                   ((timeout = ${timeout} - 1))
                   sleep 1
                 done
