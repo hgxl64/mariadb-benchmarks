@@ -317,7 +317,7 @@ mkdir -p ${LOGDIRECTORY}
             done
         done
 
-    elif [[ ${CLUSTER_TYPE} == 'galera_*' ]] ; then
+    elif [[ ${CLUSTER_TYPE} =~ 'galera_' ]] ; then
 
         if [[ ${CLUSTER_TYPE} == 'galera_mastermaster' ]] ; then
             MULTIMASTER=TRUE
@@ -341,7 +341,6 @@ mkdir -p ${LOGDIRECTORY}
                     DBPASSWORD="'$(get_database_password)'"
                     DBPORT="'$(get_database_port)'"
                     OPTION_SSL="'${OPTION_SSL}'"
-                    MAX_SLAVE_LAG="'${MAX_SLAVE_LAG}'"
                     SLAVE_SELECTION="'${SLAVE_SELECTION}'"
                     MULTIMASTER="'${MULTIMASTER}'"
                     CONFIG_FILE="'${CONFIG_FILE}'"
