@@ -193,13 +193,13 @@ innodb_autoinc_lock_mode = 2" > ${CONFIG_FILE}
                     mariadbd-safe &
                 fi
                 timeout=180
-                while [ $timeo -gt 0 ]
+                while [[ ${timeout} -gt 0 ]]
                 do
                   mariadb-admin -u root -b -s ping && break
                   ((timeout = ${timeout} - 1))
                   sleep 1
                 done
-                cat /data/cbench/datadir/error.log
+                (( ${timeout} == 0 )) && echo "Error: Galera did not start for 180 sec"
             ' &
             PIDS=( ${PIDS[*]} $! )
             # delay a bit after starting donor node
@@ -214,23 +214,14 @@ innodb_autoinc_lock_mode = 2" > ${CONFIG_FILE}
             echo
             echo "        Check Node = ${IDX} - ${GALERA_EXTERNAL_IPS[${IDX}]}"
             echo
-            echo
-            echo "            Check Node = ${IDX} - ps"
-            echo
-            ssh $(get_ssh_connection ${SYSTEM} ${GALERA_EXTERNAL_IPS[${IDX}]}) 'ps -fax'
-            echo
             echo "            Check Node = ${IDX} - mariadb"
             echo
             ssh $(get_ssh_connection ${SYSTEM} ${GALERA_EXTERNAL_IPS[${IDX}]}) "/data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e \"show global status like 'wsrep_cluster_size';\""
-            echo
-            echo "            Check Node = ${IDX} - error.log"
-            echo
-            ssh $(get_ssh_connection ${SYSTEM} ${GALERA_EXTERNAL_IPS[${IDX}]}) "cat /data/cbench/datadir/error.log" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${GALERA_EXTERNAL_IPS[${IDX}]}.mariadb.error.log
         done
 
         echo
         echo "    ===== Database Security =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-        # this needs to be done on master node only
+        # this needs to be done on leader node only
         ssh $(get_ssh_connection ${SYSTEM} ${GALERA_EXTERNAL_IPS[0]}) "
             /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
                 create user '${DB_USER}'@'%' identified by '${DB_PASSWORD}';
