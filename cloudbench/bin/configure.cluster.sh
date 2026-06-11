@@ -565,7 +565,7 @@ mkdir -p ${LOGDIRECTORY}
                     echo
                 fi
 
-                if [[ ${OPTION_SSL} ]] ; then
+                if [[ ${OPTION_SSL} == TRUE ]] ; then
                    echo "database.ssl = true"
                 fi
 

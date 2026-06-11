@@ -461,8 +461,10 @@ mkdir -p ${LOGDIRECTORY}
                     cat maxstart.log
                     echo "----- maxscale log -----"
                     cat /data/cbench/install/var/log/maxscale/maxscale.log
-                    maxctrl list servers
-                    maxctrl list services
+                    echo "----- maxscale servers -----"
+                    maxctrl --tsv list servers
+                    echo "----- maxscale services -----"
+                    maxctrl --tsv list services
                     exit
                 '
             done
