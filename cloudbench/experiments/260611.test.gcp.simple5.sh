@@ -35,7 +35,7 @@ mkdir -p ${LOGDIRECTORY}
 
     echo "Version : $(get_database_version ${CLUSTER})"
 
-    sysbench.load.sh --cluster ${CLUSTER} --skipcheck --load
+    sysbench.load.sh --cluster ${CLUSTER} --skipcheck --noautoinc --load
     sysbench.curve.sh --cluster ${CLUSTER} --skipcheck --workload oltp_read_write --start_streams 4
 
     gcp.release.nodes.sh --cluster ${CLUSTER}
