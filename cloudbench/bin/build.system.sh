@@ -168,7 +168,6 @@ mkdir -p ${LOGDIRECTORY}
 
             CONFIG        = ${OPTION_CONFIG}
             BINLOG        = ${OPTION_MASTER}
-
     "
     if [[ ${OPTION_GALERA} == TRUE ]] ; then
         echo "
@@ -244,6 +243,7 @@ mkdir -p ${LOGDIRECTORY}
                 unlock_semaphore
 
                 time {
+                    echo
                     if ( scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
                         echo "        copied ${TARGET} to ${SYSTEM}"
                     else
@@ -253,6 +253,7 @@ mkdir -p ${LOGDIRECTORY}
                 }
 
                 time {
+                    echo
                     echo "        unpacking MariaDB"
                     ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
                         cd /data/cbench
@@ -270,11 +271,11 @@ mkdir -p ${LOGDIRECTORY}
 " | sudo tee /etc/my.cnf > my.cnf
                     '
                 }
-                else
-                    echo "Invalid source specified: $SOURCE"; exit 1;
-                fi
+            else
+                echo "Invalid source specified: $SOURCE"; exit 1;
+            fi
 
-            if [[ ${OPTION_GALER} ]] ; then
+            if [[ ${OPTION_GALERA} == TRUE ]] ; then
                 if [[ ${GALERA_SOURCE} == 'jenkins' ]] ; then
                     echo
                     echo "        Installing Galera from es-repo.mariadb.net/jenkins"
@@ -309,6 +310,7 @@ mkdir -p ${LOGDIRECTORY}
                         DISTFILE=$(cat dirlist | perl -ne 'print "$1\n" if (/<a href="(.*?\.tar\.gz)"/)' | head -1)
                         BINTAR_URL="${BASE_URL}/bintar/${OS}/RelWithDebInfo/${DISTFILE}"
                         time {
+                            echo
                             if ( wget --user=$(vault 'jenkins_es_package_user') \
                                       --password=$(vault 'jenkins_es_package_pass') \
                                       ${BINTAR_URL} -O ${TARGET})
@@ -326,6 +328,7 @@ mkdir -p ${LOGDIRECTORY}
                     unlock_semaphore
 
                     time {
+                         echo
                          if ( scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
                              echo "        copied ${TARGET} to ${SYSTEM}"
                          else
@@ -335,6 +338,7 @@ mkdir -p ${LOGDIRECTORY}
                     }
 
                     time {
+                        echo
                         echo "        unpacking Galera"
                         ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
                             cd /data/cbench
@@ -347,7 +351,7 @@ mkdir -p ${LOGDIRECTORY}
                 fi
             fi
 
-            if [[ ${OPTION_RAFT} ]] ; then
+            if [[ ${OPTION_RAFT} == TRUE ]] ; then
                 if [[ ${RAFT_SOURCE} == 'jenkins' ]] ; then
                     echo
                     echo "        Installing Raft from es-repo.mariadb.net/jenkins"
