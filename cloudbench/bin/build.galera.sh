@@ -19,14 +19,14 @@ while [[ $# > 0 ]] ; do
         --cluster)             CLUSTER="$1"; shift;;
 
         # MariaDB Options
-        --source)              OPTION_SOURCE="$1"; shift;;
-        --branch)              OPTION_BRANCH="$1"; shift;;
-        --commit)              OPTION_COMMIT="$1"; shift;;
+        --source)              SOURCE="$1"; shift;;
+        --branch)              BRANCH="$1"; shift;;
+        --commit)              COMMIT="$1"; shift;;
 
         # Galera Options
-        --galera-source)       OPTION_GALERA_SOURCE="$1"; shift;;
-        --galera-branch)       OPTION_GALERA_BRANCH="$1"; shift;;
-        --galera-commit)       OPTION_GALERA_COMMIT="$1"; shift;;
+        --galera-source)       GALERA_SOURCE="$1"; shift;;
+        --galera-branch)       GALERA_BRANCH="$1"; shift;;
+        --galera-commit)       GALERA_COMMIT="$1"; shift;;
 
         --thread-pool)         OPTION_THREAD_POOL=TRUE;;
         --thread-pool-size)    OPTION_THREAD_POOL_SIZE="$1"; shift;;
@@ -106,12 +106,12 @@ mkdir -p ${LOGDIRECTORY}
                 COMMAND="build.system.sh --database mariadb --system ${SYSTEM} --initdb --galera"
                 [[ ${OPTION_THREAD_POOL} ]] && COMMAND="${COMMAND} --thread-pool"
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
-                [[ ${OPTION_SOURCE} ]] && COMMAND="${COMMAND} --source ${OPTION_SOURCE}"
-                [[ ${OPTION_BRANCH} ]] && COMMAND="${COMMAND} --branch ${OPTION_BRANCH}"
-                [[ ${OPTION_COMMIT} ]] && COMMAND="${COMMAND} --commit ${OPTION_COMMIT}"
-                [[ ${OPTION_GALERA_SOURCE} ]] && COMMAND="${COMMAND} --galera-source ${OPTION_GALERA_SOURCE}"
-                [[ ${OPTION_GALERA_BRANCH} ]] && COMMAND="${COMMAND} --galera-branch ${OPTION_GALERA_BRANCH}"
-                [[ ${OPTION_GALERA_COMMIT} ]] && COMMAND="${COMMAND} --galera-commit ${OPTION_GALERA_COMMIT}"
+                [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
+                [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
+                [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
+                [[ ${GALERA_SOURCE} ]] && COMMAND="${COMMAND} --galera-source ${GALERA_SOURCE}"
+                [[ ${GALERA_BRANCH} ]] && COMMAND="${COMMAND} --galera-branch ${GALERA_BRANCH}"
+                [[ ${GALERA_COMMIT} ]] && COMMAND="${COMMAND} --galera-commit ${GALERA_COMMIT}"
                 [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
                 echo "        COMMAND = ${COMMAND}"
                 ${COMMAND}

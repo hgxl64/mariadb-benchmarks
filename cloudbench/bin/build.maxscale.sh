@@ -25,8 +25,8 @@ while [[ $# > 0 ]] ; do
     key="$1"; shift;
     case ${key} in
         --cluster)          CLUSTER="$1"; shift;;
-        --source)           MAXSCALE_SOURCE="$1"; shift;;
-        --version)          MAXSCALE_VERSION="$1"; shift;;
+        --maxscale-source)  MAXSCALE_SOURCE="$1"; shift;;
+        --maxscale-version) MAXSCALE_VERSION="$1"; shift;;
         --arm)              OPTION_MAXSCALE_ARM=TRUE;;
         --initdb)           OPTION_INITDB=TRUE;;
         --ssl)              OPTION_SSL=TRUE;;
@@ -93,7 +93,7 @@ mkdir -p ${LOGDIRECTORY}
     echo "    ===== Step 1:  Install Maxscale  =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     time {
 
-        if [[ ${MAXSCALE_SOURCE} = 'jenkins' ]] ; then
+        if [[ ${MAXSCALE_SOURCE} == 'jenkins' ]] ; then
             BASE_URL="https://mdbe-ci-repo.mariadb.net/MaxscaleEnterprise/${MAXSCALE_RELEASE}/bintar/ubuntu/noble/${MAXSCALE_ARCH}"
             if ( ! wget --user=$(vault 'maxscale_packages_user') \
                         --password=$(vault 'maxscale_packages_pass') \

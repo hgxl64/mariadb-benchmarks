@@ -35,23 +35,23 @@ while [[ $# > 0 ]] ; do
         --binlog-commit-wait-count) OPTION_BINLOG_COMMIT_WAIT_COUNT="$1"; shift;;
 
         # MariaDB Options
-        --source)                   OPTION_SOURCE="$1"; shift;;
-        --branch)                   OPTION_BRANCH="$1"; shift;;
-        --commit)                   OPTION_COMMIT="$1"; shift;;
+        --source)                   SOURCE="$1"; shift;;
+        --branch)                   BRANCH="$1"; shift;;
+        --commit)                   COMMIT="$1"; shift;;
 
         # Galera options
-        --galera-source)            OPTION_GALERA_SOURCE="$1"; shift;;
-        --galera-branch)            OPTION_GALERA_BRANCH="$1"; shift;;
-        --galera-commit)            OPTION_GALERA_COMMIT="$1"; shift;;
+        --galera-source)            GALERA_SOURCE="$1"; shift;;
+        --galera-branch)            GALERA_BRANCH="$1"; shift;;
+        --galera-commit)            GALERA_COMMIT="$1"; shift;;
 
         # Raft options
-        --raft-source)              OPTION_RAFT_SOURCE="$1"; shift;;
-        --raft-branch)              OPTION_RAFT_BRANCH="$1"; shift;;
-        --raft-commit)              OPTION_RAFT_COMMIT="$1"; shift;;
+        --raft-source)              RAFT_SOURCE="$1"; shift;;
+        --raft-branch)              RAFT_BRANCH="$1"; shift;;
+        --raft-commit)              RAFT_COMMIT="$1"; shift;;
 
         # MaxScele options
-        --maxscale-source)          OPTION_MAXSCALE_SOURCE="$1"; shift;;
-        --maxscale-version)         OPTION_MAXSCALE_VERSION="$1"; shift;;
+        --maxscale-source)          MAXSCALE_SOURCE="$1"; shift;;
+        --maxscale-version)         MAXSCALE_VERSION="$1"; shift;;
 
         --thread-pool)              OPTION_THREAD_POOL=TRUE;;
         --thread-pool-size)         OPTION_THREAD_POOL_SIZE="$1"; shift;;
@@ -112,9 +112,9 @@ mkdir -p ${LOGDIRECTORY}
                 COMMAND="build.system.sh --system ${CLUSTER} --initdb"
                 [[ ${OPTION_THREAD_POOL} ]] && COMMAND="${COMMAND} --thread-pool"
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
-                [[ ${OPTION_SOURCE} ]] && COMMAND="${COMMAND} --source ${OPTION_SOURCE}"
-                [[ ${OPTION_BRANCH} ]] && COMMAND="${COMMAND} --branch ${OPTION_BRANCH}"
-                [[ ${OPTION_COMMIT} ]] && COMMAND="${COMMAND} --commit ${OPTION_COMMIT}"
+                [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
+                [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
+                [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
                 [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
                 echo "        COMMAND = ${COMMAND}"
                 time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.mariadb.${CLUSTER}.log 2>&1
@@ -133,9 +133,9 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${OPTION_BINLOG_COMMIT_WAIT_COUNT} ]] && COMMAND="${COMMAND} --binlog-commit-wait-count ${OPTION_BINLOG_COMMIT_WAIT_COUNT}"
                 [[ ${OPTION_THREAD_POOL} ]] && COMMAND="${COMMAND} --thread-pool"
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
-                [[ ${OPTION_SOURCE} ]] && COMMAND="${COMMAND} --source ${OPTION_SOURCE}"
-                [[ ${OPTION_BRANCH} ]] && COMMAND="${COMMAND} --branch ${OPTION_BRANCH}"
-                [[ ${OPTION_COMMIT} ]] && COMMAND="${COMMAND} --commit ${OPTION_COMMIT}"
+                [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
+                [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
+                [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
                 [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
                 echo "        COMMAND = ${COMMAND}"
                 time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.master.${MASTER_SYSTEMS[0]}.log 2>&1
@@ -151,9 +151,9 @@ mkdir -p ${LOGDIRECTORY}
                         [[ ${OPTION_BINLOG_COMMIT_WAIT_COUNT} ]] && COMMAND="${COMMAND} --binlog-commit-wait-count ${OPTION_BINLOG_COMMIT_WAIT_COUNT}"
                         [[ ${OPTION_THREAD_POOL} ]] && COMMAND="${COMMAND} --thread-pool"
                         [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
-                        [[ ${OPTION_SOURCE} ]] && COMMAND="${COMMAND} --source ${OPTION_SOURCE}"
-                        [[ ${OPTION_BRANCH} ]] && COMMAND="${COMMAND} --branch ${OPTION_BRANCH}"
-                        [[ ${OPTION_COMMIT} ]] && COMMAND="${COMMAND} --commit ${OPTION_COMMIT}"
+                        [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
+                        [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
+                        [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
                         [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
                         echo "        COMMAND = ${COMMAND}"
                         ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.slave.${SYSTEM}.log 2>&1 &
@@ -169,12 +169,12 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
                 [[ ${OPTION_SLAVE_THREADS} ]] && COMMAND="${COMMAND} --slavethreads ${OPTION_SLAVE_THREADS}"
                 [[ ${OPTION_DEFERRED_FLUSH} ]] && COMMAND="${COMMAND} --deferflush"
-                [[ ${OPTION_SOURCE} ]] && COMMAND="${COMMAND} --source ${OPTION_SOURCE}"
-                [[ ${OPTION_BRANCH} ]] && COMMAND="${COMMAND} --branch ${OPTION_BRANCH}"
-                [[ ${OPTION_COMMIT} ]] && COMMAND="${COMMAND} --commit ${OPTION_COMMIT}"
-                [[ ${OPTION_GALERA_SOURCE} ]] && COMMAND="${COMMAND} --galera-source ${OPTION_GALERA_SOURCE}"
-                [[ ${OPTION_GALERA_BRANCH} ]] && COMMAND="${COMMAND} --galera-branch ${OPTION_GALERA_BRANCH}"
-                [[ ${OPTION_GALERA_COMMIT} ]] && COMMAND="${COMMAND} --galera-commit ${OPTION_GALERA_COMMIT}"
+                [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
+                [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
+                [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
+                [[ ${GALERA_SOURCE} ]] && COMMAND="${COMMAND} --galera-source ${GALERA_SOURCE}"
+                [[ ${GALERA_BRANCH} ]] && COMMAND="${COMMAND} --galera-branch ${GALERA_BRANCH}"
+                [[ ${GALERA_COMMIT} ]] && COMMAND="${COMMAND} --galera-commit ${GALERA_COMMIT}"
                 echo "        COMMAND = ${COMMAND}"
                 time ${COMMAND}
                 ;;
@@ -185,12 +185,12 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
                 [[ ${OPTION_SLAVE_THREADS} ]] && COMMAND="${COMMAND} --slavethreads ${OPTION_SLAVE_THREADS}"
                 [[ ${OPTION_DEFERRED_FLUSH} ]] && COMMAND="${COMMAND} --deferflush"
-                [[ ${OPTION_SOURCE} ]] && COMMAND="${COMMAND} --source ${OPTION_SOURCE}"
-                [[ ${OPTION_BRANCH} ]] && COMMAND="${COMMAND} --branch ${OPTION_BRANCH}"
-                [[ ${OPTION_COMMIT} ]] && COMMAND="${COMMAND} --commit ${OPTION_COMMIT}"
-                [[ ${OPTION_RAFT_SOURCE} ]] && COMMAND="${COMMAND} --raft-source ${OPTION_RAFT_SOURCE}"
-                [[ ${OPTION_RAFT_BRANCH} ]] && COMMAND="${COMMAND} --raft-branch ${OPTION_RAFT_BRANCH}"
-                [[ ${OPTION_RAFT_COMMIT} ]] && COMMAND="${COMMAND} --raft-commit ${OPTION_RAFT_COMMIT}"
+                [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
+                [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
+                [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
+                [[ ${RAFT_SOURCE} ]] && COMMAND="${COMMAND} --raft-source ${RAFT_SOURCE}"
+                [[ ${RAFT_BRANCH} ]] && COMMAND="${COMMAND} --raft-branch ${RAFT_BRANCH}"
+                [[ ${RAFT_COMMIT} ]] && COMMAND="${COMMAND} --raft-commit ${RAFT_COMMIT}"
                 echo "        COMMAND = ${COMMAND}"
                 time ${COMMAND}
                 ;;
@@ -206,8 +206,8 @@ mkdir -p ${LOGDIRECTORY}
         echo
         echo "    ===== Build MaxScale System - SYSTEM = ${MAXSCALE_SYSTEMS[0]} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         COMMAND="build.maxscale.sh --cluster ${CLUSTER}.maxscale --initdb"
-        [[ ${OPTION_MAXSCALE_SOURCE} ]] && COMMAND="${COMMAND} --source ${OPTION_MAXSCALE_SOURCE}"
-        [[ ${OPTION_MAXSCALE_VERSION} ]] && COMMAND="${COMMAND} --version ${OPTION_MAXSCALE_VERSION}"
+        [[ ${MAXSCALE_SOURCE} ]] && COMMAND="${COMMAND} --source ${MAXSCALE_SOURCE}"
+        [[ ${MAXSCALE_VERSION} ]] && COMMAND="${COMMAND} --version ${MAXSCALE_VERSION}"
         [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
         echo "        COMMAND = ${COMMAND}"
         time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.maxscale.log 2>&1
