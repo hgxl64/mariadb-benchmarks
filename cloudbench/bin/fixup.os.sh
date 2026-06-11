@@ -52,7 +52,7 @@ time {
     "
 
     echo
-    echo "    ===== Fixup known OS problems =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    echo "    ===== Fixup packagess =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
     unset BACKGROUND_PIDS
     for SYSTEM in $(get_property ${CLUSTER} systems) ; do
@@ -70,6 +70,39 @@ time {
         done
     done
     wait ${BACKGROUND_PIDS[*]}
+
+
+    echo
+    echo "    ===== Fixup SSH connectivity =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    #
+    # each host should be able to SSH into each other
+    #
+    IDX=1
+    TMPFILE=$(mktemp -t ssh-key.XXXXXXXX)
+    for SYSTEM in $(get_property ${CLUSTER} systems) ; do
+        for NODE in $(get_property ${SYSTEM} system.external.ip) ; do
+            echo "        Node: ${NODE}"
+            if (( ${IDX} == 1 )) ; then
+                echo "        generate key ..."
+                ssh $(get_ssh_connection ${CLUSTER} ${NODE}) 'ssh-keygen -t ecdsa < /dev/null'
+                scp $(get_scp_copy_from_connection ${CLUSTER} ${NODE} '.ssh/id_ecdsa' ${TMPFILE})
+                scp $(get_scp_copy_from_connection ${CLUSTER} ${NODE} '.ssh/id_ecdsa.pub' ${TMPFILE}.pub)
+            else
+                echo "        copy key ..."
+                scp $(get_scp_copy_to_connection ${CLUSTER} ${NODE} ${TMPFILE} '.ssh/id_ecdsa')
+                scp $(get_scp_copy_to_connection ${CLUSTER} ${NODE} ${TMPFILE}.pub '.ssh/id_ecdsa.pub')
+            fi
+            echo "        authorize key"
+            ssh $(get_ssh_connection ${CLUSTER} ${NODE}) '
+                cd .ssh
+                cat id_ecdsa.pub >> authorized_keys
+                echo "StrictHostKeyChecking = no" >> config
+            '
+            ((IDX = ${IDX} + 1))
+        done
+    done
+    rm -f ${TMPFILE} ${TMPFILE}.pub
+
 
     echo
     echo "    ===== End $0 ( Elapsed Seconds = $(( $SECONDS - $STARTSECONDS )) ) =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
