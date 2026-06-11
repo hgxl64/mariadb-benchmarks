@@ -30,16 +30,15 @@ mkdir -p ${LOGDIRECTORY}
      --slave-system ${CLUSTER}-server-3 --maxscale-system ${CLUSTER}-maxscale-1 \
      --driver-system ${CLUSTER}-driver-1 --driver-system ${CLUSTER}-driver-2
 
-    echo "Properties File:"
-    showproperties
-
     build.cluster.sh --cluster ${CLUSTER}
 
     echo "Version (direct) :          $(get_database_version ${CLUSTER})"
     echo "Version (through MaxScale): $(get_database_version ${CLUSTER}.maxscale)"
 
     sysbench.load.sh --cluster ${CLUSTER} --skipcheck --noautoinc --load
-    sysbench.curves.sh --cluster ${CLUSTER}.maxscale --workload 7525_splittable --start_streams 4 --repeats 3
+    sysbench.curve.sh --cluster ${CLUSTER}.maxscale --skipcheck --workload 7525_splittable --start_streams 4
+
+    check.cluster.sh --cluster ${CLUSTER}
 
     gcp.release.nodes.sh --cluster ${CLUSTER}
 

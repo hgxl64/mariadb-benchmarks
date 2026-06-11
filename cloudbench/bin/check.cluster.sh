@@ -29,6 +29,11 @@ done
 
 process_connection_info;
 
+unset MAXSCALE_NODES
+for SYSTEM in $(get_property ${CLUSTER} maxscale.systems) ; do
+    MAXSCALE_NODES=( ${MAXSCALE_NODES[*]} $(get_property ${SYSTEM} nodes) )
+done
+
 TEST_NAME=check.cluster
 
 if [[ ! ${TESTID} ]] ; then TESTID=$(date +%y%m%d.%H%M%S).${CLUSTER}; fi
@@ -69,11 +74,11 @@ mkdir -p ${LOGDIRECTORY}
         echo "    ===== Check Nodes. =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S.%3N') ]"
         echo
         echo "        Node Connectivity - OS Version "
-        lock_semaphore
+        lock_semaphore   &> /dev/null
         for NODE in ${CLUSTER_NODES[*]} ; do
-            ssh-keygen -f ${HOME}/.ssh/known_hosts -R ${NODE}
+            ssh-keygen -f ${HOME}/.ssh/known_hosts -R ${NODE} &> /dev/null
         done
-        unlock_semaphore
+        unlock_semaphore &> /dev/null
         for NODE in ${CLUSTER_NODES[*]} ; do
             echo "            ${NODE} : $(ssh $(get_ssh_connection ${CLUSTER} ${NODE}) 'uname -a' 2>/dev/null)"
         done
@@ -87,16 +92,20 @@ mkdir -p ${LOGDIRECTORY}
         echo
         echo "    ===== Check MaxScale Nodes. =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S.%3N') ]"
         echo
-        lock_semaphore
+        lock_semaphore   &> /dev/null
         for NODE in ${MAXSCALE_NODES[*]} ; do
-            ssh-keygen -f ${HOME}/.ssh/known_hosts -R ${NODE}
+            ssh-keygen -f ${HOME}/.ssh/known_hosts -R ${NODE} &> /dev/null
         done
-        unlock_semaphore
+        unlock_semaphore &> /dev/null
         for NODE in ${MAXSCALE_NODES[*]} ; do
             ssh $(get_ssh_connection ${CLUSTER} ${NODE}) '
-                echo "uname: $(uname -a)"
+                echo -n "MaxScale System : "
+                hostname
+                echo "---- MaxScale Version ----"
                 /data/cbench/install/bin/maxscale --version
+                echo "---- MaxScale Servers ----"
                 /data/cbench/install/bin/maxctrl --tsv list servers
+                echo "---- MaxScale Services ----"
                 /data/cbench/install/bin/maxctrl --tsv list services
             '
         done
@@ -107,11 +116,11 @@ mkdir -p ${LOGDIRECTORY}
         echo "    ===== Check Drivers. =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S.%3N') ]"
         echo
         echo "        Driver Node Connectivity - OS Version"
-        lock_semaphore
+        lock_semaphore &> /dev/null
         for NODE in ${DRIVER_NODES[*]} ; do
-            ssh-keygen -f ${HOME}/.ssh/known_hosts -R ${NODE}
+            ssh-keygen -f ${HOME}/.ssh/known_hosts -R ${NODE} &> /dev/null
         done
-        unlock_semaphore
+        unlock_semaphore &> /dev/null
         for NODE in ${DRIVER_NODES[*]} ; do
             echo "            ${NODE} : $(ssh $(get_ssh_connection ${CLUSTER} ${NODE}) 'uname -a' 2>/dev/null)"
         done
