@@ -12,6 +12,9 @@ USAGE="usage: $0
 
 COMMAND_LINE="$@"
 
+unset OPTION_GALERA
+unset OPTION_RAFT
+
 while [[ $# > 0 ]] ; do
     key="$1"; shift;
     case ${key} in
@@ -187,7 +190,7 @@ mkdir -p ${LOGDIRECTORY}
     time {
         if [[ ${DATABASE} == 'mariadb' ]] ; then
 
-            if [[ ${SOURCE} = 'jenkins' ]] ; then
+            if [[ ${SOURCE} == 'jenkins' ]] ; then
                 echo
                 echo "        Installing MariaDB Enterprise Server from es-repo.mariadb.net/jenkins"
                 echo
@@ -237,7 +240,8 @@ mkdir -p ${LOGDIRECTORY}
                     cd /data/cbench
                     [[ -d install ]] || mkdir install
                     tar xfz '$(basename ${TARGET})' -C install --strip-components=1
-                    [[ -d datadir ]] || mkdir datadir
+                    [[ -d datadir ]] || rm -rf datadir
+                    mkdir datadir
                     cd install
                     ln -s ../datadir var
                     cd etc
@@ -252,8 +256,8 @@ mkdir -p ${LOGDIRECTORY}
                 echo "Invalid source specified: $SOURCE"; exit 1;
             fi
 
-            if [[ ${OPTION_GALER} = TRUE ]] ; then
-                if [[ ${GALERA_SOURCE} = 'jenkins' ]] ; then
+            if [[ ${OPTION_GALER} == TRUE ]] ; then
+                if [[ ${GALERA_SOURCE} == 'jenkins' ]] ; then
                     echo
                     echo "        Installing Galera from es-repo.mariadb.net/jenkins"
                     echo
@@ -318,8 +322,8 @@ mkdir -p ${LOGDIRECTORY}
                 fi
             fi
 
-            if [[ ${OPTION_RAFT} = TRUE ]] ; then
-                if [[ ${RAFT_SOURCE} = 'jenkins' ]] ; then
+            if [[ ${OPTION_RAFT} == TRUE ]] ; then
+                if [[ ${RAFT_SOURCE} == 'jenkins' ]] ; then
                     echo
                     echo "        Installing Raft from es-repo.mariadb.net/jenkins"
                     echo
@@ -637,7 +641,7 @@ mkdir -p ${LOGDIRECTORY}
     ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "cat ${CONFIG_FILE}"
 
 
-    if [[ ! (${OPTION_GALERA} || ${OPTION_RAFT}) ]] ; then
+    if [[ ! (${OPTION_GALERA} == TRUE || ${OPTION_RAFT} == TRUE) ]] ; then
 
         echo
         echo "    ===== Starting Database =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
