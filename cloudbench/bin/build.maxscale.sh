@@ -342,6 +342,7 @@ mkdir -p ${LOGDIRECTORY}
                     DBPORT="'$(get_database_port)'"
                     OPTION_SSL="'${OPTION_SSL}'"
                     SLAVE_SELECTION="'${SLAVE_SELECTION}'"
+                    MASTER_READS="'${MASTER_READS}'"
                     MULTIMASTER="'${MULTIMASTER}'"
                     CONFIG_FILE="'${CONFIG_FILE}'"
 
@@ -389,7 +390,6 @@ mkdir -p ${LOGDIRECTORY}
                     echo "type=service"                                     >> ${CONFIG_FILE}
                     if [[ ${MULTIMASTER} == TRUE ]] ; then
                         echo "router=readconnroute"                         >> ${CONFIG_FILE}
-                        echo "router_options=running"                       >> ${CONFIG_FILE}
                     else
                         echo "router=readwritesplit"                        >> ${CONFIG_FILE}
                         echo "router_options=synced"                        >> ${CONFIG_FILE}
@@ -399,8 +399,6 @@ mkdir -p ${LOGDIRECTORY}
                     echo "servers=${SERVERS}"                               >> ${CONFIG_FILE}
                     echo "user=${DBUSER}"                                   >> ${CONFIG_FILE}
                     echo "password=${DBPASSWORD}"                           >> ${CONFIG_FILE}
-                    echo "slave_selection_criteria=${SLAVE_SELECTION}"      >> ${CONFIG_FILE}
-                    echo "master_accept_reads=${MASTER_READS}"              >> ${CONFIG_FILE}
                     echo                                                    >> ${CONFIG_FILE}
                     echo "[GaleraListener]"                                 >> ${CONFIG_FILE}
                     echo "type=listener"                                    >> ${CONFIG_FILE}
