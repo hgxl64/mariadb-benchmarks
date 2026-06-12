@@ -503,7 +503,6 @@ mkdir -p ${LOGDIRECTORY}
                         [[ -d install ]] || mkdir install
                         tar xfz '$(basename ${TARGET})' -C install --strip-components=1
                     '
-                    }
                 else
                     error "Invalid Raft source specified: $RAFT_SOURCE"
                 fi
