@@ -84,7 +84,7 @@ time {
             echo "        Node: ${NODE}"
             if (( ${IDX} == 1 )) ; then
                 echo "        generate key ..."
-                ssh $(get_ssh_connection ${CLUSTER} ${NODE}) 'ssh-keygen -t ecdsa -f .ssh/id_ecdsa -N ""'
+                ssh $(get_ssh_connection ${CLUSTER} ${NODE}) '[[ -f .ssh/id_ecdsa ]] || ssh-keygen -t ecdsa -f .ssh/id_ecdsa -N ""'
                 scp $(get_scp_copy_from_connection ${CLUSTER} ${NODE} '.ssh/id_ecdsa' ${TMPFILE})
                 scp $(get_scp_copy_from_connection ${CLUSTER} ${NODE} '.ssh/id_ecdsa.pub' ${TMPFILE}.pub)
             else
