@@ -26,19 +26,11 @@ while [[ $# > 0 ]] ; do
         --system)                   CLUSTER="$1"; shift;;
         --testid)                   TESTID="$1"; shift;;
 
-        # Master/Slave Replication Options
-        --semisync-replication)     OPTION_SEMISYNC_REPLICATION=TRUE;;
-        --semisync-after-commit)    OPTION_SEMISYNC_AFTER_COMMIT=TRUE;;
-        --semisync-after-sync)      OPTION_SEMISYNC_AFTER_SYNC=TRUE;;
-
-        --binlog-commit-wait-usec)  OPTION_BINLOG_COMMIT_WAIT_USEC="$1"; shift;;
-        --binlog-commit-wait-count) OPTION_BINLOG_COMMIT_WAIT_COUNT="$1"; shift;;
-
         # MariaDB Options
-        --source)                   SOURCE="$1"; shift;;
-        --branch)                   BRANCH="$1"; shift;;
-        --commit)                   COMMIT="$1"; shift;;
-        --tarball)                  TARBALL="$1"; shift;;
+        --mariadb-source)           MARIADB_SOURCE="$1"; shift;;
+        --mariadb-branch)           MARIADB_BRANCH="$1"; shift;;
+        --mariadb-commit)           MARIADB_COMMIT="$1"; shift;;
+        --mariadb-tarball)          MARIADB_TARBALL="$1"; shift;;
 
         # Galera options
         --galera-source)            GALERA_SOURCE="$1"; shift;;
@@ -60,7 +52,15 @@ while [[ $# > 0 ]] ; do
         --thread-pool)              OPTION_THREAD_POOL=TRUE;;
         --thread-pool-size)         OPTION_THREAD_POOL_SIZE="$1"; shift;;
 
-        # Galera Options
+        # Master/Slave Replication Config Options
+        --semisync-replication)     OPTION_SEMISYNC_REPLICATION=TRUE;;
+        --semisync-after-commit)    OPTION_SEMISYNC_AFTER_COMMIT=TRUE;;
+        --semisync-after-sync)      OPTION_SEMISYNC_AFTER_SYNC=TRUE;;
+
+        --binlog-commit-wait-usec)  OPTION_BINLOG_COMMIT_WAIT_USEC="$1"; shift;;
+        --binlog-commit-wait-count) OPTION_BINLOG_COMMIT_WAIT_COUNT="$1"; shift;;
+
+        # Galera/Raft Config Options
         --slavethreads)             OPTION_SLAVE_THREADS="$1"; shift;;
         --deferflush)               OPTION_DEFERRED_FLUSH=TRUE;;
 
@@ -116,10 +116,10 @@ mkdir -p ${LOGDIRECTORY}
                 COMMAND="build.system.sh --system ${CLUSTER} --initdb"
                 [[ ${OPTION_THREAD_POOL} ]] && COMMAND="${COMMAND} --thread-pool"
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
-                [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
-                [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
-                [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
-                [[ ${TARBALL} ]] && COMMAND="${COMMAND} --tarball ${TARBALL}"
+                [[ ${MARIADB_SOURCE} ]] && COMMAND="${COMMAND} --mariadb-source ${MARIADB_SOURCE}"
+                [[ ${MARIADB_BRANCH} ]] && COMMAND="${COMMAND} --mariadb-branch ${MARIADB_BRANCH}"
+                [[ ${MARIADB_COMMIT} ]] && COMMAND="${COMMAND} --mariadb-commit ${MARIADB_COMMIT}"
+                [[ ${MARIABD_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${MARIABD_TARBALL}"
                 [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
                 echo "        COMMAND = ${COMMAND}"
                 time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.mariadb.${CLUSTER}.log 2>&1
@@ -138,10 +138,10 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${OPTION_BINLOG_COMMIT_WAIT_COUNT} ]] && COMMAND="${COMMAND} --binlog-commit-wait-count ${OPTION_BINLOG_COMMIT_WAIT_COUNT}"
                 [[ ${OPTION_THREAD_POOL} ]] && COMMAND="${COMMAND} --thread-pool"
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
-                [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
-                [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
-                [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
-                [[ ${TARBALL} ]] && COMMAND="${COMMAND} --tarball ${TARBALL}"
+                [[ ${MARIADB_SOURCE} ]] && COMMAND="${COMMAND} --mariadb-source ${MARIADB_SOURCE}"
+                [[ ${MARIADB_BRANCH} ]] && COMMAND="${COMMAND} --mariadb-branch ${MARIADB_BRANCH}"
+                [[ ${MARIADB_COMMIT} ]] && COMMAND="${COMMAND} --mariadb-commit ${MARIADB_COMMIT}"
+                [[ ${MARIABD_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${MARIABD_TARBALL}"
                 [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
                 echo "        COMMAND = ${COMMAND}"
                 time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.master.${MASTER_SYSTEMS[0]}.log 2>&1
@@ -157,10 +157,10 @@ mkdir -p ${LOGDIRECTORY}
                         [[ ${OPTION_BINLOG_COMMIT_WAIT_COUNT} ]] && COMMAND="${COMMAND} --binlog-commit-wait-count ${OPTION_BINLOG_COMMIT_WAIT_COUNT}"
                         [[ ${OPTION_THREAD_POOL} ]] && COMMAND="${COMMAND} --thread-pool"
                         [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
-                        [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
-                        [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
-                        [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
-                        [[ ${TARBALL} ]] && COMMAND="${COMMAND} --tarball ${TARBALL}"
+                        [[ ${MARIADB_SOURCE} ]] && COMMAND="${COMMAND} --mariadb-source ${MARIADB_SOURCE}"
+                        [[ ${MARIADB_BRANCH} ]] && COMMAND="${COMMAND} --mariadb-branch ${MARIADB_BRANCH}"
+                        [[ ${MARIADB_COMMIT} ]] && COMMAND="${COMMAND} --mariadb-commit ${MARIADB_COMMIT}"
+                        [[ ${MARIABD_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${MARIABD_TARBALL}"
                         [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
                         echo "        COMMAND = ${COMMAND}"
                         ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.slave.${SYSTEM}.log 2>&1 &
@@ -176,10 +176,10 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
                 [[ ${OPTION_SLAVE_THREADS} ]] && COMMAND="${COMMAND} --slavethreads ${OPTION_SLAVE_THREADS}"
                 [[ ${OPTION_DEFERRED_FLUSH} ]] && COMMAND="${COMMAND} --deferflush"
-                [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
-                [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
-                [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
-                [[ ${TARBALL} ]] && COMMAND="${COMMAND} --tarball ${TARBALL}"
+                [[ ${MARIADB_SOURCE} ]] && COMMAND="${COMMAND} --mariadb-source ${MARIADB_SOURCE}"
+                [[ ${MARIADB_BRANCH} ]] && COMMAND="${COMMAND} --mariadb-branch ${MARIADB_BRANCH}"
+                [[ ${MARIADB_COMMIT} ]] && COMMAND="${COMMAND} --mariadb-commit ${MARIADB_COMMIT}"
+                [[ ${MARIABD_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${MARIABD_TARBALL}"
                 [[ ${GALERA_SOURCE} ]] && COMMAND="${COMMAND} --galera-source ${GALERA_SOURCE}"
                 [[ ${GALERA_BRANCH} ]] && COMMAND="${COMMAND} --galera-branch ${GALERA_BRANCH}"
                 [[ ${GALERA_COMMIT} ]] && COMMAND="${COMMAND} --galera-commit ${GALERA_COMMIT}"
@@ -194,10 +194,10 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
                 [[ ${OPTION_SLAVE_THREADS} ]] && COMMAND="${COMMAND} --slavethreads ${OPTION_SLAVE_THREADS}"
                 [[ ${OPTION_DEFERRED_FLUSH} ]] && COMMAND="${COMMAND} --deferflush"
-                [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
-                [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
-                [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
-                [[ ${TARBALL} ]] && COMMAND="${COMMAND} --tarball ${TARBALL}"
+                [[ ${MARIADB_SOURCE} ]] && COMMAND="${COMMAND} --mariadb-source ${MARIADB_SOURCE}"
+                [[ ${MARIADB_BRANCH} ]] && COMMAND="${COMMAND} --mariadb-branch ${MARIADB_BRANCH}"
+                [[ ${MARIADB_COMMIT} ]] && COMMAND="${COMMAND} --mariadb-commit ${MARIADB_COMMIT}"
+                [[ ${MARIABD_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${MARIABD_TARBALL}"
                 [[ ${RAFT_SOURCE} ]] && COMMAND="${COMMAND} --raft-source ${RAFT_SOURCE}"
                 [[ ${RAFT_BRANCH} ]] && COMMAND="${COMMAND} --raft-branch ${RAFT_BRANCH}"
                 [[ ${RAFT_COMMIT} ]] && COMMAND="${COMMAND} --raft-commit ${RAFT_COMMIT}"

@@ -19,10 +19,10 @@ while [[ $# > 0 ]] ; do
         --cluster)             CLUSTER="$1"; shift;;
 
         # MariaDB Options
-        --source)              SOURCE="$1"; shift;;
-        --branch)              BRANCH="$1"; shift;;
-        --commit)              COMMIT="$1"; shift;;
-        --tarball)             TARBALL="$1"; shift;;
+        --mariadb-source)      MARIADB_SOURCE="$1"; shift;;
+        --mariadb-branch)      MARIADB_BRANCH="$1"; shift;;
+        --mariadb-commit)      MARIADB_COMMIT="$1"; shift;;
+        --mariadb-tarball)     MARIADB_TARBALL="$1"; shift;;
 
         # Galera Options
         --galera-source)       GALERA_SOURCE="$1"; shift;;
@@ -108,10 +108,10 @@ mkdir -p ${LOGDIRECTORY}
                 COMMAND="build.system.sh --database mariadb --system ${SYSTEM} --initdb --galera"
                 [[ ${OPTION_THREAD_POOL} ]] && COMMAND="${COMMAND} --thread-pool"
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
-                [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
-                [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
-                [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
-                [[ ${TARBALL} ]] && COMMAND="${COMMAND} --tarball ${TARBALL}"
+                [[ ${MARIADB_SOURCE} ]] && COMMAND="${COMMAND} --mariadb-source ${MARIADB_SOURCE}"
+                [[ ${MARIADB_BRANCH} ]] && COMMAND="${COMMAND} --mariadb-branch ${MARIADB_BRANCH}"
+                [[ ${MARIADB_COMMIT} ]] && COMMAND="${COMMAND} --mariadb-commit ${MARIADB_COMMIT}"
+                [[ ${MARIADB_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${MARIADB_TARBALL}"
                 [[ ${GALERA_SOURCE} ]] && COMMAND="${COMMAND} --galera-source ${GALERA_SOURCE}"
                 [[ ${GALERA_BRANCH} ]] && COMMAND="${COMMAND} --galera-branch ${GALERA_BRANCH}"
                 [[ ${GALERA_COMMIT} ]] && COMMAND="${COMMAND} --galera-commit ${GALERA_COMMIT}"
