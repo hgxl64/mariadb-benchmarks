@@ -99,28 +99,30 @@ mkdir -p ${LOGDIRECTORY}
             echo
 
             BASE_URL="https://mdbe-ci-repo.mariadb.net/MaxscaleEnterprise/${MAXSCALE_RELEASE}/bintar/ubuntu/noble/${MAXSCALE_ARCH}"
+            echo "        Downloading dirlist to find name of package"
             if ( ! wget --user=$(vault 'maxscale_packages_user') \
                         --password=$(vault 'maxscale_packages_pass') \
                         ${BASE_URL}/ -O dirlist)
             then
-                error "        failed to download '${BASE_URL}'"
+                error "failed to download '${BASE_URL}'"
             fi
             DISTFILE=$(cat dirlist | perl -ne 'print "$1\n" if (/<a href="(.*?\.tar\.gz)"/)' | head -1)
             TARGET="${DOWNLOAD_DIR}/${DISTFILE%.tar.gz}-${MAXSCALE_ARCH}.tar.gz"
+            rm dirlist
+            echo "        Package name is ${DISTFILE}"
             if [[ -f ${TARGET} ]] ; then
                 echo "        ${TARGET} already exists, not downloading"
             else
-                if ( wget --user=$(vault 'maxscale_packages_user') \
+                echo
+                echo "        downloading '${TARGET}'"
+                echo "        from '${BASE_URL}/${DISTFILE}'"
+                if ( ! wget --user=$(vault 'maxscale_packages_user') \
                           --password=$(vault 'maxscale_packages_pass') \
                           --quiet ${BASE_URL}/${DISTFILE} -O ${TARGET})
-                then
-                    echo "        downloaded '${TARGET}'"
-                    echo "        from '${BASE_URL}/${DISTFILE}'"
                 else
-                    error "        failed to download '${BASE_URL}/${DISTFILE}'"
+                    error "failed to download '${BASE_URL}/${DISTFILE}'"
                 fi
             fi
-            rm dirlist
 
         elif [[ ${MAXSCALE_SOURCE} == 'tarball' ]] ; then
             echo
@@ -130,9 +132,10 @@ mkdir -p ${LOGDIRECTORY}
             [[ ${MAXSCALE_TARBALL} ]] || { echo "no MAXSCALE_TARBALL given! Exiting": exit 1; }
             TARGET="${DOWNLOAD_DIR}/${MAXSCALE_TARBALL}"
             [[ -f ${TARGET} ]] || { echo "${TARGET} doesn't exist! Exiting": exit 1; }
+            echo "        found ${TARGET}"
 
         else
-            echo "Invalid MaxScale source specified: $MAXSCALE_SOURCE"; exit 1;
+            error "Invalid MaxScale source specified: $MAXSCALE_SOURCE"
         fi
 
         for SYSTEM in ${MAXSCALE_SYSTEMS[*]} ; do
@@ -141,19 +144,21 @@ mkdir -p ${LOGDIRECTORY}
                 echo "        Cluster = ${CLUSTER}, System = ${SYSTEM}, Node = ${NODE}"
                 echo
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
-                    if [[ ! -d /data/cbench/install ]] ; then
+                    if [[ ! -d /data/cbench ]] ; then
                         sudo mkdir -p /data/cbench
                         sudo chmod -R a+rwx /data
                     fi
-                    mkdir /data/cbench/install
                 '
-                if ( time scp $(get_scp_copy_to_connection ${SYSTEM} ${NODE} ${TARGET} /data/cbench/) ) ; then
-                    echo "        copied ${TARGET} to ${SYSTEM}"
-                else
-                    error "        scp to ${SYSTEM} failed"
-                fi
-                ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
+                echo "        copying ${TARGET} to ${SYSTEM}"
+                time {
+                    if ( ! scp $(get_scp_copy_to_connection ${SYSTEM} ${NODE} ${TARGET} /data/cbench/) ) ; then
+                        error "        scp to ${SYSTEM} failed"
+                    fi
+                }
+                echo "        unpacking MaxScale"
+                time ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
                     cd /data/cbench
+                    [[ -d install ]] || mkdir install
                     tar xfz '$(basename ${TARGET})' -C install --strip-components=1
                 '
             done
@@ -162,9 +167,13 @@ mkdir -p ${LOGDIRECTORY}
 
     echo
     echo "    ===== Step 2:  Configure MaxScale =====  [ $(date -u '+%Y-%m-%d %H:%M:%S') ]"
+    echo
 
     CLUSTER_TYPE=$(get_property ${CLUSTER} cluster.type)
     CONFIG_FILE="/data/cbench/install/etc/maxscale.cnf"
+
+    echo "        creating ${CONFIG_FILE} for cluster type ${CLUSTER_TYPE}"
+    echo
 
     if [[ ${CLUSTER_TYPE} == 'mariadb_replication' ]] ; then
 
@@ -175,8 +184,7 @@ mkdir -p ${LOGDIRECTORY}
 
         for SYSTEM in ${MAXSCALE_SYSTEMS[*]} ; do
             for NODE in $(getproperty ${SYSTEM} nodes) ; do
-                echo
-                echo "        Cluster-Type = ${CLUSTER_TYPE}, Node = ${NODE}"
+                echo "        Node = ${NODE}"
                 echo
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
                     SERVER_NODES=( "'${SERVER_NODES[*]}'" )
@@ -264,8 +272,7 @@ mkdir -p ${LOGDIRECTORY}
 
         for SYSTEM in ${MAXSCALE_SYSTEMS[*]} ; do
             for NODE in $(getproperty ${SYSTEM} nodes) ; do
-                echo
-                echo "        Cluster-Type = ${CLUSTER_TYPE}, Node = ${NODE}"
+                echo "        Node = ${NODE}"
                 echo
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
                     SERVER_NODES=( "'${SERVER_NODES[*]}'" )
@@ -346,8 +353,7 @@ mkdir -p ${LOGDIRECTORY}
 
         for SYSTEM in ${MAXSCALE_SYSTEMS[*]} ; do
             for NODE in $(getproperty ${SYSTEM} nodes) ; do
-                echo
-                echo "        Cluster-Type = ${CLUSTER_TYPE}, Node = ${NODE}"
+                echo "        Node = ${NODE}"
                 echo
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
                     SERVER_NODES=( "'${SERVER_NODES[*]}'" )
@@ -404,6 +410,7 @@ mkdir -p ${LOGDIRECTORY}
                     echo "type=service"                                     >> ${CONFIG_FILE}
                     if [[ ${MULTIMASTER} == TRUE ]] ; then
                         echo "router=readconnroute"                         >> ${CONFIG_FILE}
+                        echo "router_options=synced"                        >> ${CONFIG_FILE}
                     else
                         echo "router=readwritesplit"                        >> ${CONFIG_FILE}
                         echo "slave_selection_criteria=${SLAVE_SELECTION}"  >> ${CONFIG_FILE}
