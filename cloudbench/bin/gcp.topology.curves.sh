@@ -6,31 +6,42 @@ USAGE="usage: $0
     Run Sysbench performance curves on different topologies using GCP cloud
 
     Parameters:
-        --topology mariadb_standalone|mariadb_replication|galera_masterslave
-                   |galera_mastermaster|raft_masterslave|raft_mastermaster
+        --topology              default: mariadb_standalone
 
-        --maxscale_nodes <n>
-        --maxscale_type  <i>
-        --server-nodes   <n>
-        --server-type    <i>
-        --driver-nodes   <n>
-        --driver-type    <i>
+                 valid choices: mariadb_standalone,
+                                mariadb_replication,
+                                galera_masterslave, galera_mastermaster
+                                raft_masterslave, raft_mastermaster
 
-        --workload       default: 9010
-        --repeats        default: 3
-        --ssl            default: off
+        --server-nodes          default: 1 or 3
+        --server-type           default: n2-standard-8
+        --driver-nodes          default: autosize
+        --driver-type           default: n2-standard-4
+        --maxscale_nodes        default: 0
+        --maxscale_type         default: n2-standard-8
 
-        --source
-        --branch
-        --commit
-        --galera-source
-        --galera-branch
-        --galera-commit
-        --raft-source
-        --raft-branch
-        --raft-commit
-        --maxscale-source
-        --maxscale-version
+        --workload              default: 9010
+        --repeats               default: 3
+        --ssl                   default: off
+
+        --mariadb-source        default: jenkins
+        --mariadb-branch        default: 11.4-enterprise
+        --mariadb-commit        default: latest
+        --mariadb-tarball
+
+        --galera-source         default: jenkins
+        --galera-branch         default: 4.x Enterprise
+        --galera-commit         default: latest
+        --galera-tarball
+
+        --raft-source           default: jenkins
+        --raft-branch           default: main
+        --raft-commit           default: latest
+        --raft-tarball
+
+        --maxscale-source       default: jenkins
+        --maxscale-version      default: 25.10.2
+        --maxscale-tarball
 "
 
 COMMAND_LINE="$@"
@@ -54,20 +65,24 @@ while [[ $# > 0 ]] ; do
         --repeats)          REPEATS="$1"; shift;;
         --ssl)              OPTION_SSL=TRUE;;
 
-        --source)           OPTION_SOURCE="$1"; shift;;
-        --branch)           OPTION_BRANCH="$1"; shift;;
-        --commit)           OPTION_COMMIT="$1"; shift;;
+        --mariadb-source)   MARIADB_SOURCE="$1"; shift;;
+        --mariadb-branch)   MARIADB_BRANCH="$1"; shift;;
+        --mariadb-commit)   MARIADB_COMMIT="$1"; shift;;
+        --mariadb-tarball)  MARIADB_TARBALL="$1"; shift;;
 
         --galera-source)    GALERA_SOURCE="$1"; shift;;
         --galera-branch)    GALERA_BRANCH="$1"; shift;;
         --galera-commit)    GALERA_COMMIT="$1"; shift;;
+        --galera-tarball)   GALERA_TARBALL="$1"; shift;;
 
         --raft-source)      RAFT_SOURCE="$1"; shift;;
         --raft-branch)      RAFT_BRANCH="$1"; shift;;
         --raft-commit)      RAFT_COMMIT="$1"; shift;;
+        --raft-tarball)     RAFT_TARBALL="$1"; shift;;
 
         --maxscale-source)  MAXSCALE_SOURCE="$1"; shift;;
         --maxscale-version) MAXSCALE_VERSION="$1"; shift;;
+        --maxscale-tarball) MAXSCALE_TARBALL="$1"; shift;;
 
         -h|--help)          echo -e "$USAGE"; exit 1;;
         *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
@@ -114,22 +129,22 @@ esac
 [[ ${DISK_SIZE} ]] || {
     case ${SERVER_INSTANCE_TYPE} in
         n2-standard-4)  DISK_SIZE=500;;
-        n2-standard-8)  DISK_SIZE=1000;;
-        n2-standard-16) DISK_SIZE=1000;;
-        n2-standard-32) DISK_SIZE=1000;;
+        n2-standard-8)  DISK_SIZE=500;;
+        n2-standard-16) DISK_SIZE=500;;
+        n2-standard-32) DISK_SIZE=500;;
         *) echo "ERROR Unsupported Server Instance Type : SERVER_INSTANCE_TYPE = ${SERVER_INSTANCE_TYPE}"; echo -e "$0 ${COMMAND_LINE}"; exit 1;;
     esac
 }
 
 [[ ${CLUSTER} ]] || CLUSTER=gcp${NUMOFSERVERS}.${SERVER_INSTANCE_TYPE}.${TOPOLOGY}
 
-[[ ${REPEATS} ]] || REPEATS=1
+[[ ${REPEATS} ]] || REPEATS=3
 [[ ${OPTION_WORKLOAD} ]] || OPTION_WORKLOAD=( "9010" )
 
 TEST_NAME="gcp.sysbench.topology.curves"
 [[ ${TESTID} ]] || TESTID=$(date +%y%m%d.%H%M%S).${TEST_NAME}
 if [[ ! ${LOGDIRECTORY} ]] ; then
-    export LOGDIRECTORY=${CBENCH_LOG_HOME}/${CLUSTER}/${TESTID}
+    export LOGDIRECTORY=${CBENCH_LOG_HOME}/${TESTID}
 else
     LOGDIRECTORY=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${TEST_NAME}
 fi
@@ -175,11 +190,6 @@ mkdir -p ${LOGDIRECTORY}
     echo "    ===== Configure Topology - ${CLUSTER} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     COMMAND="configure.cluster.sh --cluster ${CLUSTER}"
     IDX1=0
-    (( ${NUMOFMAXSCALES} > 0 )) && {
-        for (( IDX2 = 0 ; IDX2 < ${NUMOFMAXSCALES} ; IDX2++ )) ; do
-            COMMAND="${COMMAND} --maxscale-system ${SYSTEMS[IDX1++]}"
-        done
-    }
     case ${TOPOLOGY} in
         mariadb_standalone)
             COMMAND="${COMMAND} --cluster-type mariadb --mariadb-system ${SYSTEMS[IDX1++]}"
@@ -202,6 +212,11 @@ mkdir -p ${LOGDIRECTORY}
     for (( IDX2 = 0 ; IDX2 < ${NUMOFDRIVERS} ; IDX2++ )) ; do
         COMMAND="${COMMAND} --driver-system ${SYSTEMS[IDX1++]}"
     done
+    (( ${NUMOFMAXSCALES} > 0 )) && {
+        for (( IDX2 = 0 ; IDX2 < ${NUMOFMAXSCALES} ; IDX2++ )) ; do
+            COMMAND="${COMMAND} --maxscale-system ${SYSTEMS[IDX1++]}"
+        done
+    }
     echo "        COMMAND = ${COMMAND}"
     time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).configure.cluster.log 2>&1
 
@@ -212,17 +227,21 @@ mkdir -p ${LOGDIRECTORY}
     echo "    ===== Build Cluster - ${CLUSTER} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     start_minute_timer
     COMMAND="build.cluster.sh --cluster ${CLUSTER}"
-    [[ ${OPTION_SOURCE} ]]    && COMMAND="${COMMAND} --source ${OPTION_SOURCE}"
-    [[ ${OPTION_BRANCH} ]]    && COMMAND="${COMMAND} --branch ${OPTION_BRANCH}"
-    [[ ${OPTION_COMMIT} ]]    && COMMAND="${COMMAND} --commit ${OPTION_COMMIT}"
+    [[ ${MARIADB_SOURCE} ]]   && COMMAND="${COMMAND} --mariadb-source ${MARIADB_SOURCE}"
+    [[ ${MARIADB_BRANCH} ]]   && COMMAND="${COMMAND} --mariadb-branch ${MARIADB_BRANCH}"
+    [[ ${MARIADB_COMMIT} ]]   && COMMAND="${COMMAND} --mariadb-commit ${MARIADB_COMMIT}"
+    [[ ${MARIADB_TARBALL} ]]  && COMMAND="${COMMAND} --mariadb-tarball ${MARIADB_TARBALL}"
     [[ ${GALERA_SOURCE} ]]    && COMMAND="${COMMAND} --galera-source ${GALERA_SOURCE}"
     [[ ${GALERA_BRANCH} ]]    && COMMAND="${COMMAND} --galera-branch ${GALERA_BRANCH}"
     [[ ${GALERA_COMMIT} ]]    && COMMAND="${COMMAND} --galera-commit ${GALERA_COMMIT}"
+    [[ ${GALERA_TARBALL} ]]   && COMMAND="${COMMAND} --galera-tarball ${GALERA_TARBALL}"
     [[ ${RAFT_SOURCE} ]]      && COMMAND="${COMMAND} --raft-source ${RAFT_SOURCE}"
     [[ ${RAFT_BRANCH} ]]      && COMMAND="${COMMAND} --raft-branch ${RAFT_BRANCH}"
     [[ ${RAFT_COMMIT} ]]      && COMMAND="${COMMAND} --raft-commit ${RAFT_COMMIT}"
+    [[ ${RAFT_TARBALL} ]]     && COMMAND="${COMMAND} --raft-tarball ${RAFT_TARBALL}"
     [[ ${MAXSCALE_SOURCE} ]]  && COMMAND="${COMMAND} --maxscale-source ${MAXSCALE_SOURCE}"
     [[ ${MAXSCALE_VERSION} ]] && COMMAND="${COMMAND} --maxscale-version ${MAXSCALE_VERSION}"
+    [[ ${MAXSCALE_TARBALL} ]] && COMMAND="${COMMAND} --maxscale-tarball ${MAXSCALE_TARBALL}"
     echo
     echo "        COMMAND = ${COMMAND}"
     [[ ${TIMEOUT_SECONDS} ]] || TIMEOUT_SECONDS=900
