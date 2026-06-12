@@ -3,7 +3,7 @@
 source ${CBENCH_HOME}/bin/cbench.sh
 source ${CBENCH_HOME}/config/gcp.conf
 
-export CLUSTER='test'
+CLUSTER='test'
 
 TEST_NAME="gcp.test.simple6"
 [[ ${TESTID} ]] || TESTID=$(date +%y%m%d.%H%M%S).${TEST_NAME}
@@ -31,19 +31,20 @@ mkdir -p ${LOGDIRECTORY}
      --driver-system ${CLUSTER}-driver-1 --driver-system ${CLUSTER}-driver-2
 
     build.cluster.sh --cluster ${CLUSTER} \
-    --source tarball --tarball mariadb-enterprise-90f707057d4-x86_64.tar.gz \
+    --mariadb-source tarball --mariadb-tarball mariadb-enterprise-90f707057d4-x86_64.tar.gz \
     --galera-source tarball --galera-tarball galera-enterprise-ff030cfa348-x86_64.tar.gz \
     --maxscale-source tarball --maxscale-tarball maxscale-25.10.2.ubuntu.noble-x86_64.tar.gz
 
-    echo "Version (direct) :          $(get_database_version ${CLUSTER})"
-    echo "Version (through MaxScale): $(get_database_version ${CLUSTER}.maxscale)"
+    echo "Version : $(get_database_version ${CLUSTER})"
 
-    sysbench.load.sh --cluster ${CLUSTER} --skipcheck --noautoinc --load
-    sysbench.curve.sh --cluster ${CLUSTER}.maxscale --skipcheck --workload 7525_splittable --start_streams 4
+    export OPTION_SKIPCHECK=TRUE
+    sysbench.load.sh --cluster ${CLUSTER} --noautoinc --load
+    sysbench.curves.sh --cluster ${CLUSTER}.maxscale --workload 7525_splittable --start_streams 4
+    unset OPTION_SKIPCHECK
 
     check.cluster.sh --cluster ${CLUSTER}
 
     gcp.release.nodes.sh --cluster ${CLUSTER}
 
-} | tee ${LOGDIRECTORY}/${TESTNAME}.log
+} | tee ${LOGDIRECTORY}/${TEST_NAME}.log
 
