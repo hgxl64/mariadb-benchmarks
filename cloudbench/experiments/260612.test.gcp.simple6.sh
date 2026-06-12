@@ -5,7 +5,7 @@ source ${CBENCH_HOME}/config/gcp.conf
 
 export CLUSTER='test'
 
-TEST_NAME="gcp.test.simple5"
+TEST_NAME="gcp.test.simple6"
 [[ ${TESTID} ]] || TESTID=$(date +%y%m%d.%H%M%S).${TEST_NAME}
 if [[ ! ${LOGDIRECTORY} ]] ; then
     export LOGDIRECTORY=${CBENCH_LOG_HOME}/${TESTID}

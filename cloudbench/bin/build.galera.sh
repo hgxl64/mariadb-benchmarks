@@ -22,11 +22,13 @@ while [[ $# > 0 ]] ; do
         --source)              SOURCE="$1"; shift;;
         --branch)              BRANCH="$1"; shift;;
         --commit)              COMMIT="$1"; shift;;
+        --tarball)             TARBALL="$1"; shift;;
 
         # Galera Options
         --galera-source)       GALERA_SOURCE="$1"; shift;;
         --galera-branch)       GALERA_BRANCH="$1"; shift;;
         --galera-commit)       GALERA_COMMIT="$1"; shift;;
+        --galera-tarball)      GALERA_TARBALL="$1"; shift;;
 
         --thread-pool)         OPTION_THREAD_POOL=TRUE;;
         --thread-pool-size)    OPTION_THREAD_POOL_SIZE="$1"; shift;;
@@ -109,9 +111,11 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
                 [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
                 [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
+                [[ ${TARBALL} ]] && COMMAND="${COMMAND} --tarball ${TARBALL}"
                 [[ ${GALERA_SOURCE} ]] && COMMAND="${COMMAND} --galera-source ${GALERA_SOURCE}"
                 [[ ${GALERA_BRANCH} ]] && COMMAND="${COMMAND} --galera-branch ${GALERA_BRANCH}"
                 [[ ${GALERA_COMMIT} ]] && COMMAND="${COMMAND} --galera-commit ${GALERA_COMMIT}"
+                [[ ${GALERA_TARBALL} ]] && COMMAND="${COMMAND} --galera-tarball ${GALERA_TARBALL}"
                 [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
                 echo "        COMMAND = ${COMMAND}"
                 ${COMMAND}

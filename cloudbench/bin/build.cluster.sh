@@ -141,6 +141,7 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
                 [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
                 [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
+                [[ ${TARBALL} ]] && COMMAND="${COMMAND} --tarball ${TARBALL}"
                 [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
                 echo "        COMMAND = ${COMMAND}"
                 time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.master.${MASTER_SYSTEMS[0]}.log 2>&1
@@ -159,6 +160,7 @@ mkdir -p ${LOGDIRECTORY}
                         [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
                         [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
                         [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
+                        [[ ${TARBALL} ]] && COMMAND="${COMMAND} --tarball ${TARBALL}"
                         [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
                         echo "        COMMAND = ${COMMAND}"
                         ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.slave.${SYSTEM}.log 2>&1 &
@@ -177,6 +179,7 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
                 [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
                 [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
+                [[ ${TARBALL} ]] && COMMAND="${COMMAND} --tarball ${TARBALL}"
                 [[ ${GALERA_SOURCE} ]] && COMMAND="${COMMAND} --galera-source ${GALERA_SOURCE}"
                 [[ ${GALERA_BRANCH} ]] && COMMAND="${COMMAND} --galera-branch ${GALERA_BRANCH}"
                 [[ ${GALERA_COMMIT} ]] && COMMAND="${COMMAND} --galera-commit ${GALERA_COMMIT}"
@@ -194,6 +197,7 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
                 [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
                 [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
+                [[ ${TARBALL} ]] && COMMAND="${COMMAND} --tarball ${TARBALL}"
                 [[ ${RAFT_SOURCE} ]] && COMMAND="${COMMAND} --raft-source ${RAFT_SOURCE}"
                 [[ ${RAFT_BRANCH} ]] && COMMAND="${COMMAND} --raft-branch ${RAFT_BRANCH}"
                 [[ ${RAFT_COMMIT} ]] && COMMAND="${COMMAND} --raft-commit ${RAFT_COMMIT}"
