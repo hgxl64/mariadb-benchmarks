@@ -30,6 +30,7 @@ while [[ $# > 0 ]] ; do
         --source)                       SOURCE="$1"; shift;;
         --branch)                       BRANCH="$1"; shift;;
         --commit)                       COMMIT="$1"; shift;;
+        --tarball)                      TARBALL="$1"; shift;;
 
         --aws|--gcp|--cloud)            OPTION_CLOUD="--cloud";;
         --arm)                          OPTION_ARM=TRUE;;
@@ -79,11 +80,13 @@ while [[ $# > 0 ]] ; do
         --galera-source)                GALERA_SOURCE="$1"; shift;;
         --galera-branch)                GALERA_BRANCH="$1"; shift;;
         --galera-commit)                GALERA_COMMIT="$1"; shift;;
+        --galera-tarball)               GALERA_TARBALL="$1"; shift;;
 
         --raft)                         OPTION_RAFT=TRUE;;
         --raft-source)                  RAFT_SOURCE="$1"; shift;;
         --raft-branch)                  RAFT_BRANCH="$1"; shift;;
         --raft-commit)                  RAFT_COMMIT="$1"; shift;;
+        --raft-tarball)                 RAFT_TARBALL="$1"; shift;;
 
         # config generator options
         --performance-config)           OPTION_CONFIG='performance';;
@@ -271,6 +274,46 @@ mkdir -p ${LOGDIRECTORY}
 " | sudo tee /etc/my.cnf > my.cnf
                     '
                 }
+
+            elif [[ ${SOURCE} == 'tarball' ]] ; then
+                echo
+                echo "        Installing MariaDB Enterprise Server from TARBALL"
+                echo
+
+                [[ ${TARBALL} ]] || { echo "no TARBALL given! Exiting": exit 1; }
+                TARGET="${DOWNLOAD_DIR}/${TARBALL}"
+                [[ -f ${TARGET} ]] || { echo "${TARGET} doesn't exist! Exiting": exit 1; }
+
+                time {
+                    echo
+                    if ( scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
+                        echo "        copied ${TARGET} to ${SYSTEM}"
+                    else
+                        echo "        scp to ${SYSTEM} failed"
+                        exit 1;
+                    fi
+                }
+
+                time {
+                    echo
+                    echo "        unpacking MariaDB"
+                    ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+                        cd /data/cbench
+                        [[ -d install ]] || mkdir install
+                        tar xfz '$(basename ${TARGET})' -C install --strip-components=1
+                        [[ -d datadir ]] || mkdir datadir
+                        cd install
+                        ln -s ../datadir var
+                        cd etc
+                        mkdir my.cnf.d
+                        echo "#
+# include *.cnf from the config directory
+#
+!includedir /data/cbench/install/etc/my.cnf.d
+" | sudo tee /etc/my.cnf > my.cnf
+                    '
+                }
+
             else
                 echo "Invalid source specified: $SOURCE"; exit 1;
             fi
@@ -326,6 +369,35 @@ mkdir -p ${LOGDIRECTORY}
                     fi
                     rm -f build.properties
                     unlock_semaphore
+
+                    time {
+                         echo
+                         if ( scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
+                             echo "        copied ${TARGET} to ${SYSTEM}"
+                         else
+                             echo "        scp to ${SYSTEM} failed"
+                             exit 1;
+                         fi
+                    }
+
+                    time {
+                        echo
+                        echo "        unpacking Galera"
+                        ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+                            cd /data/cbench
+                            [[ -d install ]] || mkdir install
+                            tar xfz '$(basename ${TARGET})' -C install --strip-components=1
+                        '
+                    }
+
+                elif [[ ${GALERA_SOURCE} == 'tarball' ]] ; then
+                    echo
+                    echo "        Installing GALERA from TARBALL"
+                    echo
+
+                    [[ ${GALERA_TARBALL} ]] || { echo "no GALERA_TARBALL given! Exiting": exit 1; }
+                    TARGET="${DOWNLOAD_DIR}/${GALERA_TARBALL}"
+                    [[ -f ${TARGET} ]] || { echo "${TARGET} doesn't exist! Exiting": exit 1; }
 
                     time {
                          echo
@@ -412,7 +484,36 @@ mkdir -p ${LOGDIRECTORY}
                     }
 
                     time {
-                        echo "        unpacking Galera"
+                        echo "        unpacking Raft"
+                        ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+                            cd /data/cbench
+                            [[ -d install ]] || mkdir install
+                            tar xfz '$(basename ${TARGET})' -C install --strip-components=1
+                        '
+                    }
+
+                elif [[ ${RAFT_SOURCE} == 'tarball' ]] ; then
+                    echo
+                    echo "        Installing RAFT from TARBALL"
+                    echo
+
+                    [[ ${RAFT_TARBALL} ]] || { echo "no RAFT_TARBALL given! Exiting": exit 1; }
+                    TARGET="${DOWNLOAD_DIR}/${RAFT_TARBALL}"
+                    [[ -f ${TARGET} ]] || { echo "${TARGET} doesn't exist! Exiting": exit 1; }
+
+                    time {
+                         echo
+                         if ( scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
+                             echo "        copied ${TARGET} to ${SYSTEM}"
+                         else
+                             echo "        scp to ${SYSTEM} failed"
+                             exit 1;
+                         fi
+                    }
+
+                    time {
+                        echo
+                        echo "        unpacking Raft"
                         ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
                             cd /data/cbench
                             [[ -d install ]] || mkdir install

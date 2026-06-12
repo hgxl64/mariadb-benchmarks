@@ -8,9 +8,9 @@ USAGE="usage: $0
     Parameters:
         --cluster
         --initdb
-        --source        where to get MaxScale packages
-        --version       version of MaxScale
-        --arm           use ARM binaries (default: x86_64)
+        --maxscale-source        where to get MaxScale packages
+        --maxscale-version       version of MaxScale
+        --arm                    use ARM binaries (default: x86_64)
         --ssl
         -h|--help
 
@@ -27,6 +27,7 @@ while [[ $# > 0 ]] ; do
         --cluster)          CLUSTER="$1"; shift;;
         --maxscale-source)  MAXSCALE_SOURCE="$1"; shift;;
         --maxscale-version) MAXSCALE_VERSION="$1"; shift;;
+        --maxscale-tarball) MAXSCALE_TARBALL="$1"; shift;;
         --arm)              OPTION_MAXSCALE_ARM=TRUE;;
         --initdb)           OPTION_INITDB=TRUE;;
         --ssl)              OPTION_SSL=TRUE;;
@@ -48,7 +49,6 @@ MAXSCALE_SYSTEMS=( $(get_property ${CLUSTER} maxscale.systems) )
 [[ ${MAX_SLAVE_LAG} ]]    || MAX_SLAVE_LAG='10s'
 [[ ${SLAVE_SELECTION} ]]  || SLAVE_SELECTION='LEAST_CURRENT_OPERATIONS'
 [[ ${MASTER_READS} ]]     || MASTER_READS='false'
-[[ ${GALERA_ALL_WRITE} ]] || GALERA_ALL_WRITE=FALSE
 
 # target architecture
 if [[ ! ${MAXSCALE_ARCH} ]] ; then
@@ -94,6 +94,10 @@ mkdir -p ${LOGDIRECTORY}
     time {
 
         if [[ ${MAXSCALE_SOURCE} == 'jenkins' ]] ; then
+            echo
+            echo "        Installing MaxScale from mdbe-ci-repo.mariadb.net"
+            echo
+
             BASE_URL="https://mdbe-ci-repo.mariadb.net/MaxscaleEnterprise/${MAXSCALE_RELEASE}/bintar/ubuntu/noble/${MAXSCALE_ARCH}"
             if ( ! wget --user=$(vault 'maxscale_packages_user') \
                         --password=$(vault 'maxscale_packages_pass') \
@@ -117,6 +121,16 @@ mkdir -p ${LOGDIRECTORY}
                 fi
             fi
             rm dirlist
+
+        elif [[ ${MAXSCALE_SOURCE} == 'tarball' ]] ; then
+            echo
+            echo "        Installing MaxScale from TARBALL"
+            echo
+
+            [[ ${MAXSCALE_TARBALL} ]] || { echo "no MAXSCALE_TARBALL given! Exiting": exit 1; }
+            TARGET="${DOWNLOAD_DIR}/${MAXSCALE_TARBALL}"
+            [[ -f ${TARGET} ]] || { echo "${TARGET} doesn't exist! Exiting": exit 1; }
+
         else
             echo "Invalid MaxScale source specified: $MAXSCALE_SOURCE"; exit 1;
         fi

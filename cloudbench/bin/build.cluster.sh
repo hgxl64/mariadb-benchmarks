@@ -38,20 +38,24 @@ while [[ $# > 0 ]] ; do
         --source)                   SOURCE="$1"; shift;;
         --branch)                   BRANCH="$1"; shift;;
         --commit)                   COMMIT="$1"; shift;;
+        --tarball)                  TARBALL="$1"; shift;;
 
         # Galera options
         --galera-source)            GALERA_SOURCE="$1"; shift;;
         --galera-branch)            GALERA_BRANCH="$1"; shift;;
         --galera-commit)            GALERA_COMMIT="$1"; shift;;
+        --galera-tarball)           GALERA_TARBALL="$1"; shift;;
 
         # Raft options
         --raft-source)              RAFT_SOURCE="$1"; shift;;
         --raft-branch)              RAFT_BRANCH="$1"; shift;;
         --raft-commit)              RAFT_COMMIT="$1"; shift;;
+        --raft-tarball)             RAFT_TARBALL="$1"; shift;;
 
         # MaxScele options
         --maxscale-source)          MAXSCALE_SOURCE="$1"; shift;;
         --maxscale-version)         MAXSCALE_VERSION="$1"; shift;;
+        --maxscale-tarball)         MAXSCALE_TARBALL="$1"; shift;;
 
         --thread-pool)              OPTION_THREAD_POOL=TRUE;;
         --thread-pool-size)         OPTION_THREAD_POOL_SIZE="$1"; shift;;
@@ -115,6 +119,7 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${SOURCE} ]] && COMMAND="${COMMAND} --source ${SOURCE}"
                 [[ ${BRANCH} ]] && COMMAND="${COMMAND} --branch ${BRANCH}"
                 [[ ${COMMIT} ]] && COMMAND="${COMMAND} --commit ${COMMIT}"
+                [[ ${TARBALL} ]] && COMMAND="${COMMAND} --tarball ${TARBALL}"
                 [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
                 echo "        COMMAND = ${COMMAND}"
                 time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.mariadb.${CLUSTER}.log 2>&1
@@ -175,6 +180,7 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${GALERA_SOURCE} ]] && COMMAND="${COMMAND} --galera-source ${GALERA_SOURCE}"
                 [[ ${GALERA_BRANCH} ]] && COMMAND="${COMMAND} --galera-branch ${GALERA_BRANCH}"
                 [[ ${GALERA_COMMIT} ]] && COMMAND="${COMMAND} --galera-commit ${GALERA_COMMIT}"
+                [[ ${GALERA_TARBALL} ]] && COMMAND="${COMMAND} --galera-tarball ${GALERA_TARBALL}"
                 echo "        COMMAND = ${COMMAND}"
                 time ${COMMAND}
                 ;;
@@ -191,6 +197,7 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${RAFT_SOURCE} ]] && COMMAND="${COMMAND} --raft-source ${RAFT_SOURCE}"
                 [[ ${RAFT_BRANCH} ]] && COMMAND="${COMMAND} --raft-branch ${RAFT_BRANCH}"
                 [[ ${RAFT_COMMIT} ]] && COMMAND="${COMMAND} --raft-commit ${RAFT_COMMIT}"
+                [[ ${RAFT_TARBALL} ]] && COMMAND="${COMMAND} --raft-tarball ${RAFT_TARBALL}"
                 echo "        COMMAND = ${COMMAND}"
                 time ${COMMAND}
                 ;;
@@ -206,8 +213,9 @@ mkdir -p ${LOGDIRECTORY}
         echo
         echo "    ===== Build MaxScale System - SYSTEM = ${MAXSCALE_SYSTEMS[0]} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         COMMAND="build.maxscale.sh --cluster ${CLUSTER}.maxscale --initdb"
-        [[ ${MAXSCALE_SOURCE} ]] && COMMAND="${COMMAND} --source ${MAXSCALE_SOURCE}"
-        [[ ${MAXSCALE_VERSION} ]] && COMMAND="${COMMAND} --version ${MAXSCALE_VERSION}"
+        [[ ${MAXSCALE_SOURCE} ]] && COMMAND="${COMMAND} --maxscale-source ${MAXSCALE_SOURCE}"
+        [[ ${MAXSCALE_VERSION} ]] && COMMAND="${COMMAND} --maxscale-version ${MAXSCALE_VERSION}"
+        [[ ${MAXSCALE_TARBALL} ]] && COMMAND="${COMMAND} --maxscale-tarball ${MAXSCALE_TARBALL}"
         [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
         echo "        COMMAND = ${COMMAND}"
         time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.maxscale.log 2>&1
