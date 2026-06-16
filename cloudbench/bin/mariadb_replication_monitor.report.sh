@@ -8,7 +8,7 @@ USAGE="usage: $0
 "
 
 [ "$GRAPH_FONT" ] || GRAPH_FONT='/usr/share/fonts/liberation/LiberationSans-Regular.ttf'
-[ "$GRAPH_SIZE" ] || GRAPH_SIZE='960,480'
+[ "$GRAPH_SIZE" ] || GRAPH_SIZE='1000,500'
 
 while [[ $# > 0 ]] ; do
 key="$1"; shift;
@@ -66,6 +66,7 @@ build_gnuplot(){
     echo "set ylabel '$2'"
     echo "set xlabel 'Time (Intervals)'"
     echo "set grid ytics"
+    echo "set key bottom center outside horizontal noenhanced"
     echo "set output '${REPORTDIRECTORY}/$4'"
     echo "set title '$1'"
     echo -n "plot "

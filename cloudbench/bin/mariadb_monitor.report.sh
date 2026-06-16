@@ -8,7 +8,7 @@ USAGE="usage: $0
 "
 
 [ "$GRAPH_FONT" ] || GRAPH_FONT='/usr/share/fonts/liberation/LiberationSans-Regular.ttf'
-[ "$GRAPH_SIZE" ] || GRAPH_SIZE='960,480'
+[ "$GRAPH_SIZE" ] || GRAPH_SIZE='1000,500'
 
 while [[ $# > 0 ]] ; do
 key="$1"; shift;
@@ -59,15 +59,14 @@ has_colnames(){
 
 build_gnuplot(){
     # $1=graph title, $2=y axis lable, $3=y limit, $4=output file, $5=var1:title1;var2:title2...
-    echo "set terminal png size $GRAPH_SIZE enhanced font '$GRAPH_FONT' 11 linewidth 2"
+    echo "set terminal png size $GRAPH_SIZE enhanced font '$GRAPH_FONT' 10 linewidth 2"
     echo "set yrange [0:$3]"
     echo "set xrange [0:${MAX_INTERVAL}]"
     echo "set ylabel '$2'"
-    echo "set xlabel 'Time (Intervals)'"
     echo "set grid ytics"
     echo "set output '${REPORTDIRECTORY}/$4'"
     echo "set title '$1'"
-    echo "set key left top noenhanced"
+    echo "set key bottom center outside horizontal noenhanced"
     echo -n "plot "
     IFS=';' read -ra vars <<< "$5"
     first=true
