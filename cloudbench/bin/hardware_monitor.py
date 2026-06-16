@@ -112,7 +112,7 @@ class Node(object):
                     break
                 logging.debug("node : " + str(node) + " : disk_stats : result : " + str(line))
                 disk_data = line.split()
-                if int(disk_data[1]) == 0:
+                if int(disk_data[1]) == 16:
                     logging.debug("node : " + str(node) + " : disk_stats : disk_data : " + str(disk_data))
                     current_disk_reads = current_disk_reads + float(disk_data[3])
                     current_disk_read_sectors = current_disk_read_sectors + float(disk_data[5])
