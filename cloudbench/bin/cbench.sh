@@ -1482,7 +1482,6 @@ start_performance_monitor() {
             if [[ ! " ${SYSTEMS[@]} " =~ " ${MASTER_SYSTEM} " ]]; then
                     SYSTEMS=( ${MASTER_SYSTEM} ${SYSTEMS[*]} )
             fi
-            done
         done
         for SLAVE_SYSTEM in $(get_property ${SYSTEM} slave.systems) ; do
             database_performance_monitor ${SLAVE_SYSTEM} &
