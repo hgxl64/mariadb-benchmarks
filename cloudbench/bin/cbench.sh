@@ -1412,13 +1412,14 @@ mariadb_replication_monitor () {
 hardware_monitor() {
     # Monitor the hardware performance of a single node
     [[ ${MONITOR_INTERVAL} ]] || MONITOR_INTERVAL=10
-    [[ ${TARGET_HOSTS} ]] || TARGET_HOSTS=( $@ )
+    [[ ${TARGET_SYSTEMS} ]] || TARGET_SYSTEM=( $@ )
     local COMMAND=""
-    for TARGET_HOST in ${TARGET_HOSTS[*]} ; do
-        HARDWARE_MONITOR_LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).hardware_monitor.${TARGET_HOST}.log
+    for TARGET_SYSTEM in ${TARGET_SYSTEMS[*]} ; do
+        TARGET_HOST=$(get_property ${TARGET_SYSTEM} nodes)
+        HARDWARE_MONITOR_LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).hardware_monitor.${TARGET_SYSTEM}.log
         print_subheader "Starting Hardware Monitor on ${TARGET_HOST}"
         COMMAND="hardware_monitor.py --host $TARGET_HOST $(get_hardware_monitor_connection) --hardware --interval-seconds ${MONITOR_INTERVAL}"
-        print_variable_report 12 TARGET_HOST HARDWARE_MONITOR_LOG MONITOR_INTERVAL COMMAND
+        print_variable_report 12 TARGET_SYSTEM TARGET_HOST HARDWARE_MONITOR_LOG MONITOR_INTERVAL COMMAND
         ${COMMAND} > ${HARDWARE_MONITOR_LOG} &
         local HARDWARE_MONITOR_PID=$!
         HARDWARE_MONITOR_LOGS=( ${HARDWARE_MONITOR_LOGS[*]} ${HARDWARE_MONITOR_LOG} )
@@ -1466,76 +1467,56 @@ start_performance_monitor() {
         [[ ${MONITOR_REPORT_PID_FILE} ]] || MONITOR_REPORT_PID_FILE=$(mktemp)
 
         # Start Hardware Monitors on all nodes
-        local NODES=( $(get_property ${SYSTEM} nodes) )
+        local SYSTEMS
 
         #Start Database Monitors on all database systems, including $self
         # 2026-06-16: skip self
         #database_performance_monitor ${SYSTEM} &
-        sleep 2 # Keep initial output from interleaving in the logs
-        MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
+        #sleep 2 # Keep initial output from interleaving in the logs
+        #MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
 
         for MASTER_SYSTEM in $(get_property ${SYSTEM} master.systems) ; do
             database_performance_monitor ${MASTER_SYSTEM} &
             sleep 2 # Keep initial output from interleaving in the logs
             MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
-            for NODE in $(get_property ${MASTER_SYSTEM} nodes) ; do
-                if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
-                    # if the node is not already in the list of hardware nodes, add it
-                    NODES=( ${NODE} ${NODES[*]} )
-                fi
+            if [[ ! " ${SYSTEMS[@]} " =~ " ${MASTER_SYSTEM} " ]]; then
+                    SYSTEMS=( ${MASTER_SYSTEM} ${SYSTEMS[*]} )
+            fi
             done
         done
         for SLAVE_SYSTEM in $(get_property ${SYSTEM} slave.systems) ; do
             database_performance_monitor ${SLAVE_SYSTEM} &
             sleep 2 # Keep initial output from interleaving in the logs
             MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
-            for NODE in $(get_property ${SLAVE_SYSTEM} nodes) ; do
-                if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
-                    # if the node is not already in the list of hardware nodes, add it
-                    NODES=( ${NODE} ${NODES[*]} )
-                fi
-            done
+            if [[ ! " ${SYSTEMS[@]} " =~ " ${SLAVE_SYSTEM} " ]]; then
+                    SYSTEMS=( ${SLAVE_SYSTEM} ${SYSTEMS[*]} )
+            fi
         done
         for GALERA_SYSTEM in $(get_property ${SYSTEM} galera.systems) ; do
             database_performance_monitor ${GALERA_SYSTEM} &
             sleep 2 # Keep initial output from interleaving in the logs
             MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
-            for NODE in $(get_property ${GALERA_SYSTEM} nodes) ; do
-                if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
-                    # if the node is not already in the list of hardware nodes, add it
-                    NODES=( ${NODE} ${NODES[*]} )
-                fi
-            done
+            if [[ ! " ${SYSTEMS[@]} " =~ " ${GALERA_SYSTEM} " ]]; then
+                    SYSTEMS=( ${GALERA_SYSTEM} ${SYSTEMS[*]} )
+            fi
         done
         for MARIADB_SYSTEM in $(get_property ${SYSTEM} mariadb.systems) ; do
             database_performance_monitor ${MARIADB_SYSTEM} &
             sleep 2 # Keep initial output from interleaving in the logs
             MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
-            for NODE in $(get_property ${MARIADB_SYSTEM} nodes) ; do
-                if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
-                    # if the node is not already in the list of hardware nodes, add it
-                    NODES=( ${NODE} ${NODES[*]} )
-                fi
-            done
+            if [[ ! " ${SYSTEMS[@]} " =~ " ${MARIADB_SYSTEM} " ]]; then
+                    SYSTEMS=( ${MARIADB_SYSTEM} ${SYSTEMS[*]} )
+            fi
         done
 
         # Walk systems to find all nodes
-        for XXX in $(get_property ${SYSTEM} maxscale.systems) $(get_property ${SYSTEM} clustrix.systems) $(get_property ${SYSTEM} xpand.systems) $(get_property ${SYSTEM} driver.systems) ; do
-            for NODE in $(get_property ${XXX} nodes) ; do
-                if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
-                    # if the node is not already in the list of hardware nodes, add it
-                    NODES=( ${NODE} ${NODES[*]} )
-                fi
-            done
-        done
-        for NODE in $(get_property ${SYSTEM} drivers) ; do
-            if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
-                # if the node is not already in the list of hardware nodes, add it
-                NODES=( ${NODE} ${NODES[*]} )
+        for OTHER_SYSTEM in $(get_property ${SYSTEM} maxscale.systems) $(get_property ${SYSTEM} driver.systems) ; do
+            if [[ ! " ${SYSTEMS[@]} " =~ " ${OTHER_SYSTEM} " ]]; then
+                    SYSTEMS=( ${OTHER_SYSTEM} ${SYSTEMS[*]} )
             fi
         done
         # Finally start the Hardware Monitor
-        start_hardware_monitor ${NODES[*]}
+        start_hardware_monitor ${SYSTEMS[*]}
 
         if [[ $(get_property ${SYSTEM} cluster.type) == "mariadb_replication" ]] ; then
             mariadb_replication_monitor ${SYSTEM} &
