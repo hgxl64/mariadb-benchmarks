@@ -1415,7 +1415,8 @@ hardware_monitor() {
     [[ ${TARGET_SYSTEMS} ]] || TARGET_SYSTEMS=( $@ )
     local COMMAND=""
     for TARGET_SYSTEM in ${TARGET_SYSTEMS[*]} ; do
-        TARGET_HOST=$(get_property ${TARGET_SYSTEM} system.external.ip)
+        TARGET_HOST=$(get_property ${TARGET_SYSTEM} nodes)
+        [[ ${TARGET_HOST} ]] || TARGET_HOST=$(get_property ${TARGET_SYSTEM} system.external.ip)
         HARDWARE_MONITOR_LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).hardware_monitor.${TARGET_SYSTEM}.log
         print_subheader "Starting Hardware Monitor on System ${TARGET_SYSTEM}, Node ${TARGET_HOST}"
         COMMAND="hardware_monitor.py --host $TARGET_HOST $(get_hardware_monitor_connection) --hardware --interval-seconds ${MONITOR_INTERVAL}"
