@@ -171,7 +171,43 @@ if [[ ${OPTION_DISK} ]] ; then
         echo
         echo "exit"
     } | gnuplot
-    (( IDX = IDX + 5 ))
+    (( IDX = IDX + 2 ))
+    {
+        echo "set terminal png size 1000,500 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
+        echo "set yrange [0:]"
+        echo "set xrange [0:${MAX_INTERVAL}]"
+        echo "set ylabel 'Disk Sectors Read Per Second'"
+        echo "set grid ytics"
+        echo "set key bottom center outside horizontal"
+        echo "set output '${REPORTDIRECTORY}/disk.reads.png'"
+        echo "set title 'Disk Sectors Read Over Time'"
+        echo "plot \\"
+        for (( LOG_IDX=0; LOG_IDX<${#MONITOR_LOGS[@]}; LOG_IDX++ )) ; do
+            if (( ${LOG_IDX} > 0 )) ; then echo ", \\" ; fi
+            echo " '${MONITOR_LOGS[${LOG_IDX}]}' using ${IDX} title '$( echo ${MONITOR_LOGS[${LOG_IDX}]##*/} | cut -d. -f4- | rev | cut -d"." -f2-  | rev )' with lines \\"
+        done
+        echo
+        echo "exit"
+    } | gnuplot
+    (( IDX = IDX + 2 ))
+    {
+        echo "set terminal png size 1000,500 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
+        echo "set yrange [0:]"
+        echo "set xrange [0:${MAX_INTERVAL}]"
+        echo "set ylabel 'Disk Sectors Written Per Second'"
+        echo "set grid ytics"
+        echo "set key bottom center outside horizontal"
+        echo "set output '${REPORTDIRECTORY}/disk.writes.png'"
+        echo "set title 'Disk Sectors Written Over Time'"
+        echo "plot \\"
+        for (( LOG_IDX=0; LOG_IDX<${#MONITOR_LOGS[@]}; LOG_IDX++ )) ; do
+            if (( ${LOG_IDX} > 0 )) ; then echo ", \\" ; fi
+            echo " '${MONITOR_LOGS[${LOG_IDX}]}' using ${IDX} title '$( echo ${MONITOR_LOGS[${LOG_IDX}]##*/} | cut -d. -f4- | rev | cut -d"." -f2-  | rev )' with lines \\"
+        done
+        echo
+        echo "exit"
+    } | gnuplot
+    (( IDX = IDX + 1 ))
 fi
 
 if [[ ${OPTION_NETWORK} ]] ; then
@@ -238,6 +274,10 @@ echo '
 <h2>Disk Stats</h2>
 <h3>Disk Operations</h3>
 <img src="disk.iops.png" />
+<h3>Disk Reads</h3>
+<img src="disk.reads.png" />
+<h3>Disk Writes</h3>
+<img src="disk.writes.png" />
 '
 fi
 
