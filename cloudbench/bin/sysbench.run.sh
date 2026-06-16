@@ -233,7 +233,7 @@ time {
             start_profiling ${CLUSTER}
         fi
 
-#        start_performance_monitor ${CLUSTER};
+        start_performance_monitor ${CLUSTER};
 
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).preprocessing.log 2>&1
 
@@ -505,9 +505,9 @@ time {
         echo "    ===== Gather After Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         gather_after_data
 
-#        echo
-#        echo "        ===== Stop Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-#        time stop_monitors
+        echo
+        echo "        ===== Stop Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        time stop_monitors
 
         if [[ ${OPTION_CLEANUP} ]] ; then
             echo

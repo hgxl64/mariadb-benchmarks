@@ -1308,3 +1308,230 @@ stop_profiling() {
     fi
 }
 
+
+#===== monitoring =====
+
+database_performance_monitor() {
+    local SYSTEM=$1
+    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+    local HOST=$(get_database_host ${SYSTEM})
+    local DATABASE=$(get_property ${SYSTEM} database)
+    local COMMAND=""
+    if [[ ${DATABASE} == 'mariadb' ]] ; then
+        print_subheader "Starting ${DATABASE} Database Performance Monitor"
+        [[ ${MONITOR_INTERVAL} ]] || MONITOR_INTERVAL=10
+        MONITORLOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${DATABASE}_monitor.${SYSTEM}.log
+        COMMAND="mariadb_monitor.py $(get_database_monitor_connection ${SYSTEM}) --interval-seconds ${MONITOR_INTERVAL}"
+        print_variable_report 12 SYSTEM MONITORLOG MONITOR_INTERVAL COMMAND
+        ${COMMAND} > ${MONITORLOG} &
+        local MONITOR_PID=$!
+        print_subheader "${DATABASE} Database Performance Monitor Started - Pid : ${MONITOR_PID}"
+        print_subheader "Starting ${DATABASE} Database Performance Monitor Reporter"
+        while sleep $((MONITOR_INTERVAL*5)); do
+              pquit ${PARENT_PID}
+              mariadb_monitor.report.sh --monitorlog ${MONITORLOG}
+        done &
+        local REPORT_PID=$!
+        echo ${REPORT_PID} >> ${MONITOR_REPORT_PID_FILE}
+        print_subheader "Started ${DATABASE} Report Thread pid ${REPORT_PID} for monitor pid ${MONITOR_PID}"
+        wait ${REPORT_PID}
+        print_subheader "${DATABASE} Database Performance Monitor Reporter Ended - Pid : ${REPORT_PID} - Killing Performance Monitor - Pid : ${MONITOR_PID}"
+        kill -9 ${MONITOR_PID}
+        sleep 5
+        mariadb_monitor.report.sh --monitorlog ${MONITORLOG}
+    fi
+}
+
+
+mariadb_replication_monitor () {
+    local SYSTEM=$1
+    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+
+    print_subheader "Starting MariaDB Replication Monitor"
+
+    [[ ${MONITOR_INTERVAL} ]] || MONITOR_INTERVAL=5
+    local COMMAND="mariadb_replication_monitor.pl --interval=${MONITOR_INTERVAL}"
+
+    local MASTER=$(get_property ${SYSTEM} master.systems)
+    COMMAND="${COMMAND} $(get_mariadb_collector_connection ${MASTER})"
+
+    for NODE in $(get_property ${SYSTEM} slave.systems) ; do
+        COMMAND="${COMMAND} --slave $(get_database_host ${NODE})"
+    done
+
+    MONITORLOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).mariadb_replication_monitor.log
+    print_variable_report 12 SYSTEM MONITORLOG MONITOR_INTERVAL COMMAND
+
+    ${COMMAND} > ${MONITORLOG} &
+    local MONITOR_PID=$!
+
+    print_subheader "MariaDB Replication Monitor Started - Pid : ${MONITOR_PID}"
+    print_subheader "Starting MariaDB Replication Monitor Reporter"
+    ( while sleep $((MONITOR_INTERVAL*10)); do pquit ${PARENT_PID}; mariadb_replication_monitor.report.sh --monitorlog ${MONITORLOG} ; done ) &
+    local REPORT_PID=$!
+    echo ${REPORT_PID} >> ${MONITOR_REPORT_PID_FILE}
+    print_subheader "Started MariaDB Replication Monitor Report Thread pid ${REPORT_PID} for monitor pid ${MONITOR_PID}"
+    wait ${REPORT_PID}
+    print_subheader "MariaDB Replication Monitor Reporter Ended - Pid : ${REPORT_PID} - Killing Performance Monitor - Pid : ${MONITOR_PID}"
+    kill ${MONITOR_PID}
+    sleep 5
+    mariadb_replication_monitor.report.sh --monitorlog ${MONITORLOG}
+}
+
+
+hardware_monitor() {
+    # Monitor the hardware performance of a single node
+    [[ ${MONITOR_INTERVAL} ]] || MONITOR_INTERVAL=10
+    [[ ${TARGET_HOSTS} ]] || TARGET_HOSTS=( $@ )
+    local COMMAND=""
+    for TARGET_HOST in ${TARGET_HOSTS[*]} ; do
+        HARDWARE_MONITOR_LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).hardware_monitor.${TARGET_HOST}.log
+        print_subheader "Starting Hardware Monitor on ${TARGET_HOST}"
+        COMMAND="hardware_monitor.py --host $TARGET_HOST $(get_hardware_monitor_connection) --hardware --interval-seconds ${MONITOR_INTERVAL}"
+        print_variable_report 12 TARGET_HOST HARDWARE_MONITOR_LOG MONITOR_INTERVAL COMMAND
+        ${COMMAND} > ${HARDWARE_MONITOR_LOG} &
+        local HARDWARE_MONITOR_PID=$!
+        HARDWARE_MONITOR_LOGS=( ${HARDWARE_MONITOR_LOGS[*]} ${HARDWARE_MONITOR_LOG} )
+        MONITOR_PIDS=( ${MONITOR_PIDS[*]} ${HARDWARE_MONITOR_PID} )
+        HARDWARE_MONITOR_PIDS=( ${HARDWARE_MONITOR_PIDS[*]} ${HARDWARE_MONITOR_PID} )
+        print_subheader "Hardware Monitor Started - Target Host : ${TARGET_HOST} - Pid : ${HARDWARE_MONITOR_PID}"
+    done
+    sleep 1
+    MONITOR_REPORT=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).hardware_monitor.report
+    while sleep $(( MONITOR_INTERVAL * 5 )); do
+        pquit ${PARENT_PID}
+        hardware_monitor.report.sh --monitorreport ${MONITOR_REPORT} --monitorlogs "${HARDWARE_MONITOR_LOGS[*]}" --hardware
+    done &
+    local HARDWARE_MONITOR_REPORT_PID=$!
+    echo ${HARDWARE_MONITOR_REPORT_PID} >> ${MONITOR_REPORT_PID_FILE}
+    print_subheader "Hardware Monitor Reporter Started - Pid : ${HARDWARE_MONITOR_REPORT_PID}"
+    wait ${HARDWARE_MONITOR_REPORT_PID}
+    print_subheader "Hardware Monitor Reporter Ended - Pid : ${HARDWARE_MONITOR_REPORT_PID} - Killing Hardware Performance Monitors - Pids : ${HARDWARE_MONITOR_PIDS[*]}"
+    kill -9 ${HARDWARE_MONITOR_PIDS[*]}
+    sleep 2
+    hardware_monitor.report.sh --monitorreport ${MONITOR_REPORT} --monitorlogs "${HARDWARE_MONITOR_LOGS[*]}" --hardware
+}
+
+
+start_hardware_monitor() {
+    [[ ${OPTION_PERFMONITOR} ]] || OPTION_PERFMONITOR=FALSE
+    if [[ ${OPTION_PERFMONITOR} == TRUE ]] ; then
+        [[ ${MONITOR_REPORT_PID_FILE} ]] || MONITOR_REPORT_PID_FILE=$(mktemp)
+        hardware_monitor $@ &
+        sleep 5 # Keep initial output from interleaving in the logs
+        MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
+    fi
+}
+
+
+start_performance_monitor() {
+    [[ ${OPTION_PERFMONITOR} ]] || OPTION_PERFMONITOR=FALSE
+    if [[ ${OPTION_PERFMONITOR} == TRUE ]] ; then
+
+        local SYSTEM=$1
+        [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+
+        print_header "Start Performance Monitors - ${SYSTEM}"
+        [[ ${MONITOR_REPORT_PID_FILE} ]] || MONITOR_REPORT_PID_FILE=$(mktemp)
+
+        # Start Hardware Monitors on all nodes
+        local NODES=( $(get_property ${SYSTEM} nodes) )
+
+        #Start Database Monitors on all database systems, including $self
+        database_performance_monitor ${SYSTEM} &
+        sleep 2 # Keep initial output from interleaving in the logs
+        MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
+
+        for MASTER_SYSTEM in $(get_property ${SYSTEM} master.systems) ; do
+            database_performance_monitor ${MASTER_SYSTEM} &
+            sleep 2 # Keep initial output from interleaving in the logs
+            MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
+            for NODE in $(get_property ${MASTER_SYSTEM} nodes) ; do
+                if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
+                    # if the node is not already in the list of hardware nodes, add it
+                    NODES=( ${NODE} ${NODES[*]} )
+                fi
+            done
+        done
+        for SLAVE_SYSTEM in $(get_property ${SYSTEM} slave.systems) ; do
+            database_performance_monitor ${SLAVE_SYSTEM} &
+            sleep 2 # Keep initial output from interleaving in the logs
+            MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
+            for NODE in $(get_property ${SLAVE_SYSTEM} nodes) ; do
+                if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
+                    # if the node is not already in the list of hardware nodes, add it
+                    NODES=( ${NODE} ${NODES[*]} )
+                fi
+            done
+        done
+        for GALERA_SYSTEM in $(get_property ${SYSTEM} galera.systems) ; do
+            database_performance_monitor ${GALERA_SYSTEM} &
+            sleep 2 # Keep initial output from interleaving in the logs
+            MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
+            for NODE in $(get_property ${GALERA_SYSTEM} nodes) ; do
+                if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
+                    # if the node is not already in the list of hardware nodes, add it
+                    NODES=( ${NODE} ${NODES[*]} )
+                fi
+            done
+        done
+        for MARIADB_SYSTEM in $(get_property ${SYSTEM} mariadb.systems) ; do
+            database_performance_monitor ${MARIADB_SYSTEM} &
+            sleep 2 # Keep initial output from interleaving in the logs
+            MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
+            for NODE in $(get_property ${MARIADB_SYSTEM} nodes) ; do
+                if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
+                    # if the node is not already in the list of hardware nodes, add it
+                    NODES=( ${NODE} ${NODES[*]} )
+                fi
+            done
+        done
+
+        # Walk systems to find all nodes
+        for XXX in $(get_property ${SYSTEM} maxscale.systems) $(get_property ${SYSTEM} clustrix.systems) $(get_property ${SYSTEM} xpand.systems) $(get_property ${SYSTEM} driver.systems) ; do
+            for NODE in $(get_property ${XXX} nodes) ; do
+                if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
+                    # if the node is not already in the list of hardware nodes, add it
+                    NODES=( ${NODE} ${NODES[*]} )
+                fi
+            done
+        done
+        for NODE in $(get_property ${SYSTEM} drivers) ; do
+            if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
+                # if the node is not already in the list of hardware nodes, add it
+                NODES=( ${NODE} ${NODES[*]} )
+            fi
+        done
+        # Finally start the Hardware Monitor
+        start_hardware_monitor ${NODES[*]}
+
+        if [[ $(get_property ${SYSTEM} cluster.type) == "mariadb_replication" ]] ; then
+            mariadb_replication_monitor ${SYSTEM} &
+            MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
+        fi
+
+        # Allow the monitors to get up and running
+        sleep 10
+    else
+        echo
+        echo "    WARNING:  Performance Monitoring Disabled"
+    fi
+}
+
+
+stop_monitors() {
+    [[ ${MONITOR_REPORT_PID_FILE} ]] && [[ $(cat ${MONITOR_REPORT_PID_FILE}) ]] || return 0
+    print_header Stopping Performance Monitors
+    print_subheader "Monitor report pids: $(cat ${MONITOR_REPORT_PID_FILE} | tr '\n' ' ')"
+    if [[ ${MONITOR_PIDS} ]]; then
+        local SLEEP_INT=$((MONITOR_INTERVAL*5))
+        print_subheader "Sleeping for ${SLEEP_INT} seconds, then killing performance monitor(s)"
+        sleep ${SLEEP_INT}
+        print_subheader "Killing monitor report threads now..."
+        kill -9 $(cat ${MONITOR_REPORT_PID_FILE})
+        wait ${MONITOR_PIDS[*]}
+    fi
+    rm -f ${MONITOR_REPORT_PID_FILE}
+    unset MONITOR_REPORT_PID_FILE
+}
+

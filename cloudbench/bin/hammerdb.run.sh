@@ -199,7 +199,7 @@ time {
         echo "    ===== Gather Before Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time gather_before_data
 
-#        start_performance_monitor ${CLUSTER};
+        start_performance_monitor ${CLUSTER};
 
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).preprocessing.log 2>&1
 
@@ -412,9 +412,9 @@ time {
         echo "    ===== Gather After Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         gather_after_data
 
-#        echo
-#        echo "        ===== Stop Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-#        time stop_monitors
+        echo
+        echo "        ===== Stop Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        time stop_monitors
 
         echo
         echo "        ===== Post Test Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
