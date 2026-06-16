@@ -59,7 +59,7 @@ $SIG{TERM}= \&cleanup;
 print STDERR "GTID replication monitor starting ...\n";
 
 #connect master
-my $dbh = DBI->connect("DBI:mysql:host=$DBHOST;port=$DBPORT", $DBUSER, $DBPASS) or die;
+my $dbh = DBI->connect("DBI:MariaDB:host=$DBHOST;port=$DBPORT", $DBUSER, $DBPASS) or die;
 printf STDERR "connected to master: host=%s, port=%d, user=%s, password=%s\n",
     $DBHOST, $DBPORT, ($DBUSER or "(default)"), ($DBPASS or "(none)");
 show_db_version($dbh);
@@ -68,7 +68,7 @@ push @db_handles, $dbh;
 #connect slaves
 foreach my $s (@SLAVES)
 {
-    my $dbh = DBI->connect("DBI:mysql:host=$s;port=$DBPORT", $DBUSER, $DBPASS) or die;
+    my $dbh = DBI->connect("DBI:MariaDB:host=$s;port=$DBPORT", $DBUSER, $DBPASS) or die;
     printf STDERR "connected to slave: host=%s, port=%d, user=%s, password=%s\n",
         $s, $DBPORT, ($DBUSER or "(default)"), ($DBPASS or "(none)");
     show_db_version($dbh);
