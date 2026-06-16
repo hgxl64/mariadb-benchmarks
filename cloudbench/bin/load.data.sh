@@ -84,6 +84,7 @@ while [[ $# > 0 ]] ; do
         --aws_import)           OPTION_AWS=TRUE;;
         --aws)                  OPTION_AWS=TRUE;;
         --skipindex)            OPTION_SKIPINDEX=TRUE;;
+        --monitor)              OPTION_PERFMONITOR=TRUE;;
 
         --character_set)        OPTION_CHARACTER_SET="$1";shift;;
 
