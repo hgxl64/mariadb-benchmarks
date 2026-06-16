@@ -1469,7 +1469,8 @@ start_performance_monitor() {
         local NODES=( $(get_property ${SYSTEM} nodes) )
 
         #Start Database Monitors on all database systems, including $self
-        database_performance_monitor ${SYSTEM} &
+        # 2026-06-16: skip self
+        #database_performance_monitor ${SYSTEM} &
         sleep 2 # Keep initial output from interleaving in the logs
         MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
 
