@@ -66,7 +66,7 @@ IDX=3
 
 # Interval Seconds
 {
-    echo "set terminal png size 1024,768 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
+    echo "set terminal png size 1024,640 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
     echo "set yrange [0:20]"
     echo "set xrange [0:${MAX_INTERVAL}]"
     echo "set ylabel 'Elapsed Seconds'"
@@ -89,7 +89,7 @@ IDX=3
 if [[ ${OPTION_CPU} ]] ; then
     # CPU
     {
-        echo "set terminal png size 1024,768 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
+        echo "set terminal png size 1024,640 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
         echo "set yrange [0:100]"
         echo "set xrange [0:${MAX_INTERVAL}]"
         echo "set ylabel 'Cpu Utilization'"
@@ -112,7 +112,7 @@ fi
 if [[ ${OPTION_MEMORY} ]] ; then
     # Memory
     {
-        echo "set terminal png size 1024,768 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
+        echo "set terminal png size 1024,640 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
         echo "set yrange [0:100]"
         echo "set xrange [0:${MAX_INTERVAL}]"
         echo "set ylabel 'Memory Utilization'"
@@ -135,7 +135,7 @@ fi
 if [[ ${OPTION_DISKSPACE} ]] ; then
     # Disk Space Usage
     {
-        echo "set terminal png size 1024,768 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
+        echo "set terminal png size 1024,640 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
         echo "set yrange [0:100]"
         echo "set xrange [0:${MAX_INTERVAL}]"
         echo "set ylabel 'Disk Space Utilization'"
@@ -158,7 +158,7 @@ fi
 if [[ ${OPTION_DISK} ]] ; then
     # Disk Stats
     {
-        echo "set terminal png size 1024,768 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
+        echo "set terminal png size 1024,640 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
         echo "set yrange [0:]"
         echo "set xrange [0:${MAX_INTERVAL}]"
         echo "set ylabel 'Disk Operations Per Second (iops)'"
@@ -181,7 +181,7 @@ fi
 if [[ ${OPTION_NETWORK} ]] ; then
     # Net Stats
     {
-        echo "set terminal png size 1024,768 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
+        echo "set terminal png size 1024,640 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
         echo "set yrange [0:]"
         echo "set xrange [0:${MAX_INTERVAL}]"
         echo "set ylabel 'MBytes Per Second'"
@@ -199,7 +199,7 @@ if [[ ${OPTION_NETWORK} ]] ; then
     } | gnuplot
     (( IDX = IDX + 1 ))
     {
-        echo "set terminal png size 1024,768 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
+        echo "set terminal png size 1024,640 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
         echo "set yrange [0:]"
         echo "set xrange [0:${MAX_INTERVAL}]"
         echo "set ylabel 'MBytes Per Second'"
