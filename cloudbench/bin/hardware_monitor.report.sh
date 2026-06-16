@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USAGE="usage: $0 
+USAGE="usage: $0
     Creates a report (graphics and html file) from a monitor log.
     Options:
         [ monitorlog|-monitorlog|--monitorlog <<monitorlog>> ]
@@ -14,7 +14,7 @@ USAGE="usage: $0
         [ memory|-memory|--memory ]
         [ waits|-waits|--waits ]
         [ -h|--help|help ]
-    Notes:  
+    Notes:
     1.  monitorlog is required.
     2.  ...
 "
@@ -66,12 +66,13 @@ IDX=3
 
 # Interval Seconds
 {
-    echo "set terminal png size 960,480 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
+    echo "set terminal png size 1024,768 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
     echo "set yrange [0:20]"
     echo "set xrange [0:${MAX_INTERVAL}]"
     echo "set ylabel 'Elapsed Seconds'"
     echo "set xlabel 'Time (Intervals)'"
     echo "set grid ytics"
+    echo "set key bottom center outside"
     echo "set output '${REPORTDIRECTORY}/interval_seconds.png'"
     echo "set title 'Interval Seconds'"
     echo "plot \\"
@@ -88,12 +89,13 @@ IDX=3
 if [[ ${OPTION_CPU} ]] ; then
     # CPU
     {
-        echo "set terminal png size 960,480 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
+        echo "set terminal png size 1024,768 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
         echo "set yrange [0:100]"
         echo "set xrange [0:${MAX_INTERVAL}]"
         echo "set ylabel 'Cpu Utilization'"
         echo "set xlabel 'Time (Intervals)'"
         echo "set grid ytics"
+        echo "set key bottom center outside"
         echo "set output '${REPORTDIRECTORY}/cpu.utilization.png'"
         echo "set title 'CPU Utilization Over Time'"
         echo "plot \\"
@@ -110,12 +112,13 @@ fi
 if [[ ${OPTION_MEMORY} ]] ; then
     # Memory
     {
-        echo "set terminal png size 960,480 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
+        echo "set terminal png size 1024,768 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
         echo "set yrange [0:100]"
         echo "set xrange [0:${MAX_INTERVAL}]"
         echo "set ylabel 'Memory Utilization'"
         echo "set xlabel 'Time (Intervals)'"
         echo "set grid ytics"
+        echo "set key bottom center outside"
         echo "set output '${REPORTDIRECTORY}/memory.utilization.png'"
         echo "set title 'Memory Utilization Over Time'"
         echo "plot \\"
@@ -132,12 +135,13 @@ fi
 if [[ ${OPTION_DISKSPACE} ]] ; then
     # Disk Space Usage
     {
-        echo "set terminal png size 960,480 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
+        echo "set terminal png size 1024,768 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
         echo "set yrange [0:100]"
         echo "set xrange [0:${MAX_INTERVAL}]"
         echo "set ylabel 'Disk Space Utilization'"
         echo "set xlabel 'Time (Intervals)'"
         echo "set grid ytics"
+        echo "set key bottom center outside"
         echo "set output '${REPORTDIRECTORY}/diskspace.utilization.png'"
         echo "set title 'Disk Space Utilization Over Time'"
         echo "plot \\"
@@ -154,12 +158,13 @@ fi
 if [[ ${OPTION_DISK} ]] ; then
     # Disk Stats
     {
-        echo "set terminal png size 960,480 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
+        echo "set terminal png size 1024,768 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
         echo "set yrange [0:]"
         echo "set xrange [0:${MAX_INTERVAL}]"
         echo "set ylabel 'Disk Operations Per Second (iops)'"
         echo "set xlabel 'Time (Intervals)'"
         echo "set grid ytics"
+        echo "set key bottom center outside"
         echo "set output '${REPORTDIRECTORY}/disk.iops.png'"
         echo "set title 'Disk Iops Over Time'"
         echo "plot \\"
@@ -176,7 +181,7 @@ fi
 if [[ ${OPTION_NETWORK} ]] ; then
     # Net Stats
     {
-        echo "set terminal png size 960,480 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
+        echo "set terminal png size 1024,768 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
         echo "set yrange [0:]"
         echo "set xrange [0:${MAX_INTERVAL}]"
         echo "set ylabel 'MBytes Per Second'"
@@ -194,12 +199,13 @@ if [[ ${OPTION_NETWORK} ]] ; then
     } | gnuplot
     (( IDX = IDX + 1 ))
     {
-        echo "set terminal png size 960,480 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
+        echo "set terminal png size 1024,768 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
         echo "set yrange [0:]"
         echo "set xrange [0:${MAX_INTERVAL}]"
         echo "set ylabel 'MBytes Per Second'"
         echo "set xlabel 'Time (Intervals)'"
         echo "set grid ytics"
+        echo "set key bottom center outside"
         echo "set output '${REPORTDIRECTORY}/network.send.mbytes.png'"
         echo "set title 'Network Send MBytes Over Time'"
         echo "plot \\"
