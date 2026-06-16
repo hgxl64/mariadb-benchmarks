@@ -172,7 +172,7 @@ time {
 
     check_cluster;
     gather_pretest_snapshot ${CLUSTER}
-#    start_performance_monitor;
+    start_performance_monitor;
 
     if [[ ${LOAD_OPTION} != noload ]] ; then
 
@@ -405,7 +405,7 @@ time {
 
     gather_posttest_snapshot ${CLUSTER}
 
-#    stop_monitors;
+    stop_monitors;
 
     [[ ${LOADTIME} ]] && {
         echo

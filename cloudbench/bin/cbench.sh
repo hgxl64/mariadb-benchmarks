@@ -1311,6 +1311,36 @@ stop_profiling() {
 
 #===== monitoring =====
 
+get_database_monitor_connection() {
+    local SYSTEM=$1
+    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+    [[ $(get_database_host ${SYSTEM}) ]] && echo -n " --dbhost=$(get_database_host ${SYSTEM})"
+    [[ $(get_database_user ${SYSTEM}) ]] && echo -n " --dbuser=$(get_database_user ${SYSTEM})"
+    [[ $(get_database_password ${SYSTEM}) ]] && echo -n " --dbpassword=$(get_database_password ${SYSTEM})"
+    [[ $(get_database_port ${SYSTEM}) ]] && echo -n " --dbport=$(get_database_port ${SYSTEM})"
+    [[ $(get_database_ssl ${SYSTEM}) ]] && echo -n " --ssl=true"
+    [[ $(get_property ${SYSTEM} database.ssl-ca) ]] && echo -n " --dbssl_ca=$(get_property ${SYSTEM} database.ssl-ca)"
+    echo
+}
+
+get_hardware_monitor_connection() {
+    local SYSTEM=$1
+    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+    [[ $(get_ssh_user ${SYSTEM}) ]] && echo -n " --user $(get_ssh_user ${SYSTEM})"
+    [[ $(get_ssh_port ${SYSTEM}) ]] && echo -n " --port $(get_ssh_port ${SYSTEM})"
+    [[ $(get_ssh_pemfile ${SYSTEM}) ]] && echo -n " --pem $(get_ssh_pemfile ${SYSTEM})"
+    echo
+}
+
+get_mariadb_collector_connection() {
+    # $1 - Database System (properties file)
+    [[ $(get_database_host $1) ]] && echo -n " --host $(get_database_host $1)"
+    [[ $(get_database_user $1) ]] && echo -n " --user $(get_database_user $1)"
+    [[ $(get_database_password $1) ]] && echo -n " --password $(get_database_password $1)"
+    [[ $(get_database_port $1) ]] && echo -n " --port $(get_database_port $1)"
+    echo
+}
+
 database_performance_monitor() {
     local SYSTEM=$1
     [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
@@ -1349,7 +1379,7 @@ mariadb_replication_monitor () {
 
     print_subheader "Starting MariaDB Replication Monitor"
 
-    [[ ${MONITOR_INTERVAL} ]] || MONITOR_INTERVAL=5
+    [[ ${MONITOR_INTERVAL} ]] || MONITOR_INTERVAL=10
     local COMMAND="mariadb_replication_monitor.pl --interval=${MONITOR_INTERVAL}"
 
     local MASTER=$(get_property ${SYSTEM} master.systems)
@@ -1430,6 +1460,7 @@ start_performance_monitor() {
 
         local SYSTEM=$1
         [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+
 
         print_header "Start Performance Monitors - ${SYSTEM}"
         [[ ${MONITOR_REPORT_PID_FILE} ]] || MONITOR_REPORT_PID_FILE=$(mktemp)
