@@ -182,6 +182,7 @@ if [[ ${OPTION_NETWORK} ]] ; then
         echo "set xrange [0:${MAX_INTERVAL}]"
         echo "set ylabel 'MBytes Per Second'"
         echo "set grid ytics"
+    echo "set key bottom center outside horizontal"
         echo "set output '${REPORTDIRECTORY}/network.receive.mbytes.png'"
         echo "set title 'Network Recieve MBytes Over Time'"
         echo "plot \\"

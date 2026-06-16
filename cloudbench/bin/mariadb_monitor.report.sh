@@ -59,7 +59,7 @@ has_colnames(){
 
 build_gnuplot(){
     # $1=graph title, $2=y axis lable, $3=y limit, $4=output file, $5=var1:title1;var2:title2...
-    echo "set terminal png size $GRAPH_SIZE enhanced font '$GRAPH_FONT' 10 linewidth 2"
+    echo "set terminal png size $GRAPH_SIZE enhanced font '$GRAPH_FONT' 11 linewidth 2"
     echo "set yrange [0:$3]"
     echo "set xrange [0:${MAX_INTERVAL}]"
     echo "set ylabel '$2'"
@@ -112,9 +112,9 @@ fi
 if has_colnames THREADS_CREATED THREADS_CONNECTED THREADS_RUNNING ; then
     gen_graph "Concurrency - Threads" "Counts" "" "THREADS_CREATED:THREADS_CREATED;THREADS_CONNECTED:THREADS_CONNECTED;THREADS_RUNNING:THREADS_RUNNING"
 fi
-if has_colnames THREADPOOL_THREADS THREADPOOL_IDLE_THREADS ; then
-    gen_graph "Concurrency - Thread Pools" "Counts" "" "THREADPOOL_THREADS:THREADPOOL_THREADS;THREADPOOL_IDLE_THREADS:THREADPOOL_IDLE_THREADS"
-fi
+#if has_colnames THREADPOOL_THREADS THREADPOOL_IDLE_THREADS ; then
+#    gen_graph "Concurrency - Thread Pools" "Counts" "" "THREADPOOL_THREADS:THREADPOOL_THREADS;THREADPOOL_IDLE_THREADS:THREADPOOL_IDLE_THREADS"
+#fi
 
 html_title "InnoDB Stats"
 if has_colnames INNODB_DATA_READS INNODB_DATA_WRITES INNODB_DATA_FSYNCS ; then
