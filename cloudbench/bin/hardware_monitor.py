@@ -43,7 +43,7 @@ class Node(object):
             self.last_idle , self.last_total = idle , total
             cpu_utilization = float("{0:.2f}".format(100.0 * (1.0 - idle_delta / total_delta)))
             logging.debug("cpu_utilization : cpu_utilization : " + str(cpu_utilization))
-            return cpu_utilization 
+            return cpu_utilization
         except Exception as e:
             logging.error("Unable to retrieve cpu_utilizaiton : " + str(e))
             return float("NaN")
@@ -73,7 +73,7 @@ class Node(object):
         return float("NaN"), float("NaN"), float("NaN"), float("NaN"), float("NaN")
 
     def disk_usage(self):
-        command = "df -k | grep '/data/clustrix'"
+        command = "df -k | grep '/data/cbench'"
         if args.sshpem:
             sshcommand = [ 'ssh', '-oStrictHostKeyChecking=no', '-i'+args.sshpem, '%s@%s' % ( args.sshuser , args.host ), command ]
         else:
@@ -108,6 +108,8 @@ class Node(object):
             logging.debug( 'sshCommand = ' + ' '.join(sshcommand) )
             ssh = subprocess.Popen(sshcommand,shell=False,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             for line in iter(ssh.stdout.readline,''):
+                if not line:
+                    break
                 logging.debug("node : " + str(node) + " : disk_stats : result : " + str(line))
                 disk_data = line.split()
                 if int(disk_data[1]) == 0:
