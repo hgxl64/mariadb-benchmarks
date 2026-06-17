@@ -62,7 +62,7 @@ time {
                 ssh $(get_ssh_connection ${CLUSTER} ${NODE}) '
                     DISTRIBUTION=$(cat /etc/lsb-release | grep DESCRIPTION | cut -d= -f2 | sed s/\"//g)
                     case ${DISTRIBUTION} in
-                        "Ubuntu 24.*")
+                        "Ubuntu 24."*)
                             echo "Ubuntu 24 detected, installing packages"
                             sudo apt-get update
                             sudo apt-get -y install ntpdate liburing2 \
@@ -70,7 +70,7 @@ time {
                               prometheus-node-exporter
                             ;;
                         *)
-                            echo "unknown target OS: ${DISTRIBUTION}, doing nothing"
+                            echo "unknown target OS: \"${DISTRIBUTION}\", doing nothing"
                             ;;
                     esac
                 '
