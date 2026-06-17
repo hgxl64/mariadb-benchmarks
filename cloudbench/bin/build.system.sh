@@ -511,6 +511,25 @@ mkdir -p ${LOGDIRECTORY}
 
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).install.log 2>&1
 
+    # install prometheus monitoring ===============================================================
+
+    #if [[ ${DATABASE} == 'mariadb' ]] ; then
+    #
+    #    echo
+    #    echo "    ===== Install Prometheus MySQLd  Exporter =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    #
+    #    time {
+    #
+    #        ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+    #            sudo apt-get -y install prometheus-mysqld-exporter
+    #            echo "DATA_SOURCE_NAME=prometheus@unix(/data/cbench/mariadb.sock)" \
+    #            | sudo tee -a /etc/default/prometheus-mysqld-exporter
+    #        '
+    #
+    #    } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).install.prometheus.exporter.log 2>&1
+    #fi
+
+
     # configuration file generator ================================================================
 
     if [[ ${DATABASE} == 'mariadb' ]] ; then
@@ -805,6 +824,8 @@ mkdir -p ${LOGDIRECTORY}
                         create user '${DB_USER}'@'127.0.0.1' identified by '${DB_PASSWORD}' ;
                         grant all on *.* to '${DB_USER}'@'127.0.0.1';
                         grant reload on *.* to '${DB_USER}'@'%';
+                        CREATE USER IF NOT EXISTS 'prometheus'@'localhost' IDENTIFIED WITH unix_socket;
+                        GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'localhost';
                         flush privileges;
                     \"
                     "
@@ -868,11 +889,30 @@ mkdir -p ${LOGDIRECTORY}
             fi
         fi
 
+        # start prometheus exporter ===============================================================
+
+        #if [[ ${DATABASE} == 'mariadb' ]] ; then
+        #
+        #    echo
+        #    echo "    ===== Start Prometheus MySQLd  Exporter =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        #    echo
+        #
+        #    time {
+        #
+        #        ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+        #            sudo systemctl restart prometheus-mysqld-exporter
+        #            sudo systemctl status prometheus-mysqld-exporter
+        #        '
+        #
+        #    } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).start.prometheus.exporter.log 2>&1
+        #fi
+
+
         echo
         echo "    ===== Check Database Connection =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         mariadb -vvv $(get_database_connection) -e "
             create schema if not exists test;
-            select @@innodb_buffer_pool_size/1024/1024 AS `InnoDB Buffer Pool Size [MB]`;
+            select @@innodb_buffer_pool_size/1024/1024 AS 'InnoDB Buffer Pool Size [MB]';
             select version();
         "
         if [[ ${OPTION_MASTER} == TRUE ]] ; then
