@@ -3,7 +3,13 @@
 source ${CBENCH_HOME}/bin/cbench.sh
 source ${CBENCH_HOME}/config/gcp.conf
 
-CLUSTER='test'
+#---- settings ----
+export OPTION_SKIPCHECK=TRUE
+export SYSBENCH_TABLESIZE=$((10*1000*1000)) #gives total 100M rows ~= 25GB
+export ZONE_ID=us-central1-c
+export CLUSTER=galera-mm3
+#---- end settings ----
+
 
 TEST_NAME="gcp.test.simple6"
 [[ ${TESTID} ]] || TESTID=$(date +%y%m%d.%H%M%S).${TEST_NAME}
@@ -17,7 +23,7 @@ mkdir -p ${LOGDIRECTORY}
 {
     gcp.allocate.nodes.sh --cluster ${CLUSTER} \
      --server-nodes 3 --server-type n2-standard-16 \
-     --driver-nodes 2 --driver-type n2-standard-4 \
+     --driver-nodes 2 --driver-type n2-standard-8 \
      --maxscale-nodes 1 --maxscale-type n2-standard-16
 
     SYSTEMS=( $(get_property ${CLUSTER} systems) )
@@ -37,10 +43,15 @@ mkdir -p ${LOGDIRECTORY}
 
     echo "Version : $(get_database_version ${CLUSTER})"
 
-    export OPTION_SKIPCHECK=TRUE
     sysbench.load.sh --cluster ${CLUSTER} --noautoinc --load
-    sysbench.curves.sh --cluster ${CLUSTER}.maxscale --workload 7525_splittable --start_streams 8 --max_streams 4096
-    unset OPTION_SKIPCHECK
+
+    sysbench.curves.sh --cluster ${CLUSTER} --workload 9010_splittable --repeats 3
+    sysbench.curves.sh --cluster ${CLUSTER} --workload 7525_splittable --repeats 3
+    sysbench.curves.sh --cluster ${CLUSTER} --workload 5050_splittable --repeats 3
+
+    sysbench.curves.sh --cluster ${CLUSTER}.maxscale --workload 9010_splittable --repeats 3
+    sysbench.curves.sh --cluster ${CLUSTER}.maxscale --workload 7525_splittable --repeats 3
+    sysbench.curves.sh --cluster ${CLUSTER}.maxscale --workload 5050_splittable --repeats 3
 
     check.cluster.sh --cluster ${CLUSTER}
 
