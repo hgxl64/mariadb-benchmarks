@@ -60,7 +60,7 @@ time {
         for NODE in $(get_property ${SYSTEM} system.external.ip) ; do
             time {
                 ssh $(get_ssh_connection ${CLUSTER} ${NODE}) '
-                    DISTRIBUTION=$(cat /etc/lsb-release | grep DESCRIPTION | cut -d= -f2 | sed \'s/"//g\')
+                    DISTRIBUTION=$(cat /etc/lsb-release | grep DESCRIPTION | cut -d= -f2 | sed s/\"//g)
                     case ${DISTRIBUTION} in
                         "Ubuntu 24.*")
                             echo "Ubuntu 24 detected, installing packages"
