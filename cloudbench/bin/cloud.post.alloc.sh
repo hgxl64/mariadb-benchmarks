@@ -98,7 +98,7 @@ time {
                         echo "  }"
                         echo "]"
                     } | ssh ${PROMETHEUS_USER}@${PROMETHEUS_EXT_IP} -oStrictHostKeyChecking=no \
-                            -i${PROMETHEUS_PUB_KEY} "cat | sudo tee /etc/prometheus/targets/${SYSTEM}.json"
+                            -i${PROMETHEUS_PEM} "cat | sudo tee /etc/prometheus/targets/${SYSTEM}.json"
                 done
             done
             echo "    ===== all nodes registered ====="
