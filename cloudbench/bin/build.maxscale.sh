@@ -102,7 +102,7 @@ mkdir -p ${LOGDIRECTORY}
             echo "        Downloading dirlist to find name of package"
             if ( ! wget --user=$(vault 'maxscale_packages_user') \
                         --password=$(vault 'maxscale_packages_pass') \
-                        ${BASE_URL}/ -O dirlist)
+                        ${BASE_URL}/ -O dirlist )
             then
                 error "failed to download '${BASE_URL}'"
             fi
@@ -119,7 +119,7 @@ mkdir -p ${LOGDIRECTORY}
                 if ( ! wget --user=$(vault 'maxscale_packages_user') \
                           --password=$(vault 'maxscale_packages_pass') \
                           --quiet ${BASE_URL}/${DISTFILE} -O ${TARGET})
-                else
+                then
                     error "failed to download '${BASE_URL}/${DISTFILE}'"
                 fi
             fi

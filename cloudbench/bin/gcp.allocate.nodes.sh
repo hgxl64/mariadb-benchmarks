@@ -541,7 +541,7 @@ done
     }
 
     echo
-    echo "    ===== Fixup OS : CLUSTER = ${CLUSTER} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    echo "    ===== Running post-alloc jobs : CLUSTER = ${CLUSTER} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     COMMAND="cloud.post.alloc.sh --cluster ${CLUSTER}"
     echo "        COMMAND = ${COMMAND}"
     time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).post.alloc.log 2>&1
