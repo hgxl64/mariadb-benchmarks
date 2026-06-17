@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source ${CBENCH_HOME}/bin/cbench.sh
+source ${CBENCH_HOME}/conf/gcp.conf
 
 USAGE="$0
 
