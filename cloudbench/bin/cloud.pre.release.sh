@@ -58,10 +58,11 @@ time {
             unset SYSTEMS
             for SYSTEM in $(get_property ${CLUSTER} mariadb.systems) $(get_property ${CLUSTER} maxscale.systems) \
                           $(get_property ${CLUSTER} master.systems) $(get_property ${CLUSTER} slave.systems) \
-                          $(get_property ${CLUSTER} galera.systems) $(get_property ${CLUSTER} driver.systems) ; do
+                          $(get_property ${CLUSTER} galera.systems) $(get_property ${CLUSTER} driver.systems) \
+                          $(get_property ${CLUSTER} systems); do
                 #strip role from system name
-                SYSTEM=$(echo ${SYSTEM} | sed '/^maxscale\.//')
-                SYSTEM=$(echo ${SYSTEM} | sed '/^mariadb\.//')
+                SYSTEM=$(echo ${SYSTEM} | sed 's/^maxscale\.//')
+                SYSTEM=$(echo ${SYSTEM} | sed 's/^mariadb\.//')
                 #add to systems if not already there
                 if [[ ! " ${SYSTEMS[@]} " =~ " ${SYSTEM} " ]]; then
                     SYSTEMS=( ${SYSTEM} ${SYSTEMS[*]} )
