@@ -429,12 +429,6 @@ done
     echo
 
     echo
-    echo "    ===== Fixup OS : CLUSTER = ${CLUSTER} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-    COMMAND="fixup.os.sh --cluster ${CLUSTER}"
-    echo "        COMMAND = ${COMMAND}"
-    time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).fixup.os.log 2>&1
-
-    echo
     echo "    ===== Format Data Disks  =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     echo
     time {
@@ -545,6 +539,13 @@ done
 
     }
 
+    echo
+    echo "    ===== Fixup OS : CLUSTER = ${CLUSTER} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    COMMAND="cloud.post.alloc.sh --cluster ${CLUSTER}"
+    echo "        COMMAND = ${COMMAND}"
+    time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).post.alloc.log 2>&1
+
+    echo
     echo "    ===== Nodes Provisioned  =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     echo
     echo "        INSTANCE_IDS = ${INSTANCE_IDS[*]}"

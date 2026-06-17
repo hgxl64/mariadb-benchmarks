@@ -53,8 +53,14 @@ mkdir -p ${LOGDIRECTORY}
             LOGDIRECTORY                = ${LOGDIRECTORY}
     "
 
-    ID_PREFIX=$(echo ${CLUSTER} | sed 's/\./-/g' | sed 's/_/-/g')
+    echo "    ===== Running pre-release jobs =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    echo
+    COMMAND="cloud.pre.release.sh --cluster ${CLUSTER}"
+    echo "        COMMAND = ${COMMAND}"
+    time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).pre.release.log 2>&1
 
+
+    ID_PREFIX=$(echo ${CLUSTER} | sed 's/\./-/g' | sed 's/_/-/g')
     gcloud config set project ${GCP_PROJECT}
 
     echo "    ===== Release Nodes =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"

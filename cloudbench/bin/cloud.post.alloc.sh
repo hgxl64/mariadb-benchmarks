@@ -3,13 +3,12 @@
 source ${CBENCH_HOME}/bin/cbench.sh
 
 USAGE="usage: $0
-    Fix known OS problems on all cluster nodes.
+    maintenance jobs on freshly allocated cloud nodes
     Options:
          [ --cluster  <<clustername>> ]
-         [ --system   <<systemname>> ]
          [ -h|--help ]
     Notes:
-        1.  Either cluster or system are required.
+        1.  the cluster name is required.
 "
 
 COMMAND_LINE="$@"
@@ -27,9 +26,9 @@ done
 
 if [[ ! ${CLUSTER} ]] ; then echo "Required System/Cluster not specified"; echo -e "$0 ${COMMAND_LINE}"; exit 1; fi
 
-process_connection_info
+#process_connection_info
 
-TEST_NAME=fixup.os
+TEST_NAME=cloud.post.alloc
 if [[ ! ${TESTID} ]] ; then TESTID=$(date +%y%m%d.%H%M%S).${CLUSTER}; fi
 if [[ ! ${LOGDIRECTORY} ]] ; then
     export LOGDIRECTORY=${CBENCH_LOG_HOME}/${CLUSTER}/${TESTID}.${TEST_NAME}
@@ -52,20 +51,30 @@ time {
     "
 
     echo
-    echo "    ===== Fixup packagess =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    echo "    ===== Install additional packages =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    echo
 
+    #this can take a bit, so parallelize it
     unset BACKGROUND_PIDS
     for SYSTEM in $(get_property ${CLUSTER} systems) ; do
         for NODE in $(get_property ${SYSTEM} system.external.ip) ; do
             time {
                 ssh $(get_ssh_connection ${CLUSTER} ${NODE}) '
-                    if fgrep -i "ubuntu 24." /etc/lsb-release &>/dev/null ; then
-                        echo "Ubuntu 24 detected, installing packages"
-                        sudo apt-get update
-                        sudo apt-get -y install ntpdate liburing2 libodbc2 libprotobuf32t64 libmicrohttpd12 nodejs
-                    fi
+                    DISTRIBUTION=$(cat /etc/lsb-release | grep DESCRIPTION | cut -d= -f2 | sed \'s/"//g\')
+                    case ${DISTRIBUTION} in
+                        "Ubuntu 24.*")
+                            echo "Ubuntu 24 detected, installing packages"
+                            sudo apt-get update
+                            sudo apt-get -y install ntpdate liburing2 \
+                              libodbc2 libprotobuf32t64 libmicrohttpd12 nodejs \
+                              prometheus-node-exporter
+                            ;;
+                        *)
+                            echo "unknown target OS: ${DISTRIBUTION}, doing nothing"
+                            ;;
+                    esac
                 '
-            } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).fixup.os.${NODE}.log 2>&1 &
+            } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).install.packages.${NODE}.log 2>&1 &
             BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
         done
     done
@@ -73,7 +82,33 @@ time {
 
 
     echo
-    echo "    ===== Fixup SSH connectivity =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    echo "    ===== Register Node Exporter =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    echo
+    if [[ ${PROMETHEUS_EXT_IP} ]] ; then
+        time {
+            for SYSTEM in $(get_property ${CLUSTER} systems) ; do
+                for NODE in $(get_property ${SYSTEM} system.internal.ip) ; do
+                    echo "        register ${SYSTEM}=${NODE} at ${PROMETHEUS_EXT_IP}"
+                    {
+                        echo "["
+                        echo "  { \"labels\":  { \"cluster_name\":\"${CLUSTER}\", \"name\":\"${SYSTEM}\" },"
+                        echo "    \"targets\": [ \"${NODE}:9100\" ]"
+                        echo "  }"
+                        echo "]"
+                    } | ssh ${PROMETHEUS_USER}@${PROMETHEUS_EXT_IP} -oStrictHostKeyChecking=no \
+                            -i${PROMETHEUS_PUB_KEY} "cat | sudo tee /etc/prometheus/targets/${SYSTEM}.json"
+                done
+            done
+            echo "    ===== all nodes registered ====="
+        }
+    else
+        echo "    ===== PROMETHEUS_EXT_IP is not set, skipping ====="
+    fi
+
+
+    echo
+    echo "    ===== SSH connectivity =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    echo
     #
     # each host should be able to SSH into each other
     #
