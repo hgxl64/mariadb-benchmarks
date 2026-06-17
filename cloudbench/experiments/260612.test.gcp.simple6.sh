@@ -16,9 +16,9 @@ mkdir -p ${LOGDIRECTORY}
 
 {
     gcp.allocate.nodes.sh --cluster ${CLUSTER} \
-     --server-nodes 3 --server-type n2-standard-8 \
-     --driver-nodes 2 --driver-type n2-standard-2 \
-     --maxscale-nodes 1 --maxscale-type n2-standard-8
+     --server-nodes 3 --server-type n2-standard-16 \
+     --driver-nodes 2 --driver-type n2-standard-4 \
+     --maxscale-nodes 1 --maxscale-type n2-standard-16
 
     SYSTEMS=( $(get_property ${CLUSTER} systems) )
     echo
@@ -26,8 +26,8 @@ mkdir -p ${LOGDIRECTORY}
     [[ ${SYSTEMS} ]] || { echo "ERROR Unable to allocate nodes."; exit 1; }
 
     configure.cluster.sh --cluster ${CLUSTER} --cluster-type galera_mastermaster \
-     --master-system ${CLUSTER}-server-1 --slave-system ${CLUSTER}-server-2 \
-     --slave-system ${CLUSTER}-server-3 --maxscale-system ${CLUSTER}-maxscale-1 \
+     --master-system ${CLUSTER}-server-1 --master-system ${CLUSTER}-server-2 \
+     --master-system ${CLUSTER}-server-3 --maxscale-system ${CLUSTER}-maxscale-1 \
      --driver-system ${CLUSTER}-driver-1 --driver-system ${CLUSTER}-driver-2
 
     build.cluster.sh --cluster ${CLUSTER} \
@@ -39,7 +39,7 @@ mkdir -p ${LOGDIRECTORY}
 
     export OPTION_SKIPCHECK=TRUE
     sysbench.load.sh --cluster ${CLUSTER} --noautoinc --load
-    sysbench.curves.sh --cluster ${CLUSTER}.maxscale --workload 7525_splittable --start_streams 4
+    sysbench.curves.sh --cluster ${CLUSTER}.maxscale --workload 7525_splittable --start_streams 8 --max_streams 4096
     unset OPTION_SKIPCHECK
 
     check.cluster.sh --cluster ${CLUSTER}
