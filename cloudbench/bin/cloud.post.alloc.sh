@@ -55,30 +55,32 @@ time {
     echo
 
     #this can take a bit, so parallelize it
-    unset BACKGROUND_PIDS
-    for SYSTEM in $(get_property ${CLUSTER} systems) ; do
-        for NODE in $(get_property ${SYSTEM} system.external.ip) ; do
-            time {
-                ssh $(get_ssh_connection ${CLUSTER} ${NODE}) '
-                    DISTRIBUTION=$(cat /etc/lsb-release | grep DESCRIPTION | cut -d= -f2 | sed s/\"//g)
-                    case ${DISTRIBUTION} in
-                        "Ubuntu 24."*)
-                            echo "Ubuntu 24 detected, installing packages"
-                            sudo apt-get update
-                            sudo apt-get -y install ntpdate liburing2 \
-                              libodbc2 libprotobuf32t64 libmicrohttpd12 nodejs \
-                              prometheus-node-exporter
-                            ;;
-                        *)
-                            echo "unknown target OS: \"${DISTRIBUTION}\", doing nothing"
-                            ;;
-                    esac
-                '
-            } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).install.packages.${NODE}.log 2>&1 &
-            BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
+    time {
+        unset BACKGROUND_PIDS
+        for SYSTEM in $(get_property ${CLUSTER} systems) ; do
+            for NODE in $(get_property ${SYSTEM} system.external.ip) ; do
+                time {
+                    ssh $(get_ssh_connection ${CLUSTER} ${NODE}) '
+                        DISTRIBUTION=$(cat /etc/lsb-release | grep DESCRIPTION | cut -d= -f2 | sed s/\"//g)
+                        case ${DISTRIBUTION} in
+                            "Ubuntu 24."*)
+                                echo "Ubuntu 24 detected, installing packages"
+                                sudo apt-get update
+                                sudo apt-get -y install ntpdate liburing2 \
+                                  libodbc2 libprotobuf32t64 libmicrohttpd12 nodejs \
+                                  prometheus-node-exporter
+                                ;;
+                            *)
+                                echo "unknown target OS: \"${DISTRIBUTION}\", doing nothing"
+                                ;;
+                        esac
+                    '
+                } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).install.packages.${NODE}.log 2>&1 &
+                BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
+            done
         done
-    done
-    wait ${BACKGROUND_PIDS[*]}
+        wait ${BACKGROUND_PIDS[*]}
+    }
 
 
     echo
