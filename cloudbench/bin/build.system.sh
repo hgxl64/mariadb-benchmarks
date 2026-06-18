@@ -780,6 +780,7 @@ mkdir -p ${LOGDIRECTORY}
     ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "cat ${CONFIG_FILE}"
 
 
+    # Galera/Raft create their own config and start server on their own
     if [[ ! ( ${OPTION_GALERA} == TRUE || ${OPTION_RAFT} == TRUE ) ]] ; then
 
         echo
@@ -814,20 +815,18 @@ mkdir -p ${LOGDIRECTORY}
         echo "    ===== Finalize Database =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
         if [[ ${DB_PASSWORD} ]] ; then
-            if [[ ${DATABASE} == 'mariadb' ]] ; then
-                ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "
-                    uname -n
-                    /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
-                        create user '${DB_USER}'@'%' identified by '${DB_PASSWORD}' ;
-                        grant all on *.* to '${DB_USER}'@'%';
-                        create user '${DB_USER}'@'127.0.0.1' identified by '${DB_PASSWORD}' ;
-                        grant all on *.* to '${DB_USER}'@'127.0.0.1';
-                        CREATE USER IF NOT EXISTS 'prometheus'@'localhost' WITH MAX_USER_CONNECTIONS;
-                        GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'localhost';
-                        flush privileges;
-                    \"
-                    "
-            fi
+            ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "
+                uname -n
+                /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
+                    create user '${DB_USER}'@'%' identified by '${DB_PASSWORD}';
+                    grant all on *.* to '${DB_USER}'@'%';
+                    create user '${DB_USER}'@'127.0.0.1' identified by '${DB_PASSWORD}';
+                    grant all on *.* to '${DB_USER}'@'127.0.0.1';
+                    CREATE USER IF NOT EXISTS 'prometheus'@'localhost' IDENTIFIED VIA unix_socket WITH MAX_USER_CONNECTIONS 3;
+                    GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'localhost';
+                    flush privileges;
+                \"
+                "
         else
            ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "
                uname -n
@@ -886,26 +885,7 @@ mkdir -p ${LOGDIRECTORY}
             fi
         fi
 
-        # start prometheus exporter ===============================================================
-
-        if [[ ${DATABASE} == 'mariadb' ]] ; then
-
-            echo
-            echo "    ===== Start Prometheus MySQLd  Exporter =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-            echo
-
-            time {
-
-                ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
-                    echo "DATA_SOURCE_NAME=prometheus@unix(/data/cbench/mariadb.sock)" |
-                      sudo tee -a /etc/default/prometheus-mysqld-exporter
-                    sudo systemctl start prometheus-mysqld-exporter
-                    sudo systemctl status prometheus-mysqld-exporter
-                '
-
-            } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).start.prometheus.exporter.log 2>&1
-        fi
-
+        start_prometheus_mysqld_exporter
 
         echo
         echo "    ===== Check Database Connection =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"

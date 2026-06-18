@@ -1548,3 +1548,53 @@ stop_monitors() {
     unset MONITOR_REPORT_PID_FILE
 }
 
+
+start_prometheus_mysqld_exporter() {
+    echo
+    echo "    ===== Start Prometheus MySQL  Exporter =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    echo
+
+    # fire up mysqld exporter at ${SYSTEM}
+    echo "        starting mysqld exporter on ${SYSTEM}"
+    ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+        echo "[client]"                            > /data/cbench/install/etc/prometheus.cnf
+        echo "user = prometheus"                  >> /data/cbench/install/etc/prometheus.cnf
+        echo "socket = /data/cbench/mariadb.sock" >> /data/cbench/install/etc/prometheus.cnf
+        echo "ARGS=\"--config.my-cnf=/data/cbench/install/etc/prometheus.cnf\"" |
+          sudo tee -a /etc/default/prometheus-mysqld-exporter
+        sudo systemctl start prometheus-mysqld-exporter
+        sudo systemctl status prometheus-mysqld-exporter
+    '
+    # find if we are in a cloud
+    local CLOUD=$(get_property ${SYSTEM} server.cloud)
+    if [[ ${CLOUD} ]] ; then
+        echo -n "        ${CLOUD} cloud detected"
+        if [[ -f ${CBENCH_HOME}/config/${CLOUD}.conf ]] ; then
+             echo ", sourcing ${CBENCH_HOME}/config/${CLOUD}.conf"
+             source ${CBENCH_HOME}/config/${CLOUD}.conf
+        else
+             echo ", but no ${CBENCH_HOME}/config/${CLOUD}.conf"
+        fi
+    fi
+    # register ${SYSTEM} with prometheus
+    if [[ ${PROMETHEUS_EXT_IP} ]] ; then
+        echo "        register mysqld exporter with prometheus (PROMETHEUS_EXT_IP)"
+        local NODE=$(echo ${SYSTEM} | sed 's/^mariadb\.//')
+        ssh ${PROMETHEUS_USER}@${PROMETHEUS_EXT_IP} -oStrictHostKeyChecking=no -i${PROMETHEUS_PEM} '
+            CLUSTER="'${CLUSTER}'"
+            SYSTEM="'${NODE}'"
+            IP="'$(get_property ${NODE} system.internal.ip)'"
+            cd /etc/prometheus/targets/
+                { echo "["
+                  echo "  { \"labels\":  { \"cluster_name\":\"${CLUSTER}\", \"name\":\"${SYSTEM}\", \"instance\":\"${SYSTEM}\" },"
+                  echo "    \"targets\": [ \"${IP}:9104\" ]"
+                  echo "  }"
+                  echo "]"
+                } | sudo tee ${SYSTEM}-mysql.json
+            fi
+        '
+    else
+        echo "    ===== PROMETHEUS_EXT_IP is not set, skipping ====="
+    fi
+}
+

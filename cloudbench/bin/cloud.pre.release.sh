@@ -76,6 +76,7 @@ time {
             for SYSTEM in ${SYSTEMS[*]} ; do
                 if [[ -f /etc/prometheus/targets/${SYSTEM}.json ]] ; then
                     sudo rm /etc/prometheus/targets/${SYSTEM}.json
+                    sudo rm -f /etc/prometheus/targets/${SYSTEM}-*.json
                     echo "        deregistered ${SYSTEM}"
                 else
                     echo "        /etc/prometheus/targets/${SYSTEM}.json not found"

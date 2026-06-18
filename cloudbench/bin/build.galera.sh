@@ -230,9 +230,11 @@ innodb_autoinc_lock_mode = 2" > ${CONFIG_FILE}
             /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
                 create user '${DB_USER}'@'%' identified by '${DB_PASSWORD}';
                 grant all on *.* to '${DB_USER}'@'%';
-                grant reload on *.* to '${DB_USER}'@'%';
+                CREATE USER IF NOT EXISTS 'prometheus'@'localhost' IDENTIFIED VIA unix_socket WITH MAX_USER_CONNECTIONS 3;
+                GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'localhost';
                 flush privileges;\"
             "
+        start_prometheus_mysqld_exporter
 
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).startup.galera.log 2>&1
 
