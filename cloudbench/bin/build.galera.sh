@@ -234,7 +234,9 @@ innodb_autoinc_lock_mode = 2" > ${CONFIG_FILE}
                 GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'localhost';
                 flush privileges;\"
             "
-        start_prometheus_mysqld_exporter
+        for SYSTEM in $(get_property ${CLUSTER} galera.systems) ; do
+            start_prometheus_mysqld_exporter
+        done
 
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).startup.galera.log 2>&1
 

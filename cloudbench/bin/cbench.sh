@@ -1553,6 +1553,8 @@ start_prometheus_mysqld_exporter() {
     echo
     echo "    ===== Start Prometheus MySQL  Exporter =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     echo
+    echo "        CLUSTER = ${CLUSTER}, SYSTEM = ${SYSTEM}"
+    echo
 
     # fire up mysqld exporter at ${SYSTEM}
     echo "        starting mysqld exporter on ${SYSTEM}"
@@ -1566,7 +1568,7 @@ start_prometheus_mysqld_exporter() {
         sudo systemctl status prometheus-mysqld-exporter
     '
     # find if we are in a cloud
-    local CLOUD=$(get_property ${SYSTEM} server.cloud)
+    local CLOUD=$(get_property ${CLUSTER} server.cloud)
     if [[ ${CLOUD} ]] ; then
         echo -n "        ${CLOUD} cloud detected"
         if [[ -f ${CBENCH_HOME}/config/${CLOUD}.conf ]] ; then

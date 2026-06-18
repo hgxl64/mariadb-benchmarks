@@ -775,9 +775,10 @@ mkdir -p ${LOGDIRECTORY}
 
     echo
     echo "    Configuration File: ${CONFIG_FILE}"
-    echo "    ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) \"cat ${CONFIG_FILE}\""
     echo
+    echo "----8<---- ----8<---- ----8<---- ----8<---- ----8<---- ----8<---- "
     ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "cat ${CONFIG_FILE}"
+    echo "----8<---- ----8<---- ----8<---- ----8<---- ----8<---- ----8<---- "
 
 
     # Galera/Raft create their own config and start server on their own
@@ -785,22 +786,19 @@ mkdir -p ${LOGDIRECTORY}
 
         echo
         echo "    ===== Starting Database =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-
-        time {
-            if [[ ${DATABASE} == 'mariadb' ]] ; then
-                time ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
-                    uname -n
-                    export PATH=/data/cbench/install/bin:/data/cbench/install/scripts:${PATH}
-                    mariadb-install-db --auth-root-authentication-method=normal
-                    mariadbd-safe &
-                    sleep 5
-                    cat /data/cbench/datadir/error.log
-                 '
-            fi
-        } 2>&1 | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).start.database.log
+        echo
+        time ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+            uname -n
+            export PATH=/data/cbench/install/bin:/data/cbench/install/scripts:${PATH}
+            mariadb-install-db --auth-root-authentication-method=normal
+            mariadbd-safe &
+            sleep 5
+            cat /data/cbench/datadir/error.log
+         '
 
         echo
         echo "    ===== Waiting for database to initialize =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S') ]"
+        echo
         time {
             if [[ ${DATABASE} == 'mariadb' ]] ; then
                 while (( $( ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '/data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e "select version()"' 2>&1 | grep 'MariaDB' | wc -l ) == 0 )) ; do
@@ -813,6 +811,7 @@ mkdir -p ${LOGDIRECTORY}
 
         echo
         echo "    ===== Finalize Database =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        echo
 
         if [[ ${DB_PASSWORD} ]] ; then
             ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "
@@ -885,6 +884,7 @@ mkdir -p ${LOGDIRECTORY}
             fi
         fi
 
+        SYSTEM=$(get_property ${CLUSTER} mariadb.system)
         start_prometheus_mysqld_exporter
 
         echo
