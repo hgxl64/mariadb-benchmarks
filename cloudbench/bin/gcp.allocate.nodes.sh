@@ -1,7 +1,7 @@
 #!/bin/bash
 
 source ${CBENCH_HOME}/bin/cbench.sh
-source ${CBENCH_HOME}/conf/gcp.conf
+source ${CBENCH_HOME}/config/gcp.conf
 
 USAGE="
 
@@ -76,8 +76,6 @@ while [[ $# > 0 ]] ; do
     esac
 done
 
-
-source ${CBENCH_HOME}/config/gcp.conf
 
 [[ ${NUMOFSERVERS} ]] || NUMOFSERVERS=0
 [[ ${NUMOFDRIVERS} ]] || NUMOFDRIVERS=0

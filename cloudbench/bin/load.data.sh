@@ -68,6 +68,8 @@ while [[ $# > 0 ]] ; do
         --noautoinc)            OPTION_NOAUTOINC=TRUE;;
         --directexec)           OPTION_DIRECTEXEC=TRUE;;
         --nosecondary)          OPTION_NOSECONDARY=TRUE;;
+        --bulkload)             OPTION_BULKLOAD=TRUE;;
+        --bulk)                 OPTION_BULKLOAD=TRUE;;
         --engine)               OPTION_ENGINE="$1"; shift;;
         --charset)              OPTION_CHARSET="$1"; shift;;
         --ssl)                  OPTION_SSL=TRUE;;
@@ -320,8 +322,9 @@ time {
                             "
                         [[ ${STREAMS} ]] || STREAMS=${SYSBENCH_TABLES}
                         COMMAND="sysbench /data/cbench/driver/lua/${SYSBENCH_SCRIPT} $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER})"
-                        COMMAND="${COMMAND} --mysql-db=${SCHEMA} --bulk-load=true"
-                        COMMAND="${COMMAND} --table-size=${SYSBENCH_TABLESIZE} --tables=${SYSBENCH_TABLES} --threads=${STREAMS} ${SYSBENCH_OPTIONS}"
+                        COMMAND="${COMMAND} --table-size=${SYSBENCH_TABLESIZE} --tables=${SYSBENCH_TABLES}"
+                        COMMAND="${COMMAND} --mysql-db=${SCHEMA} --threads=${STREAMS} ${SYSBENCH_OPTIONS}"
+                        [[ ${OPTION_BULKLOAD} ]] && COMMAND="${COMMAND} --bulk-load=true"
                         [[ ${OPTION_ENGINE} ]] && COMMAND="${COMMAND} --mysql_storage_engine=${OPTION_ENGINE}"
                         [[ ${OPTION_CHARSET} ]] && COMMAND="${COMMAND} --create_table_options=DEFAULT CHARSET=${OPTION_CHARSET}"
                         [[ ${OPTION_NOAUTOINC} ]] && COMMAND="${COMMAND} --auto-inc=off"

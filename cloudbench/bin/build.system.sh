@@ -513,21 +513,20 @@ mkdir -p ${LOGDIRECTORY}
 
     # install prometheus monitoring ===============================================================
 
-    #if [[ ${DATABASE} == 'mariadb' ]] ; then
-    #
-    #    echo
-    #    echo "    ===== Install Prometheus MySQLd  Exporter =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-    #
-    #    time {
-    #
-    #        ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
-    #            sudo apt-get -y install prometheus-mysqld-exporter
-    #            echo "DATA_SOURCE_NAME=prometheus@unix(/data/cbench/mariadb.sock)" \
-    #            | sudo tee -a /etc/default/prometheus-mysqld-exporter
-    #        '
-    #
-    #    } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).install.prometheus.exporter.log 2>&1
-    #fi
+    if [[ ${DATABASE} == 'mariadb' ]] ; then
+
+        echo
+        echo "    ===== Install Prometheus MySQLd  Exporter =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+
+        time {
+
+            ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+                sudo apt-get -y install prometheus-mysqld-exporter
+                sudo systemctl stop prometheus-mysqld-exporter
+            '
+
+        } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).install.prometheus.mysql.exporter.log 2>&1
+    fi
 
 
     # configuration file generator ================================================================
@@ -821,11 +820,9 @@ mkdir -p ${LOGDIRECTORY}
                     /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
                         create user '${DB_USER}'@'%' identified by '${DB_PASSWORD}' ;
                         grant all on *.* to '${DB_USER}'@'%';
-                        grant reload on *.* to '${DB_USER}'@'%';
                         create user '${DB_USER}'@'127.0.0.1' identified by '${DB_PASSWORD}' ;
                         grant all on *.* to '${DB_USER}'@'127.0.0.1';
-                        grant reload on *.* to '${DB_USER}'@'%';
-                        CREATE USER IF NOT EXISTS 'prometheus'@'localhost' IDENTIFIED WITH unix_socket;
+                        CREATE USER IF NOT EXISTS 'prometheus'@'localhost' WITH MAX_USER_CONNECTIONS;
                         GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'localhost';
                         flush privileges;
                     \"
@@ -837,7 +834,6 @@ mkdir -p ${LOGDIRECTORY}
                /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
                    create user '${DB_USER}'@'%';
                    grant all on *.* to '${DB_USER}'@'%';
-                   grant reload on *.* to '${DB_USER}'@'%';
                    flush privileges;
                \"
            "
@@ -892,21 +888,23 @@ mkdir -p ${LOGDIRECTORY}
 
         # start prometheus exporter ===============================================================
 
-        #if [[ ${DATABASE} == 'mariadb' ]] ; then
-        #
-        #    echo
-        #    echo "    ===== Start Prometheus MySQLd  Exporter =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-        #    echo
-        #
-        #    time {
-        #
-        #        ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
-        #            sudo systemctl restart prometheus-mysqld-exporter
-        #            sudo systemctl status prometheus-mysqld-exporter
-        #        '
-        #
-        #    } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).start.prometheus.exporter.log 2>&1
-        #fi
+        if [[ ${DATABASE} == 'mariadb' ]] ; then
+
+            echo
+            echo "    ===== Start Prometheus MySQLd  Exporter =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+            echo
+
+            time {
+
+                ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+                    echo "DATA_SOURCE_NAME=prometheus@unix(/data/cbench/mariadb.sock)" |
+                      sudo tee -a /etc/default/prometheus-mysqld-exporter
+                    sudo systemctl start prometheus-mysqld-exporter
+                    sudo systemctl status prometheus-mysqld-exporter
+                '
+
+            } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).start.prometheus.exporter.log 2>&1
+        fi
 
 
         echo
