@@ -27,7 +27,7 @@ while [[ $# > 0 ]] ; do
         --skipbinlog)       SKIP_BINLOG=TRUE;;
         --start_streams)    START_STREAMS="$1"; shift;;
         --max_streams)      MAX_STREAMS="$1"; shift;;
-        --sbtablesize)      OPTION_TABLE_SIZE=$1; shift;;
+        --sbtablesize)      SBTABLESIZE=$1; shift;;
         -h|--help)          echo -e "$USAGE"; exit 1;;
         *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
     esac
@@ -39,7 +39,6 @@ done
 [[ ${OPTION_TABLES} ]] || OPTION_TABLES=10
 [[ ${OPTION_REPEATS} ]] || OPTION_REPEATS=1
 [[ ${OPTION_INTER_TEST_DELAY} ]] || OPTION_INTER_TEST_DELAY=20
-[[ ${OPTION_TABLE_SIZE} ]] || OPTION_TABLE_SIZE=1000000
 
 [[ ${WORKLOAD} == 'pointselect' ]] && MAXLATENCY=10
 [[ ${WORKLOAD} == 'pointupdate' ]] && MAXLATENCY=10
@@ -101,10 +100,11 @@ mkdir -p ${LOGDIRECTORY}
         echo
         echo "    ===== Run Performance Curve - Pass ${IDX} - Cluster ${CLUSTER} - Benchmark ${BENCHMARK} - Workload ${OPTION_WORKLOAD}  - Start Stream ${START_STREAMS} - MaxStream ${MAX_STREAMS}  =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time {
-            COMMAND="sysbench.curve.sh --cluster ${CLUSTER} --tables ${OPTION_TABLES} --workload ${OPTION_WORKLOAD} --start_streams ${START_STREAMS} --max_streams ${MAX_STREAMS} --cloud --sbtablesize ${OPTION_TABLE_SIZE}"
+            COMMAND="sysbench.curve.sh --cluster ${CLUSTER} --tables ${OPTION_TABLES} --workload ${OPTION_WORKLOAD} --start_streams ${START_STREAMS} --max_streams ${MAX_STREAMS} --cloud"
             [[ ${OPTION_SKIP_TRANSACTION} ]] && COMMAND="${COMMAND} --skiptransaction"
-            [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
+            [[ ${SBTABLESIZE} ]] && COMMAND="${COMMAND} --sbtablesize ${SBTABLESIZE}"
             [[ ${SKIP_BINLOG} ]] && COMMAND="${COMMAND} --skipbinlog"
+            [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
             echo
             echo "        COMMAND = ${COMMAND}"
             ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).performance.curve.${CLUSTER}.log 2>&1
@@ -127,13 +127,14 @@ mkdir -p ${LOGDIRECTORY}
             echo "set ylabel 'Avg Latency (ms)'"
             echo "set xlabel 'Throughput (tps)'"
             echo "set title '${TITLE}'"
+            echo "set ley top left"
             echo "set output '${OUTPUT}'"
             echo "plot \\"
             for (( IDX=0; IDX<${#TESTS[@]}; IDX++ )) ; do
                 if (( ${IDX} > 0 )) ; then echo ", \\" ; fi
                 echo " '${TESTS[${IDX}]}/test.data' using 2:3 title '${LABELS[${IDX}]}' with linespoint pointtype 7 \\"
             done
-            echo
+            echo "   '' using 2:3:1 with labels center offset 1.5, 0.5 notitle"
             echo "exit"
         } > ${GNUPLOT_FILE}
         cat ${GNUPLOT_FILE} | gnuplot
