@@ -884,7 +884,7 @@ mkdir -p ${LOGDIRECTORY}
             fi
         fi
 
-        SYSTEM=$(get_property ${CLUSTER} mariadb.system)
+        SYSTEM=$(get_property ${CLUSTER} mariadb.systems)
         start_prometheus_mysqld_exporter
 
         echo
