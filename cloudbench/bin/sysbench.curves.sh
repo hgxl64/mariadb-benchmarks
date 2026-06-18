@@ -134,7 +134,7 @@ mkdir -p ${LOGDIRECTORY}
                 if (( ${IDX} > 0 )) ; then echo ", \\" ; fi
                 echo " '${TESTS[${IDX}]}/test.data' using 2:3 title '${LABELS[${IDX}]}' with linespoint pointtype 7 \\"
             done
-            echo "   '' using 2:3:1 with labels center offset 1.5, 0.5 notitle"
+            echo " , '' using 2:3:1 with labels center offset 1.5, 0.5 notitle"
             echo "exit"
         } > ${GNUPLOT_FILE}
         cat ${GNUPLOT_FILE} | gnuplot
