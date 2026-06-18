@@ -18,7 +18,6 @@ while [[ $# > 0 ]] ; do
         --repeats)          OPTION_REPEATS="$1"; shift;;
         --intertestdelay)   OPTION_INTER_TEST_DELAY="$1"; shift;;
         --engine)           OPTION_ENGINE="$1"; shift;;
-        --tables)           OPTION_TABLES="$1"; shift;;
         --load)             OPTION_LOAD=TRUE;;
         --skiptransaction)  OPTION_SKIP_TRANSACTION=TRUE;;
         --autocommit)       OPTION_SKIP_TRANSACTION=TRUE;;
@@ -27,6 +26,10 @@ while [[ $# > 0 ]] ; do
         --skipbinlog)       SKIP_BINLOG=TRUE;;
         --start_streams)    START_STREAMS="$1"; shift;;
         --max_streams)      MAX_STREAMS="$1"; shift;;
+        --tables)           SBTABLES=$1; shift;;
+        --sbtables)         SBTABLES=$1; shift;;
+        --dbtables)         SBTABLES=$1; shift;;
+        --tablesize)        SBTABLESIZE=$1; shift;;
         --sbtablesize)      SBTABLESIZE=$1; shift;;
         -h|--help)          echo -e "$USAGE"; exit 1;;
         *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
@@ -100,11 +103,12 @@ mkdir -p ${LOGDIRECTORY}
         echo
         echo "    ===== Run Performance Curve - Pass ${IDX} - Cluster ${CLUSTER} - Benchmark ${BENCHMARK} - Workload ${OPTION_WORKLOAD}  - Start Stream ${START_STREAMS} - MaxStream ${MAX_STREAMS}  =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time {
-            COMMAND="sysbench.curve.sh --cluster ${CLUSTER} --tables ${OPTION_TABLES} --workload ${OPTION_WORKLOAD} --start_streams ${START_STREAMS} --max_streams ${MAX_STREAMS} --cloud"
+            COMMAND="sysbench.curve.sh --cluster ${CLUSTER} --workload ${OPTION_WORKLOAD} --start_streams ${START_STREAMS} --max_streams ${MAX_STREAMS} --cloud"
+            [[ ${SBTABLESIZE} ]]             && COMMAND="${COMMAND} --sbtablesize ${SBTABLESIZE}"
+            [[ ${SBTABLES} ]]                && COMMAND="${COMMAND} --sbtables ${SBTABLES}"
             [[ ${OPTION_SKIP_TRANSACTION} ]] && COMMAND="${COMMAND} --skiptransaction"
-            [[ ${SBTABLESIZE} ]] && COMMAND="${COMMAND} --sbtablesize ${SBTABLESIZE}"
-            [[ ${SKIP_BINLOG} ]] && COMMAND="${COMMAND} --skipbinlog"
-            [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
+            [[ ${SKIP_BINLOG} ]]             && COMMAND="${COMMAND} --skipbinlog"
+            [[ ${OPTION_SSL} ]]              && COMMAND="${COMMAND} --ssl"
             echo
             echo "        COMMAND = ${COMMAND}"
             ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).performance.curve.${CLUSTER}.log 2>&1
