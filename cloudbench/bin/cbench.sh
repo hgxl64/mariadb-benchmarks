@@ -1562,7 +1562,7 @@ start_prometheus_mysqld_exporter() {
 
     # fire up mysqld exporter at ${SYSTEM}
     echo "        starting mysqld exporter on ${SYSTEM}"
-    ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+    ssh $(get_ssh_connection ${SYSTEM}) '
         echo "[client]"                            > /data/cbench/install/etc/prometheus.cnf
         echo "user = prometheus"                  >> /data/cbench/install/etc/prometheus.cnf
         echo "socket = /data/cbench/mariadb.sock" >> /data/cbench/install/etc/prometheus.cnf
@@ -1585,20 +1585,19 @@ start_prometheus_mysqld_exporter() {
     fi
     # register ${SYSTEM} with prometheus
     if [[ ${PROMETHEUS_EXT_IP} ]] ; then
-        echo "        register mysqld exporter with prometheus (PROMETHEUS_EXT_IP)"
+        echo "        register mysqld exporter with prometheus (${PROMETHEUS_EXT_IP})"
         local NODE=$(echo ${SYSTEM} | sed 's/^mariadb\.//')
         ssh ${PROMETHEUS_USER}@${PROMETHEUS_EXT_IP} -oStrictHostKeyChecking=no -i${PROMETHEUS_PEM} '
             CLUSTER="'${CLUSTER}'"
             SYSTEM="'${NODE}'"
             IP="'$(get_property ${NODE} system.internal.ip)'"
             cd /etc/prometheus/targets/
-                { echo "["
-                  echo "  { \"labels\":  { \"cluster_name\":\"${CLUSTER}\", \"name\":\"${SYSTEM}\", \"instance\":\"${SYSTEM}\" },"
-                  echo "    \"targets\": [ \"${IP}:9104\" ]"
-                  echo "  }"
-                  echo "]"
-                } | sudo tee ${SYSTEM}-mysql.json
-            fi
+            { echo "["
+              echo "  { \"labels\":  { \"cluster_name\":\"${CLUSTER}\", \"name\":\"${SYSTEM}\", \"instance\":\"${SYSTEM}\" },"
+              echo "    \"targets\": [ \"${IP}:9104\" ]"
+              echo "  }"
+              echo "]"
+            } | sudo tee ${SYSTEM}-mysql.json
         '
     else
         echo "    ===== PROMETHEUS_EXT_IP is not set, skipping ====="
