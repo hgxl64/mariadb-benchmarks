@@ -546,18 +546,12 @@ mkdir -p ${LOGDIRECTORY}
                 echo "${CONFIG_FILE}"
                 echo
 
-                #2023-10-18 buffer pool size is (80% * RAM) or (RAM-10G), whichever is smaller
-                #BUFFER_POOL_SIZE1=$( ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) 'cat /proc/meminfo' | grep MemTotal | awk '{ print int($2/1024/1024*0.8) }')
-                #BUFFER_POOL_SIZE2=$( ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) 'cat /proc/meminfo' | grep MemTotal | awk '{ print int($2/1024/1024)-10 }')
-                #if [[ ${BUFFER_POOL_SIZE1} < ${BUFFER_POOL_SIZE2} ]] ; then
-                #    BUFFER_POOL_SIZE=${BUFFER_POOL_SIZE1}
-                #else
-                #    BUFFER_POOL_SIZE=${BUFFER_POOL_SIZE2}
-                #fi
-
-                #revert to old formula, BP = 80% * RAM, SIZE in MB
+                #auto-size buffer pool = 80% of RAM
                 BUFFER_POOL_SIZE=$( ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) 'cat /proc/meminfo' | grep MemTotal | awk '{ print int($2/1024*0.8) }')
                 echo "BUFFER_POOL_SIZE = ${BUFFER_POOL_SIZE}M"
+
+                #auto-size replication slave threads = #cpu
+                AUTO_SLAVE_THREADS=$(ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) 'grep -c "processor" /proc/cpuinfo')
 
                 ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
                     BUFFER_POOL_SIZE="'${BUFFER_POOL_SIZE}'"
@@ -633,6 +627,9 @@ mkdir -p ${LOGDIRECTORY}
                             echo "table_open_cache = 4096"
                         fi
                         echo "max_prepared_stmt_count = 1048576"
+                        echo "#disable query cache"
+                        echo "query_cache_type = 0"
+                        echo "query_cache_size = 0"
                         if [[ ${OPTION_PERFORMANCE_SCHEMA} ]] ; then
                             echo "performance_schema = ${OPTION_PERFORMANCE_SCHEMA}"
                         fi
@@ -745,7 +742,7 @@ mkdir -p ${LOGDIRECTORY}
                                 if [[ ${OPTION_SLAVE_THREADS} ]] ; then
                                     echo "slave_parallel_threads = ${OPTION_SLAVE_THREADS}"
                                 else
-                                    echo "slave_parallel_threads = 8"
+                                    echo "slave_parallel_threads = ${AUTO_SLAVE_THREADS}"
                                 fi
                                 if [[ ${OPTION_SEMISYNC_REP} ]] ; then
                                     echo "rpl_semi_sync_slave_enabled = on"
