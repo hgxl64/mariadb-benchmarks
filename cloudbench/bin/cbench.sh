@@ -176,6 +176,10 @@ mysqlci() {
     mariadbci $1 $2
 }
 
+sqlci() {
+    mariadbci $1 $2
+}
+
 showproperties() {
     local SYSTEM=$1
     [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
@@ -192,82 +196,12 @@ killdrivers() {
 # Master/Slave Replication Synchronization
 ####################################
 
-old_master_position() {
-    # prints <binlog file number>-<binlog offset> for specified host and binlog
-    local MASTER=$(gethost $1)
-    local BINLOG=$2
-    mariadb -sN $(get_database_connection ${MASTER}) -e "show master status ${BINLOG}" \
-        | awk '{split($1,seq,"."); {print seq[2]+0"-"$2}}'
-}
-
-old_slave_position() {
-    # prints <binlog file number>-<binlog offset> for specified host and binlog
-    local MASTER=$(gethost $1)
-    local SLAVE=$(gethost $2)
-    local BINLOG=$3
-    mariadb -sN $(get_database_connection ${SLAVE}) -e "show slave status" | \
-        awk -v master=${MASTER} -v binlog=${BINLOG} '$3==master && $6==binlog {print $8"-"$9}'
-}
-
-old_binlogs_for_slave() {
-    # prints the name of each binlog configured between a master and slave cluster
-    local MASTER=$(gethost $1)
-    local SLAVE=$(gethost $2)
-    mariadb -sN $(get_database_connection ${SLAVE}) \
-        -e "select master_log_file from system.mysql_repconfig where master_host='${MASTER}' and protocol=0"
-}
-
-new_master_position() {
-    # prints <binlog file number>-<binlog offset> for specified host and binlog
-    local MASTER=$(gethost $1)
-    local BINLOG=$2
-    local MASTER_POS=$(mariadb -sN $(get_database_connection ${MASTER}) -e "show master status parallel ${BINLOG}" \
-        | awk -v binlog=${BINLOG} '{print $2}')
-    if echo ${MASTER_POS} | grep "x" >/dev/null; then
-        # Bug 34015, we found hex, convert to int
-        MASTER_POS=$(echo ${MASTER_POS} | awk -Fx '{print $2}')
-        MASTER_POS=$(( 16#${MASTER_POS} ))
-    fi
-    echo ${MASTER_POS}
-}
-
-new_slave_position() {
-    local MASTER=$(gethost $1)
-    local SLAVE=$(gethost $2)
-    local BINLOG=$3
-    mariadb -sN $(get_database_connection ${SLAVE}) -e "show slave status" | \
-        awk -v master=${MASTER} -v binlog=${BINLOG} '$3==master && $6==binlog {print $8}'
-}
-
-new_binlogs_for_slave() {
-    # prints the name of each binlog configured between a master and slave cluster
-    local MASTER=$(gethost $1)
-    local SLAVE=$(gethost $2)
-    mariadb -sN $(get_database_connection ${SLAVE}) \
-        -e "select master_log_file from system.mysql_repconfig where master_host='${MASTER}' and protocol=1"
-}
-
 slave_caught_up() {
     # return True when slave is at the same position as the master for all
     #   binlogs between them
     # Args: <slave host/cluster>
     local SLAVE=$1
-    if [[ $(get_property ${SLAVE} database) == 'clustrix' ]] ; then
-        for MASTER in $(mariadb -sN $(get_database_connection ${SLAVE}) -e "select distinct master_host from system.mysql_repconfig"); do
-            echo "DEBUG: Checking binlogs between master ${MASTER} ($(gethost ${MASTER})) and slave ${slave} ($(gethost ${SLAVE}))..."
-            for BINLOG in $(old_binlogs_for_slave ${MASTER} ${SLAVE}); do
-                [[ $(old_slave_position ${MASTER} ${SLAVE} ${BINLOG}) == $(old_master_position ${MASTER} ${BINLOG}) ]] || return 1
-            done
-            echo "DEBUG: found new binlogs: '$(new_binlogs_for_slave ${MASTER} ${SLAVE})'"
-            local MASTER_POS
-            for BINLOG in $(new_binlogs_for_slave ${MASTER} ${SLAVE}); do
-                MASTER_POS=$(new_master_position ${MASTER} ${BINLOG})
-                echo "DEBUG: new slave position: $(new_slave_position ${MASTER} ${SLAVE} ${BINLOG}) new master position: ${MASTER_POS}"
-                [[ $(new_slave_position ${MASTER} ${SLAVE} ${BINLOG}) == ${MASTER_POS} ]] || [[ $(new_slave_position ${MASTER} ${SLAVE} ${BINLOG}) == $(( ${MASTER_POS} + 1 )) ]] || return 1
-            done
-            return 0
-        done
-    elif [[ $(get_property ${SLAVE} database) == 'mariadb' ]] ; then
+    if [[ $(get_property ${SLAVE} database) == 'mariadb' ]] ; then
         local MASTER=$(mariadb -sN $(get_database_connection ${SLAVE}) -e "show slave status" | grep 'Master_Host:' | awk '{print $2}')
         # Is IO Thread up to date (file and position)?
         # echo "DEBUG: $(mariadb -vvv $(get_database_connection ${MASTER}) -e 'show master status\G' | grep ' File:' | awk '{print $2}') == $(mariadb -vvv $(get_database_connection ${SLAVE}) -e 'show slave status\G' | grep ' Master_Log_File:' | awk '{print $2}')"
