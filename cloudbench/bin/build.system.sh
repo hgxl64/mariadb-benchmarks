@@ -547,11 +547,13 @@ mkdir -p ${LOGDIRECTORY}
                 echo
 
                 #auto-size buffer pool = 80% of RAM
-                BUFFER_POOL_SIZE=$( ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) 'cat /proc/meminfo' | grep MemTotal | awk '{ print int($2/1024*0.8) }')
+                BUFFER_POOL_SIZE=$(ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) 'cat /proc/meminfo' | grep MemTotal | awk '{ print int($2/1024*0.8) }')
                 echo "BUFFER_POOL_SIZE = ${BUFFER_POOL_SIZE}M"
 
                 #auto-size replication slave threads = #cpu
-                AUTO_SLAVE_THREADS=$(ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) 'grep -c "processor" /proc/cpuinfo')
+                AUTO_SLAVE_THREADS=$(ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) 'cat /proc/cpuinfo' | grep -c processor)
+                echo "AUTO_SLAVE_THREADS = ${AUTO_SLAVE_THREADS}"
+
 
                 ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
                     BUFFER_POOL_SIZE="'${BUFFER_POOL_SIZE}'"
