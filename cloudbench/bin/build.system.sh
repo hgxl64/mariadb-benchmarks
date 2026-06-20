@@ -890,7 +890,10 @@ mkdir -p ${LOGDIRECTORY}
             fi
         fi
 
-        [[ ${SYSTEM} =~ "mariadb" ]] || SYSTEM=$(get_property ${CLUSTER} mariadb.systems)
+        #system must point to a mariadb/galera/raft node
+        SYSTEM=$(get_property ${CLUSTER} mariadb.systems)
+        [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+
         start_prometheus_mysqld_exporter
 
         echo
