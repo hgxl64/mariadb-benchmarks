@@ -553,6 +553,7 @@ mkdir -p ${LOGDIRECTORY}
                 #auto-size replication slave threads = #cpu
                 AUTO_SLAVE_THREADS=$(ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) 'cat /proc/cpuinfo' | grep -c processor)
                 echo "AUTO_SLAVE_THREADS = ${AUTO_SLAVE_THREADS}"
+                echo
 
 
                 ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
