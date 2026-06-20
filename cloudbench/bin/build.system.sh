@@ -582,6 +582,7 @@ mkdir -p ${LOGDIRECTORY}
                     OPTION_SLAVE="'${OPTION_SLAVE}'"
                     OPTION_SLAVE_PARALLEL_MODE="'${OPTION_SLAVE_PARALLEL_MODE}'"
                     OPTION_SLAVE_THREADS="'${OPTION_SLAVE_THREADS}'"
+                    AUTO_SLAVE_THREADS="'${AUTO_SLAVE_THREADS}'"
                     OPTION_SLOW_QUERY_LOG="'${OPTION_SLOW_QUERY_LOG}'"
                     OPTION_SSL="'${OPTION_SSL}'"
                     OPTION_SYNC_BINLOG="'${OPTION_SYNC_BINLOG}'"
@@ -619,6 +620,9 @@ mkdir -p ${LOGDIRECTORY}
                             echo "# Default character Set"
                             echo "character_set_server = ${OPTION_CHARSET}"
                         fi
+
+                        echo
+                        echo "#high concurrency setup"
                         if [[ ${OPTION_MAX_CONNECTIONS} ]] ; then
                             echo "max_connections = ${OPTION_MAX_CONNECTIONS}"
                         else
@@ -630,6 +634,8 @@ mkdir -p ${LOGDIRECTORY}
                             echo "table_open_cache = 4096"
                         fi
                         echo "max_prepared_stmt_count = 1048576"
+
+                        echo
                         echo "#disable query cache"
                         echo "query_cache_type = 0"
                         echo "query_cache_size = 0"
