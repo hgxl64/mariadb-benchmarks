@@ -68,7 +68,7 @@ while [[ $# > 0 ]] ; do
         --noautoinc)            OPTION_NOAUTOINC=TRUE;;
         --directexec)           OPTION_DIRECTEXEC=TRUE;;
         --nosecondary)          OPTION_NOSECONDARY=TRUE;;
-        --bulkload)             OPTION_BULKLOAD=TRUE;;
+        --bulkload)             OPTION_BULKLOAD=TRUE; LOAD_OPTION='load';;
         --bulk)                 OPTION_BULKLOAD=TRUE;;
         --engine)               OPTION_ENGINE="$1"; shift;;
         --charset)              OPTION_CHARSET="$1"; shift;;
