@@ -867,7 +867,7 @@ mkdir -p ${LOGDIRECTORY}
             echo "        Configuring as Slave of Master ${OPTION_SLAVE}"
             if [[ ${OPTION_GTID} == TRUE ]] ; then
                 MASTER_HOST=$(get_database_backend_ips ${OPTION_SLAVE})
-                MASTER_GTID=$(mysql -sN $(get_database_connection ${OPTION_SLAVE}) -e "show global variables like 'gtid_binlog_pos';" | awk '{print $2}')
+                MASTER_GTID=$(mariadb -sN $(get_database_connection ${OPTION_SLAVE}) -e "show global variables like 'gtid_binlog_pos';" | awk '{print $2}')
                 echo "            MASTER_HOST = ${MASTER_HOST}"
                 echo "            MASTER_GTID = ${MASTER_GTID}"
                 ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "
