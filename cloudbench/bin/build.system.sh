@@ -814,22 +814,22 @@ mkdir -p ${LOGDIRECTORY}
             ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "
                 uname -n
                 /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
-                    create user '${DB_USER}'@'%' identified by '${DB_PASSWORD}';
-                    grant all on *.* to '${DB_USER}'@'%';
-                    create user '${DB_USER}'@'127.0.0.1' identified by '${DB_PASSWORD}';
-                    grant all on *.* to '${DB_USER}'@'127.0.0.1';
+                    CREATE USER '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASSWORD}';
+                    GRANT ALL ON *.* TO '${DB_USER}'@'%';
+                    CREATE USER '${DB_USER}'@'127.0.0.1' IDENTIFIED BY '${DB_PASSWORD}';
+                    GRANT ALL ON *.* TO '${DB_USER}'@'127.0.0.1';
                     CREATE USER IF NOT EXISTS 'prometheus'@'localhost' IDENTIFIED VIA unix_socket WITH MAX_USER_CONNECTIONS 3;
                     GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'localhost';
-                    flush privileges;
+                    FLUSH PRIVILEGES;
                 \"
                 "
         else
            ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "
                uname -n
                /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
-                   create user '${DB_USER}'@'%';
-                   grant all on *.* to '${DB_USER}'@'%';
-                   flush privileges;
+                   CREATE USER '${DB_USER}'@'%';
+                   GRANT ALL ON *.* TO '${DB_USER}'@'%';
+                   FLUSH PRIVILEGES;
                \"
            "
         fi
@@ -844,11 +844,14 @@ mkdir -p ${LOGDIRECTORY}
 
         if [[ ${OPTION_MASTER} == TRUE ]] ; then
             echo "        Binlogging enabled - Create Replication User"
-            mariadb -vvv $(get_database_connection) -e "
-                    create user 'replication_user'@'%' identified by 'Ma49DBF@+Pa13w0rd';
-                    grant replication slave ON *.* TO 'replication_user'@'%';
-                    flush privileges;
-                "
+            ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "
+                uname -n
+                /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
+                    CREATE USER 'replication_user'@'%' IDENTIFIED BY 'Ma49DBF@+Pa13w0rd';
+                    GRANT REPLICATION SLAVE ON *.* TO 'replication_user'@'%';
+                    FLUSH PRIVILEGES;
+                \"
+            "
         fi
 
         if [[ ${OPTION_SLAVE} ]] ; then
@@ -858,12 +861,15 @@ mkdir -p ${LOGDIRECTORY}
                 MASTER_GTID=$(mysql -sN $(get_database_connection ${OPTION_SLAVE}) -e "show global variables like 'gtid_binlog_pos';" | awk '{print $2}')
                 echo "            MASTER_HOST = ${MASTER_HOST}"
                 echo "            MASTER_GTID = ${MASTER_GTID}"
-                mariadb -vvv $(get_database_connection) -e "
+                ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "
+                    uname -n
+                    /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
                         SET GLOBAL gtid_slave_pos = '${MASTER_GTID}';
-                        change master to master_host='${MASTER_HOST}', master_user='replication_user',
+                        CHANGE MASTER TO master_host='${MASTER_HOST}', master_user='replication_user',
                           master_password='Ma49DBF@+Pa13w0rd', master_port=${OPTION_DBPORT},
                           master_use_gtid=current_pos, master_connect_retry=10;
                         start slave;
+                    \"
                 "
             else
                 MASTER_HOST=$(get_database_backend_ips ${OPTION_SLAVE})
@@ -872,11 +878,14 @@ mkdir -p ${LOGDIRECTORY}
                 echo "            MASTER_HOST = ${MASTER_HOST}"
                 echo "            MASTER_LOG_FILE = ${MASTER_LOG_FILE}"
                 echo "            MASTER_LOG_POS = ${MASTER_LOG_POS}"
-                mariadb -vvv $(get_database_connection) -e "
-                        change master to master_host='${MASTER_HOST}', master_user='replication_user',
+                ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "
+                    uname -n
+                    /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
+                        CHANGE MASTER TO master_host='${MASTER_HOST}', master_user='replication_user',
                           master_password='Ma49DBF@+Pa13w0rd', master_port=${OPTION_DBPORT},
                           master_log_file='${MASTER_LOG_FILE}', master_log_pos=${MASTER_LOG_POS}, master_connect_retry=10;
                         start slave;
+                    \"
                 "
             fi
         fi
