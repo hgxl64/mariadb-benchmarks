@@ -119,11 +119,6 @@ process_connection_info;
 [[ ${MARIADB_BRANCH} ]] || MARIADB_BRANCH="ENTERPRISE/11.4-enterprise"
 [[ ${MARIADB_COMMIT} ]] || MARIADB_COMMIT="latest"
 
-# default Raft source
-[[ ${RAFT_SOURCE} ]] || RAFT_SOURCE="jenkins"
-[[ ${RAFT_BRANCH} ]] || RAFT_BRANCH="CRAFT/main"
-[[ ${RAFT_COMMIT} ]] || RAFT_COMMIT="latest"
-
 # target OS
 if [[ ! ${OS} ]] ; then
     OS="ubuntu-2404"
