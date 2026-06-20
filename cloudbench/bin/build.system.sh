@@ -743,6 +743,7 @@ mkdir -p ${LOGDIRECTORY}
                                 if [[ ${OPTION_BINLOG_COMMIT_WAIT_COUNT} ]] ; then
                                     echo "binlog_commit_wait_count = ${OPTION_BINLOG_COMMIT_WAIT_COUNT}"
                                 fi
+                                echo "max_binlog_size = 100M"
                             fi
                             if [[ ${OPTION_SLAVE} ]] ; then
                                 if [[ ${OPTION_SLAVE_PARALLEL_MODE} ]] ; then
