@@ -334,6 +334,7 @@ mkdir -p ${LOGDIRECTORY}
 
                 ;;
 
+
             galera_*)
 
                 if [[ ${CLUSTER_TYPE} == 'galera_masterslave' ]] ; then
@@ -427,7 +428,8 @@ mkdir -p ${LOGDIRECTORY}
                 echo
                 ;;
 
-            |raft_*)
+
+            raft_*)
 
                 if [[ ${CLUSTER_TYPE} == 'raft_masterslave' ]] ; then
                     SYSTEMS=( ${MASTER_SYSTEMS[0]} )
@@ -520,6 +522,7 @@ mkdir -p ${LOGDIRECTORY}
                 echo
                 ;;
 
+
             mariadb)
 
                 echo
@@ -600,6 +603,7 @@ mkdir -p ${LOGDIRECTORY}
                 echo
 
                 ;;
+
 
             *) echo "Invalid Cluster Type: CLUSTER_TYPE = ${CLUSTER_TYPE}"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1 ;;
 
