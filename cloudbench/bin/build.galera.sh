@@ -194,6 +194,7 @@ innodb_autoinc_lock_mode = 2" > ${CONFIG_FILE}
             echo
             ssh $(get_ssh_connection ${SYSTEM} ${GALERA_EXTERNAL_IPS[${IDX}]}) '
                 uname -n
+                [[ -f /data/cbench/install/etc/mariadb-enterprise.cnf ]] && rm /data/cbench/install/etc/mariadb-enterprise.cnf
                 export PATH=/data/cbench/install/bin:/data/cbench/install/scripts:${PATH}
                 mariadb-install-db --auth-root-authentication-method=normal
                 if (( '${IDX}' == 0 )) ; then

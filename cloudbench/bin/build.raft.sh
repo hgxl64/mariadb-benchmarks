@@ -148,7 +148,7 @@ mkdir -p ${LOGDIRECTORY}
 [mariadbd]
 
 plugin-load-add=raft
-raft-have-ssl=$([[ ${OPTION_RAFT_SSL} == TRUE ]] && echo "on" || echo "off")
+raft-have-ssl=$([[ ${OPTION_RAFT_SSL} == TRUE ]] && echo "0" || echo "1")
 raft-flow-control-drift-limit=1000
 raft-flow-control-max-throttle-rate=1000
 
@@ -200,12 +200,13 @@ innodb_autoinc_lock_mode = 2" > ${CONFIG_FILE}
             echo
             ssh $(get_ssh_connection ${SYSTEM} ${RAFT_EXTERNAL_IPS[${IDX}]}) '
                 uname -n
+                [[ -f /data/cbench/install/etc/mariadb-enterprise.cnf ]] && rm /data/cbench/install/etc/mariadb-enterprise.cnf
                 export PATH=/data/cbench/install/bin:/data/cbench/install/scripts:${PATH}
                 mariadb-install-db --auth-root-authentication-method=normal
                 if (( '${IDX}' == 0 )) ; then
-                    mariadbd-safe --wsrep-new-cluster &
+                    mariadbd-safe --plugin-maturity=gamma --wsrep-new-cluster &
                 else
-                    mariadbd-safe &
+                    mariadbd-safe --plugin-maturity=gamma &
                 fi
                 timeout=180
                 while [[ ${timeout} -gt 0 ]]
