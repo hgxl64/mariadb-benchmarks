@@ -44,7 +44,7 @@ MAXSCALE_SYSTEMS=( $(get_property ${CLUSTER} maxscale.systems) )
 
 # https://mdbe-ci-repo.mariadb.net/MaxscaleEnterprise/maxscale-25.10.2-release/bintar/ubuntu/noble/x86_64/
 [[ ${MAXSCALE_SOURCE} ]]  || MAXSCALE_SOURCE="jenkins"
-[[ ${MAXSCALE_RELEASE} ]] || MAXSCALE_RELEASE="maxscale-25.10.2-release"
+[[ ${MAXSCALE_RELEASE} ]] || MAXSCALE_RELEASE="maxscale-25.10.3-release"
 [[ ${OPTION_SSL} ]]       || OPTION_SSL=FALSE
 [[ ${MAX_SLAVE_LAG} ]]    || MAX_SLAVE_LAG='10s'
 [[ ${SLAVE_SELECTION} ]]  || SLAVE_SELECTION='LEAST_CURRENT_OPERATIONS'
