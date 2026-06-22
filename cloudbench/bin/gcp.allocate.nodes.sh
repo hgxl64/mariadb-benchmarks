@@ -52,8 +52,6 @@ while [[ $# > 0 ]] ; do
         --server-type)              SERVER_INSTANCE_TYPE="$1"; shift;;
         --server1-type)             SERVER1_INSTANCE_TYPE="$1"; shift;;
 
-        --ssh-user)                 SSH_USER="$1"; shift;;
-
         --driver-nodes)             NUMOFDRIVERS="$1"; shift;;
         --driver-type)              DRIVER_INSTANCE_TYPE="$1"; shift;;
 
@@ -67,8 +65,10 @@ while [[ $# > 0 ]] ; do
         --disablewritebarrier)      DISABLE_WRITE_BARRIER='-o nobarrier';;
         --lazyinit)                 LAZY_INIT="$1"; shift;;
         --readaheadcache)           READAHEAD_CACHE="$1"; shift;;
-
+        --ssh-user)                 SSH_USER="$1"; shift;;
         --skipcheck)                OPTION_SKIPCHECK=TRUE;;
+        --background)               OPTION_BACKGROUND=TRUE;;
+        --parallel)                 OPTION_BACKGROUND=TRUE;;
 
         -h|--help)                  echo -e "$USAGE"; exit 1;;
 
@@ -166,6 +166,7 @@ done
 
         gcloud config set project ${GCP_PROJECT}
         gcloud compute instances list
+        unset PIDLIST
 
         if (( ${NUMOFSERVERS} > 0 )) ; then
             # Provision Server instances
@@ -195,7 +196,12 @@ done
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
 
                 echo "${COMMAND}"
-                echo ${COMMAND} | bash
+                if [[ ${OPTION_BACKGROUND} == TRUE ]] ; then
+                    ${COMMAND} &
+                    PIDLIST="${PIDLIST} $!"
+                else
+                    ${COMMAND}
+                fi
                 (( N=${N}+1 ))
             done
             unset N
@@ -214,7 +220,12 @@ done
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
 
                 echo "${COMMAND}"
-                echo ${COMMAND} | bash
+                if [[ ${OPTION_BACKGROUND} == TRUE ]] ; then
+                    ${COMMAND} &
+                    PIDLIST="${PIDLIST} $!"
+                else
+                    ${COMMAND}
+                fi
             done
         fi
 
@@ -231,18 +242,29 @@ done
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
 
                 echo "${COMMAND}"
-                echo ${COMMAND} | bash
+                if [[ ${OPTION_BACKGROUND} == TRUE ]] ; then
+                    ${COMMAND} &
+                    PIDLIST="${PIDLIST} $!"
+                else
+                    ${COMMAND}
+                fi
             done
         fi
 
-         echo
-         echo "Allocated Nodes:"
-         gcloud compute instances list | head -1
-         gcloud compute instances list | grep ${CLUSTER}
-         echo
-         echo "Allocated Disk:"
-         gcloud compute disks list | head -1
-         gcloud compute disks list | grep ${CLUSTER}
+        if [[ ${OPTION_BACKGROUND} == TRUE ]] ; then
+            echo "waiting for background jobs"
+            wait ${PIDLIST}
+            unset PIDLIST
+        fi
+
+        echo
+        echo "Allocated Nodes:"
+        gcloud compute instances list | head -1
+        gcloud compute instances list | grep ${CLUSTER}
+        echo
+        echo "Allocated Disk:"
+        gcloud compute disks list | head -1
+        gcloud compute disks list | grep ${CLUSTER}
 
     } 2>&1 | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).provision.nodes.log
 
@@ -539,7 +561,7 @@ done
     }
 
     echo
-    echo "    ===== Running post-alloc jobs : CLUSTER = ${CLUSTER} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    echo "    ===== Running post-alloc jobs =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     COMMAND="cloud.post.alloc.sh --cluster ${CLUSTER}"
     echo "        COMMAND = ${COMMAND}"
     time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).post.alloc.log 2>&1
