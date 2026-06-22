@@ -60,6 +60,11 @@ done
 DB_USER=$(getproperty ${CLUSTER} database.user)
 DB_PASSWORD=$(getproperty ${CLUSTER} database.password)
 
+# default MariaDB source; we use the same as for Raft to allow comparison Raft<->Galera
+[[ ${MARIADB_SOURCE} ]] || MARIADB_SOURCE="jenkins"
+[[ ${MARIADB_BRANCH} ]] || MARIADB_BRANCH="ENTERPRISE/12.3-enterprise-RAFT"
+[[ ${MARIADB_COMMIT} ]] || MARIADB_COMMIT="latest"
+
 # default Galera source
 [[ ${GALERA_SOURCE} ]] || GALERA_SOURCE="jenkins"
 [[ ${GALERA_BRANCH} ]] || GALERA_BRANCH="GALERA-ENTERPRISE/es-mariadb-4.x"

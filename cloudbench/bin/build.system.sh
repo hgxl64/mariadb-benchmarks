@@ -115,9 +115,9 @@ process_connection_info;
 # default: no binlog enabled
 [[ ${OPTION_MASTER} ]] || OPTION_MASTER=FALSE
 
-# default MariaDB source
+# default MariaDB source, latest Enterprise branch
 [[ ${MARIADB_SOURCE} ]] || MARIADB_SOURCE="jenkins"
-[[ ${MARIADB_BRANCH} ]] || MARIADB_BRANCH="ENTERPRISE/11.4-enterprise"
+[[ ${MARIADB_BRANCH} ]] || MARIADB_BRANCH="ENTERPRISE/12.3-enterprise"
 [[ ${MARIADB_COMMIT} ]] || MARIADB_COMMIT="latest"
 
 # target OS

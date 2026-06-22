@@ -36,7 +36,7 @@ while [[ $# > 0 ]] ; do
         # Raft Options
         --slavethreads)        OPTION_SLAVE_THREADS="$1"; shift;;
         --deferflush)          OPTION_DEFERRED_FLUSH=TRUE;;
-        --raft_ssl)            OPTION_RAFT_SSL=TRUE;;
+        --raft-ssl)            OPTION_RAFT_SSL=TRUE;;
 
         --ssl)                 OPTION_SSL=TRUE;;
 
@@ -60,6 +60,11 @@ for SYSTEM in ${RAFT_SYSTEMS[*]} ; do
 done
 DB_USER=$(getproperty ${CLUSTER} database.user)
 DB_PASSWORD=$(getproperty ${CLUSTER} database.password)
+
+# default MariaDB source; RAFT needs special raft-enabled build
+[[ ${MARIADB_SOURCE} ]] || MARIADB_SOURCE="jenkins"
+[[ ${MARIADB_BRANCH} ]] || MARIADB_BRANCH="ENTERPRISE/12.3-enterprise-RAFT"
+[[ ${MARIADB_COMMIT} ]] || MARIADB_COMMIT="latest"
 
 # default Raft source
 [[ ${RAFT_SOURCE} ]] || RAFT_SOURCE="jenkins"
