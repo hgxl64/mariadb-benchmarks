@@ -334,15 +334,11 @@ mkdir -p ${LOGDIRECTORY}
 
                 ;;
 
-            galera_*|raft_*)
+            galera_*)
 
                 if [[ ${CLUSTER_TYPE} == 'galera_masterslave' ]] ; then
                     SYSTEMS=( ${MASTER_SYSTEMS[0]} )
                 elif [[ ${CLUSTER_TYPE} == 'galera_mastermaster' ]] ; then
-                    SYSTEMS=( ${MASTER_SYSTEMS[*]} )
-                elif [[ ${CLUSTER_TYPE} == 'raft_masterslave' ]] ; then
-                    SYSTEMS=( ${MASTER_SYSTEMS[0]} )
-                elif [[ ${CLUSTER_TYPE} == 'raft_mastermaster' ]] ; then
                     SYSTEMS=( ${MASTER_SYSTEMS[*]} )
                 else
                     echo "Invalid Cluster Type: CLUSTER_TYPE = ${CLUSTER_TYPE}"; echo -e "$0 ${COMMAND_LINE}"; exit 1;
@@ -427,6 +423,99 @@ mkdir -p ${LOGDIRECTORY}
 
                 echo
                 echo "        Galera Cluster properties:"
+                cat properties/${CLUSTER}.properties
+                echo
+                ;;
+
+            |raft_*)
+
+                if [[ ${CLUSTER_TYPE} == 'raft_masterslave' ]] ; then
+                    SYSTEMS=( ${MASTER_SYSTEMS[0]} )
+                elif [[ ${CLUSTER_TYPE} == 'raft_mastermaster' ]] ; then
+                    SYSTEMS=( ${MASTER_SYSTEMS[*]} )
+                else
+                    echo "Invalid Cluster Type: CLUSTER_TYPE = ${CLUSTER_TYPE}"; echo -e "$0 ${COMMAND_LINE}"; exit 1;
+                fi
+
+                echo
+                echo "        Raft Cluster = ${CLUSTER}"
+                {
+                    echo
+                    echo "cluster.name = ${CLUSTER}"
+                    echo "cluster.type = ${CLUSTER_TYPE}"
+                    echo
+                    if [[ ${MAXSCALE_SYSTEMS} ]] ; then
+                        echo -n "maxscale.systems ="
+                        for SYSTEM in ${MAXSCALE_SYSTEMS[*]} ; do
+                            echo -n " maxscale.${SYSTEM}"
+                        done
+                        echo
+                    fi
+                    echo -n "raft.systems ="
+                    for SYSTEM in ${MASTER_SYSTEMS[*]} ${REPLICA_SYSTEMS[*]} ; do
+                        echo -n " mariadb.${SYSTEM}"
+                    done
+                    echo
+
+                    echo
+                    echo "database = mariadb"
+                    echo "database.user = cbench"
+                    echo "database.password = ${OPTION_PASSWORD}"
+                    echo -n "database.external.ips ="
+                    for SYSTEM in ${SYSTEMS[*]} ; do
+                        echo -n " $(get_property ${SYSTEM} system.external.ip)"
+                    done
+                    echo
+
+                    if [[ $(get_property ${SYSTEMS[0]} system.internal.ip) ]] ; then
+                        echo -n "database.internal.ips ="
+                        for SYSTEM in ${SYSTEMS[*]} ; do
+                            echo -n " $(get_property ${SYSTEM} system.internal.ip)"
+                        done
+                        echo
+                    fi
+
+                    if [[ $(get_property ${SYSTEMS[0]} system.backend.ip) ]] ; then
+                        echo -n "database.backend.ips ="
+                        for SYSTEM in ${SYSTEMS[*]} ; do
+                            echo -n " $(get_property ${SYSTEM} system.backend.ip)"
+                        done
+                        echo
+                    fi
+                    echo "database.port = 3306"
+                    echo
+                    echo "cluster.nodes = ${#MASTER_SYSTEMS[@]}"
+                    echo "cluster.node1 = $(get_property ${SYSTEMS[0]} system.external.ip)"
+                    echo -n "nodes ="
+                    for SYSTEM in ${SYSTEMS[*]} ; do
+                        echo -n " $(get_property ${SYSTEM} system.external.ip)"
+                    done
+                    echo
+                    [[ $(get_property ${SYSTEMS[0]} ssh.user) ]] && echo "ssh.user = $(get_property ${SYSTEMS[0]} ssh.user)"
+                    [[ $(get_property ${SYSTEMS[0]} ssh.pem) ]] && echo "ssh.pem = $(get_property ${SYSTEMS[0]} ssh.pem)"
+                    echo
+                    if [[ ${DRIVER_SYSTEMS} ]] ; then
+                        echo "driver.systems = ${DRIVER_SYSTEMS[*]}"
+                        echo "driver.nodes = ${#DRIVER_SYSTEMS[@]}"
+                        echo "driver.node1 = $(get_property ${DRIVER_SYSTEMS[0]} system.external.ip)"
+                        echo -n "drivers ="
+                        for DRIVER in ${DRIVER_SYSTEMS[*]} ; do
+                            echo -n " $(get_property ${DRIVER} system.external.ip)"
+                        done
+                        echo
+                    else
+                        echo "driver.nodes = 0"
+                    fi
+                    echo
+                    echo
+
+                    for PROPERTY in server.cloud aws.region aws.zone aws.instance_type gcp.region gcp.zone gpc.driver.zone gcp.instance_type ; do
+                        [[ $(get_property ${SYSTEMS[0]} ${PROPERTY}) ]] && echo "${PROPERTY} = $(get_property ${SYSTEMS[0]} ${PROPERTY})"
+                    done
+                } > properties/${CLUSTER}.properties
+
+                echo
+                echo "        Raft Cluster properties:"
                 cat properties/${CLUSTER}.properties
                 echo
                 ;;

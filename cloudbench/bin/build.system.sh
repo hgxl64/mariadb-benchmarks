@@ -3,7 +3,8 @@
 source ${CBENCH_HOME}/bin/cbench.sh
 
 USAGE="usage: $0
-    Configures a mariadb database on the specified host.
+    Installs MariaDB and optionally Galera / Raft
+    Configures the MariaDB database and starts it (except for Galera/Raft)
     Options:
         [ --database] mariadb ]
         [ --cluster  <<clustername>> ]
@@ -69,8 +70,8 @@ while [[ $# > 0 ]] ; do
         --port)                         OPTION_DBPORT="$1"; shift;;
         --slow_query_log)               OPTION_SLOW_QUERY_LOG=TRUE;;
         --table_open_cache)             OPTION_TABLE_OPEN_CACHE="$1"; shift;;
-        --thread-pool)                 OPTION_THREAD_POOL=TRUE;;
-        --thread-pool-size)             OPTION_THREAD_POOL_SIZE="$1"; shift;;
+        --thread_pool)                  OPTION_THREAD_POOL=TRUE;;
+        --thread_pool_size)             OPTION_THREAD_POOL_SIZE="$1"; shift;;
         --thread_pool_max_threads)      OPTION_THREAD_POOL_MAX_THREADS="$1"; shift;;
         --transaction_isolation)        OPTION_TRANSACTION_ISOLATION="$1"; shift;;
         --ssl)                          OPTION_SSL=TRUE;;

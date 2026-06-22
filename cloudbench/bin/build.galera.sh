@@ -3,7 +3,7 @@
 source ${CBENCH_HOME}/bin/cbench.sh
 
 USAGE="usage: $0
-    xxx
+    install and start a MariaDB Galera Cluster
 
     Parameters:
 

@@ -3,7 +3,7 @@
 source ${CBENCH_HOME}/bin/cbench.sh
 
 USAGE="usage: $0
-    xxx
+    install and start a MariaDB Raft Cluster
 
     Parameters:
 
@@ -36,6 +36,7 @@ while [[ $# > 0 ]] ; do
         # Raft Options
         --slavethreads)        OPTION_SLAVE_THREADS="$1"; shift;;
         --deferflush)          OPTION_DEFERRED_FLUSH=TRUE;;
+        --raft_ssl             OPTION_RAFT_SSL=TRUE;;
 
         --ssl)                 OPTION_SSL=TRUE;;
 
@@ -48,8 +49,8 @@ if [[ ! ${CLUSTER} ]] ; then echo "Required CLUSTER not specified." ; exit 1 ; f
 
 process_connection_info;
 
-if [[ ! ${RAFT_SYSTEMS} ]] ; then RAFT_SYSTEMS=( $(getproperty ${CLUSTER} galera.systems) ) ; fi
-if [[ ! ${RAFT_SYSTEMS} ]] ; then echo "Invalid config file.  Expected galera.systems" ; exit 1 ; fi
+if [[ ! ${RAFT_SYSTEMS} ]] ; then RAFT_SYSTEMS=( $(getproperty ${CLUSTER} raft.systems) ) ; fi
+if [[ ! ${RAFT_SYSTEMS} ]] ; then echo "Invalid config file.  Expected raft.systems" ; exit 1 ; fi
 
 unset RAFT_EXTERNAL_IPS
 unset RAFT_BACKEND_IPS
@@ -68,6 +69,7 @@ DB_PASSWORD=$(getproperty ${CLUSTER} database.password)
 # default config options
 [[ ${OPTION_SLAVE_THREADS} ]]  || OPTION_SLAVE_THREADS=0       #0 means auto-size
 [[ ${OPTION_DEFERRED_FLUSH} ]] || OPTION_DEFERRED_FLUSH=TRUE
+[[ ${OPTION_RAFT_SSL} ]]  || OPTION_RAFT_SSL=FALSE             #comm is local, why SSL?
 
 # logging
 TEST_NAME=build.raft
@@ -135,13 +137,13 @@ mkdir -p ${LOGDIRECTORY}
                 RAFT_BACKEND_IPS=("'${RAFT_BACKEND_IPS[*]}'")
                 SLAVE_THREADS="'${OPTION_SLAVE_THREADS}'"
                 CONFIG_FILE="'${CONFIG_FILE}'"
-                RAFT_SSL="'$([[ ${SSL} == TRUE ]] && echo "on" || echo "off")'"
+                OPTION_RAFT_SSL="'${OPTION_RAFT_SSL}'"
                 (( ${SLAVE_THREADS} == 0 )) && ((SLAVE_THREADS = $(grep -c processor /proc/cpuinfo) * 3))
                 echo "
 [mariadbd]
 
 plugin-load-add=raft
-raft-have-ssl=${RAFT_SSL}
+raft-have-ssl=$([[ ${OPTION_RAFT_SSL} == TRUE ]] && echo "on" || echo "off")
 raft-flow-control-drift-limit=1000
 raft-flow-control-max-throttle-rate=1000
 
@@ -180,7 +182,7 @@ innodb_autoinc_lock_mode = 2" > ${CONFIG_FILE}
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).setup.raft.log 2>&1
 
     echo
-    echo "    ===== Step 3:  Start up Raft Cluster =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    echo "    ===== Step 3:  Start Raft Cluster =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     time {
 
         echo
@@ -238,7 +240,7 @@ innodb_autoinc_lock_mode = 2" > ${CONFIG_FILE}
                 GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'localhost';
                 flush privileges;\"
             "
-        for SYSTEM in $(get_property ${CLUSTER} galera.systems) ; do
+        for SYSTEM in $(get_property ${CLUSTER} raft.systems) ; do
             start_prometheus_mysqld_exporter
         done
 
