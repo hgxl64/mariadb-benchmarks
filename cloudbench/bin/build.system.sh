@@ -795,6 +795,7 @@ mkdir -p ${LOGDIRECTORY}
         echo
         time ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
             uname -n
+            [[ -f /data/cbench/install/etc/mariadb-enterprise.cnf ]] && rm /data/cbench/install/etc/mariadb-enterprise.cnf
             export PATH=/data/cbench/install/bin:/data/cbench/install/scripts:${PATH}
             mariadb-install-db --auth-root-authentication-method=normal
             mariadbd-safe &
