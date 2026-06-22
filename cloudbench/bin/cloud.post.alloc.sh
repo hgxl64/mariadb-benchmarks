@@ -19,6 +19,7 @@ while [[ $# > 0 ]] ; do
          # Connection Info
         --cluster)                      CLUSTER="$1"; shift;;
         --system)                       CLUSTER="$1"; shift;;
+        --cloud)                        OPTION_CLOUD="$1"; shift;;
         -h|--help)                      echo -e "$USAGE"; exit 1;;
         *)  echo "Invalid input switch: $key"; echo -e "COMMAND_LINE = ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
     esac
@@ -67,7 +68,7 @@ time {
                                 echo "Ubuntu 24 detected, installing packages"
                                 sudo apt-get update
                                 sudo apt-get -y install ntpdate liburing2 \
-                                  libodbc2 libprotobuf32t64 libmicrohttpd12 nodejs libarchive13t64 \
+                                  libodbc2 libprotobuf32t64 libmicrohttpd12 libarchive13t64 \
                                   prometheus-node-exporter
                                 ;;
                             *)
@@ -90,7 +91,7 @@ time {
         time {
             for SYSTEM in $(get_property ${CLUSTER} systems) ; do
                 for NODE in $(get_property ${SYSTEM} system.internal.ip) ; do
-                    echo "        register ${SYSTEM}=${NODE} at ${PROMETHEUS_EXT_IP}"
+                    echo "        register ${SYSTEM} = ${NODE} at Prometheus (${PROMETHEUS_EXT_IP})"
                     {
                         echo "["
                         echo "  { \"labels\":  { \"cluster_name\":\"${CLUSTER}\", \"name\":\"${SYSTEM}\" },"
