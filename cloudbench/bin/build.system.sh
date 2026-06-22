@@ -267,6 +267,9 @@ mkdir -p ${LOGDIRECTORY}
                     echo "#"                                             | sudo tee -a /etc/my.cnf >> my.cnf
                     echo "!includedir /data/cbench/install/etc/my.cnf.d" | sudo tee -a /etc/my.cnf >> my.cnf
                     echo                                                 | sudo tee -a /etc/my.cnf >> my.cnf
+                    echo "[client]"                                      | sudo tee -a /etc/my.cnf >> my.cnf
+                    echo "socket = /data/cbench/mariadb.sock"            | sudo tee -a /etc/my.cnf >> my.cnf
+                    echo                                                 | sudo tee -a /etc/my.cnf >> my.cnf
                 '
 
             elif [[ ${MARIADB_SOURCE} == 'tarball' ]] ; then
@@ -594,7 +597,7 @@ mkdir -p ${LOGDIRECTORY}
                     {
                         echo "# Performance Config"
                         echo
-                        echo "[mariadbd]"
+                        echo "[mariadb]"
                         echo
                         echo "# General settings"
                         echo "port = ${OPTION_DBPORT}"

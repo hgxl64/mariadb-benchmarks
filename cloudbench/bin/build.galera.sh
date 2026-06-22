@@ -144,7 +144,7 @@ mkdir -p ${LOGDIRECTORY}
                 LIBGALERA=$(find /data/cbench/install/lib/galera -name libgalera_smm.so)
                 LIBGALERA=$(find /data/cbench/install/lib/galera -name libgalera_enterprise_smm.so)
                 echo "
-[galera]
+[mariadb]
 wsrep_on = ON
 binlog_format = ROW
 binlog_row_image = MINIMAL

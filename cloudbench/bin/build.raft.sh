@@ -145,7 +145,7 @@ mkdir -p ${LOGDIRECTORY}
                 OPTION_RAFT_SSL="'${OPTION_RAFT_SSL}'"
                 (( ${SLAVE_THREADS} == 0 )) && ((SLAVE_THREADS = $(grep -c processor /proc/cpuinfo) * 3))
                 echo "
-[mariadbd]
+[mariadb]
 
 plugin-load-add=raft
 raft-have-ssl=$([[ ${OPTION_RAFT_SSL} == TRUE ]] && echo "0" || echo "1")
