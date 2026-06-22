@@ -429,6 +429,98 @@ mkdir -p ${LOGDIRECTORY}
                 '
             done
         done
+
+    elif [[ ${CLUSTER_TYPE} =~ 'raft_' ]] ; then
+
+        if [[ ${CLUSTER_TYPE} == 'raft_mastermaster' ]] ; then
+            MULTIMASTER=TRUE
+        else
+            MULTIMASTER=FALSE
+        fi
+
+        unset SERVER_NODES
+        for SYSTEM in $(get_property ${CLUSTER} raft.systems) ; do
+            SERVER_NODES=( ${SERVER_NODES[*]} $(get_database_backend_ips ${SYSTEM}) )
+        done
+
+        for SYSTEM in ${MAXSCALE_SYSTEMS[*]} ; do
+            for NODE in $(getproperty ${SYSTEM} nodes) ; do
+                echo "        Node = ${NODE}"
+                echo
+                ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
+                    SERVER_NODES=( "'${SERVER_NODES[*]}'" )
+                    DBUSER="'$(get_database_user)'"
+                    DBPASSWORD="'$(get_database_password)'"
+                    DBPORT="'$(get_database_port)'"
+                    OPTION_SSL="'${OPTION_SSL}'"
+                    SLAVE_SELECTION="'${SLAVE_SELECTION}'"
+                    MASTER_READS="'${MASTER_READS}'"
+                    MULTIMASTER="'${MULTIMASTER}'"
+                    CONFIG_FILE="'${CONFIG_FILE}'"
+
+                    [[ -f ${CONFIG_FILE} ]] && rm ${CONFIG_FILE}
+
+                    echo "[maxscale]"                                       >> ${CONFIG_FILE}
+                    echo "threads=auto"                                     >> ${CONFIG_FILE}
+                    echo "syslog=0"                                         >> ${CONFIG_FILE}
+                    echo "maxlog=1"                                         >> ${CONFIG_FILE}
+                    echo                                                    >> ${CONFIG_FILE}
+
+                    if [[ ${OPTION_SSL} == TRUE ]] ; then
+                        echo "ssl_cert = /data/cbench/install/etc/certificates/server-cert.pem" >> ${CONFIG_FILE}
+                        echo "ssl_key = /data/cbench/install/etc/certificates/server-key.pem"   >> ${CONFIG_FILE}
+                        echo "ssl_ca_cert = /data/cbench/install/etc/certificates/ca.pem"       >> ${CONFIG_FILE}
+                        echo "ssl = true"                                                       >> ${CONFIG_FILE}
+                        echo                                                                    >> ${CONFIG_FILE}
+                    fi
+
+                    IDX=1
+                    for SERVER in ${SERVER_NODES[*]} ; do
+                        echo "[Raft${IDX}]"                               >> ${CONFIG_FILE}
+                        echo "type=server"                                  >> ${CONFIG_FILE}
+                        echo "address=${SERVER}"                            >> ${CONFIG_FILE}
+                        echo "port=${DBPORT}"                               >> ${CONFIG_FILE}
+                        echo "priority=${IDX}"                              >> ${CONFIG_FILE}
+                        echo                                                >> ${CONFIG_FILE}
+                        if (( ${IDX} == 1 )) ; then
+                            SERVERS="Raft${IDX}"
+                        else
+                            SERVERS="${SERVERS},Raft${IDX}"
+                        fi
+                        (( IDX = ${IDX} + 1 ))
+                    done
+
+                    echo "[RaftMonitor]"                                  >> ${CONFIG_FILE}
+                    echo "type=monitor"                                     >> ${CONFIG_FILE}
+                    echo "module=galeramon"                                 >> ${CONFIG_FILE}
+                    echo "servers=${SERVERS}"                               >> ${CONFIG_FILE}
+                    echo "use_priority=true"                                >> ${CONFIG_FILE}
+                    echo "user=${DBUSER}"                                   >> ${CONFIG_FILE}
+                    echo "password=${DBPASSWORD}"                           >> ${CONFIG_FILE}
+                    echo                                                    >> ${CONFIG_FILE}
+                    echo "[RaftService]"                                  >> ${CONFIG_FILE}
+                    echo "type=service"                                     >> ${CONFIG_FILE}
+                    if [[ ${MULTIMASTER} == TRUE ]] ; then
+                        echo "router=readconnroute"                         >> ${CONFIG_FILE}
+                        echo "router_options=synced"                        >> ${CONFIG_FILE}
+                    else
+                        echo "router=readwritesplit"                        >> ${CONFIG_FILE}
+                        echo "slave_selection_criteria=${SLAVE_SELECTION}"  >> ${CONFIG_FILE}
+                        echo "master_accept_reads=${MASTER_READS}"          >> ${CONFIG_FILE}
+                    fi
+                    echo "servers=${SERVERS}"                               >> ${CONFIG_FILE}
+                    echo "user=${DBUSER}"                                   >> ${CONFIG_FILE}
+                    echo "password=${DBPASSWORD}"                           >> ${CONFIG_FILE}
+                    echo                                                    >> ${CONFIG_FILE}
+                    echo "[RaftListener]"                                 >> ${CONFIG_FILE}
+                    echo "type=listener"                                    >> ${CONFIG_FILE}
+                    echo "service=RaftService"                            >> ${CONFIG_FILE}
+                    echo "address=0.0.0.0"                                  >> ${CONFIG_FILE}
+                    echo "port=${DBPORT}"                                   >> ${CONFIG_FILE}
+                    echo                                                    >> ${CONFIG_FILE}
+                '
+            done
+        done
     fi
 
     if [[ ${OPTION_SSL} == TRUE ]] ; then
