@@ -66,27 +66,35 @@ mkdir -p ${LOGDIRECTORY}
     echo
     NODES=( $(gcloud compute instances list | grep ${ID_PREFIX} | awk '{print $1}') )
     echo "        Nodes to be Released: ( ${NODES[*]} )"
+    unset PIDLIST
     for NODE in ${NODES[*]} ; do
         echo
         # need the zone of the instance
         ZONE=$(gcloud compute instances list | grep ${NODE} | awk '{print $2}')
         COMMAND="gcloud compute instances delete ${NODE} --zone=${ZONE} --quiet"
         echo "        COMMAND = ${COMMAND}"
-        ${COMMAND}
+        ${COMMAND} &
+        PIDLIST="${PIDLIST} $!"
     done
+    [[ ${PIDLIST} ]] && echo "wait for background jobs"
+    wait ${PIDLIST}
 
     echo "    ===== Release Disks =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     echo
     DISKS=( $(gcloud compute disks list | grep ${ID_PREFIX} | awk '{print $1}') )
     echo "        Disks to be Released: ( ${DISKS[*]} }"
+    unset PIDLIST
     for DISK in ${DISKS[*]} ; do
         echo
         # need the zone of the disk
         ZONE=$(gcloud compute disks list | grep ${DISK} | awk '{print $2}')
         COMMAND="gcloud compute disks delete ${DISK} --zone=${ZONE}  --quiet"
         echo "        COMMAND = ${COMMAND}"
-        ${COMMAND}
+        ${COMMAND} &
+        PIDLIST="${PIDLIST} $!"
     done
+    [[ ${PIDLIST} ]] && echo "wait for background jobs"
+    wait ${PIDLIST}
 
     echo
     echo "        Nodes still active:"
