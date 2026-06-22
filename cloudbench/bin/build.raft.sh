@@ -36,7 +36,7 @@ while [[ $# > 0 ]] ; do
         # Raft Options
         --slavethreads)        OPTION_SLAVE_THREADS="$1"; shift;;
         --deferflush)          OPTION_DEFERRED_FLUSH=TRUE;;
-        --raft_ssl             OPTION_RAFT_SSL=TRUE;;
+        --raft_ssl)            OPTION_RAFT_SSL=TRUE;;
 
         --ssl)                 OPTION_SSL=TRUE;;
 
