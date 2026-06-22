@@ -103,10 +103,14 @@ mkdir -p ${LOGDIRECTORY}
                 hostname
                 echo "---- MaxScale Version ----"
                 /data/cbench/install/bin/maxscale --version
-                echo "---- MaxScale Servers ----"
-                /data/cbench/install/bin/maxctrl --tsv list servers
-                echo "---- MaxScale Services ----"
-                /data/cbench/install/bin/maxctrl --tsv list services
+                echo "----- maxscale servers -----"
+                maxctrl2 --format=ascii list servers
+                echo "----- maxscale services -----"
+                maxctrl2 --format=ascii list services
+                echo "----- maxscale server details -----"
+                maxctrl2 --format=ascii show servers
+                echo "----- maxscale service details -----"
+                maxctrl2 --format=ascii show services
             '
         done
     fi
