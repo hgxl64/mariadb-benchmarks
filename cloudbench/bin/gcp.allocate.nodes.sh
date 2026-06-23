@@ -21,6 +21,7 @@ USAGE="
         --server-nodes      Number of server nodes in cluster
         --server-type       Server Instance Type
         --server1-type      Server Instance Type for node1
+        --threads-per-core  1|2 only used for server nodes
 
         --driver-nodes      Number of driver nodes
         --driver-type       Driver Instance Type
@@ -51,6 +52,7 @@ while [[ $# > 0 ]] ; do
         --server-nodes)             NUMOFSERVERS="$1"; shift;;
         --server-type)              SERVER_INSTANCE_TYPE="$1"; shift;;
         --server1-type)             SERVER1_INSTANCE_TYPE="$1"; shift;;
+        --threads-per-core)         OPTION_THREADS_PER_CORE="$1"; shift
 
         --driver-nodes)             NUMOFDRIVERS="$1"; shift;;
         --driver-type)              DRIVER_INSTANCE_TYPE="$1"; shift;;
@@ -182,6 +184,10 @@ done
                 else
                     COMMAND="${COMMAND} --machine-type=${SERVER_INSTANCE_TYPE} --min-cpu-platform=Automatic"
                 fi
+                # threads-per-core is only relevant for servers
+                [[ ${OPTION_THREADS_PER_CORE} ]] && {
+                    COMMAND="${COMMAND} --threads-per-core=${OPTION_THREADS_PER_CORE}"
+                }
                 # persistent disk
                 [[ ${PERSISTENTDISK} ]] && {
                     COMMAND="${COMMAND} --create-disk name=${INSTANCE}-disk,device-name=cbench-disk"
