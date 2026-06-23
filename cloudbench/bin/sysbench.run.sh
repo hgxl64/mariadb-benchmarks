@@ -394,6 +394,7 @@ time {
                         echo "        DRIVERID = ${DRIVERID}, DRIVER_NODE = $(uname -n) "
                         echo "        ulimit -n = $(ulimit -n),  ulimit -u = $(ulimit -u) "
                         echo "        COMMAND = ${COMMAND}"
+                        export LUA_PATH="/data/cbench/driver/lua//?.lua;;"
                         timeout --kill-after=${TIMEOUT} ${TIMEOUT} ${COMMAND}
                     '
 

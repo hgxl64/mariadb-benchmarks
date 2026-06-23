@@ -302,6 +302,7 @@ time {
                             COMMAND="'${COMMAND}'"
                             echo "        Driver: $(uname -n)"
                             echo "        COMMAND = ${COMMAND}"
+                            export LUA_PATH="/data/cbench/driver/lua//?.lua;;"
                             ${COMMAND}
                         '
                         ;;
@@ -342,6 +343,7 @@ time {
                             COMMAND="'${COMMAND}'"
                             echo "        Driver: $(uname -n)"
                             echo "        COMMAND = ${COMMAND}"
+                            export LUA_PATH="/data/cbench/driver/lua//?.lua;;"
                             ${COMMAND}
                         '
                         ;;
