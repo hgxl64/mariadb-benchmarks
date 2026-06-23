@@ -468,12 +468,13 @@ done
             {
                 echo 'sudo mkdir -p /data/cbench'
                 if [[ ${PERSISTENTDISK} ]] ; then
-                    echo 'sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j /dev/sdb'
-                    echo "sudo mount -o discard ${DISABLE_WRITE_BARRIER} /dev/sdb /data/cbench"
-                    echo "sudo blockdev --getra /dev/sdb"
+                    [[ ${DISK_DEVICE} ]] || DISK_DEVICE="/dev/sdb"
+                    echo 'sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j ${DISK_DEVICE}'
+                    echo "sudo mount -o discard ${DISABLE_WRITE_BARRIER} ${DISK_DEVICE} /data/cbench"
+                    echo "sudo blockdev --getra ${DISK_DEVICE}"
                     if [[ ${READAHEAD_CACHE} ]] ; then
-                        echo "sudo blockdev --setra ${READAHEAD_CACHE} /dev/sdb"
-                        echo "sudo blockdev --getra /dev/sdb"
+                        echo "sudo blockdev --setra ${READAHEAD_CACHE} ${DISK_DEVICE}"
+                        echo "sudo blockdev --getra ${DISK_DEVICE}"
                     fi
                 elif [[ ${DISKINTERFACE} = 'nvme' ]] ; then
                     if (( ${NUMOFLOCALDISKS} == 1 )) ; then
