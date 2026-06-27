@@ -144,6 +144,10 @@ mkdir -p ${LOGDIRECTORY}
         done
     fi
 
+    echo
+    echo "    ===== Check Connectivity =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S.%3N') ]"
+    echo
+    cluster.latency.sh --cluster ${CLUSTER} --check
 
     echo
     echo "===== End $0  ( Elapsed Seconds = $(( $SECONDS - ${STARTSECONDS} )) ) =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S.%3N') ]"
