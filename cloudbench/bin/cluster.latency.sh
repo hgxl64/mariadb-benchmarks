@@ -268,7 +268,7 @@ mkdir -p ${LOGDIRECTORY}
 
                     unset TARGET_IPS
                     unset TARGET_LATENCY
-                    for ((IDX=0; IDX<NUM_SERVERS; IDX++)) ; do
+                    for (( IDX=0; IDX<${NUM_SERVERS}; IDX++ )) ; do
                         TARGET=${SERVER_SYSTEMS[$IDX]}
                         LATENCY=${LATENCIES[$IDX]}
                         if [[ ${ORIGIN} != ${TARGET} ]] && [[ ${LATENCY} != 0 ]]; then
