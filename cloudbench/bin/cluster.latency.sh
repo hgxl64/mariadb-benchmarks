@@ -191,7 +191,7 @@ mkdir -p ${LOGDIRECTORY}
                         echo "----- average rtt between driver nodes and maxscales in ms:"
                         echo
                         {
-                            echo "to-> ${SERVER_SYSTEMS[*]} ${MAXSCALE_SYSTEMS[*]}"
+                            echo "to-> ${MAXSCALE_SYSTEMS[*]}"
                             for ORIGIN in ${DRIVER_SYSTEMS[*]} ; do
                                 echo -n "${ORIGIN}"
                                 for TARGET in ${MAXSCALE_SYSTEMS[*]} ; do
