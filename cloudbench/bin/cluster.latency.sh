@@ -278,8 +278,9 @@ mkdir -p ${LOGDIRECTORY}
                         IDX=$((IDX+1))
                     done
 
-                    echo "TARGET_IPS     = ${TARGET_IPS[*]}"
-                    echo "TARGET_LATENCY = ${TARGET_LATENCY[*]}"
+                    IFS="," echo "TARGET_IPS     = ( ${TARGET_IPS[*]} )"
+                    IFS="," echo "TARGET_LATENCY = ( ${TARGET_LATENCY[*]} )"
+                    unset IFS
 
                     echo -n "${ORIGIN} : "
                     ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) '
