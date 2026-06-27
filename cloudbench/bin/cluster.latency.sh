@@ -277,8 +277,8 @@ mkdir -p ${LOGDIRECTORY}
                         IDX=$((IDX+1))
                     done
 
-                    #echo "TARGET_IPS     = ( ${TARGET_IPS[*]} )"
-                    #echo "TARGET_LATENCY = ( ${TARGET_LATENCY[*]} )"
+                    echo "TARGET_IPS     = ( ${TARGET_IPS[*]} )"
+                    echo "TARGET_LATENCY = ( ${TARGET_LATENCY[*]} )"
 
                     echo -n "${ORIGIN} : "
                     ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) '
@@ -305,8 +305,11 @@ mkdir -p ${LOGDIRECTORY}
                                 echo "TARGET  = >${TARGET}<"
                                 echo "LATENCY = >${LATENCY}<"
                                 MINOR=$(( 10 + IDX ))
+                                echo 1
                                 sudo tc class add dev ${NETDEV} parent 1:1 classid 1:${MINOR} htb rate ${BANDWIDTH} ceil ${BANDWIDTH} prio 1
+                                echo 2
                                 sudo tc qdisc add dev ${NETDEV} parent 1:${MINOR} handle ${MINOR}0: netem delay ${LATENCY} limit 1000
+                                echo 3
                                 sudo tc filter add dev ${NETDEV} protocol ip parent 1: prio 1 u32 match ip dst ${TARGET} flowid 1:${MINOR}
                                 echo "  netem delay ${LATENCY} added for dst ${TARGET}"
                                 IDX=$((IDX+1))
