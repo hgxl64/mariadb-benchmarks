@@ -262,13 +262,17 @@ mkdir -p ${LOGDIRECTORY}
                     unset TARGET_IPS
                     unset TARGET_LATENCY
                     ORIGIN_IP=$(get_property ${ORIGIN} system.internal.ip)
-                    LATENCIES=$(get_property ${CLUSTER}.latency ${ORIGIN}.latency)
+                    LATENCIES=( $(get_property ${CLUSTER}.latency ${ORIGIN}.latency) )
                     for ((IDX=0; IDX<${#SERVER_SYSTEMS[*]}; IDX++)) ; do
-                        if [[ ${ORIGIN} != ${SERVER_SYSTEMS[$IDX]} ]] ; then
+                        if [[ ${ORIGIN} != ${SERVER_SYSTEMS[$IDX]} ]] && [[ ${LATENCIES[$IDX]} != 0 ]]; then
                             TARGET_IPS=( ${TARGET_IPS[*]} ${SERVER_SYSTEMS[$IDX]} )
                             TARGET_LATENCY=( ${TARGET_LATENCY[*]} ${LATENCIES[$IDX]} )
                         fi
                     done
+
+                    echo "ORIGIN           = ${ORIGIN}"
+                    echo "TARGET_IPS       = ${TARGET_IPS[*]}"
+                    echo "TARGET_LATENCIES = ${TARGET_LATENCIES[*]}"
 
                     echo -n "${ORIGIN} : "
                     ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) '
@@ -290,9 +294,8 @@ mkdir -p ${LOGDIRECTORY}
                             #setup HTB for each target
                             for (( IDX=0; IDX<${#TARGET_IPS[*]}; IDX++ )) ; do
                                 LATENCY=${TARGET_LATENCY[$IDX]}
-                                (( ${LATENCY} == 0 )) && continue
                                 TARGET=${TARGET_IPS[$IDX]}
-                                (( MINOR=10 + IDX ))
+                                MINOR=$(( 10 + IDX ))
                                 sudo tc class add dev ${NETDEV} parent 1:1 classid 1:${MINOR} htb rate ${BANDWIDTH} ceil ${BANDWIDTH} prio 1
                                 sudo tc qdisc add dev ${NETDEV} parent 1:${MINOR} handle ${MINOR}0: netem delay ${LATENCY} limit 1000
                                 sudo tc filter add dev ${NETDEV} protocol ip parent 1: prio 1 u32 match ip dst ${TARGET} flowid 1:${MINOR}
