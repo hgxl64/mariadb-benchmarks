@@ -43,7 +43,8 @@ done
 
 [[ ${CLUSTER} ]] || error "no CLUSTER given, aborting"
 
-[[ ${OPS_PIPELINE[*]} ]] || OPS_PIPELINE+=("check");;
+#default operation: check
+[[ ${OPS_PIPELINE[*]} ]] || OPS_PIPELINE+=("check")
 
 # logging
 TEST_NAME=cluster.latency
@@ -67,7 +68,7 @@ mkdir -p ${LOGDIRECTORY}
 
         for OP in ${OPS_PIPELINE[*]}; do
 
-            case ${MODE} in
+            case ${OP} in
 
                 check)
                     echo
