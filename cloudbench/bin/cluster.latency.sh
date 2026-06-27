@@ -278,8 +278,8 @@ mkdir -p ${LOGDIRECTORY}
                         IDX=$((IDX+1))
                     done
 
-                    echo "TARGET_IPS       = ${TARGET_IPS[*]}"
-                    echo "TARGET_LATENCIES = ${TARGET_LATENCIES[*]}"
+                    echo "TARGET_IPS     = ${TARGET_IPS[*]}"
+                    echo "TARGET_LATENCY = ${TARGET_LATENCY[*]}"
 
                     echo -n "${ORIGIN} : "
                     ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) '
@@ -293,9 +293,13 @@ mkdir -p ${LOGDIRECTORY}
                             sudo tc qdisc del dev ${NETDEV} root &> /dev/null
                             echo "qdisc cleared for ip=${ORIGIN_IP}, device=${NETDEV}"
                             #setup parent HTB
+                            echo 1
                             sudo tc qdisc add dev ${NETDEV} root handle 1: htb default 999
-                            sudo tc class add dev ${NETDEV} parent 1: classid 1:1 htb rate ${BANDWIDTH} ceil ${BANDWIDTH} 2>/dev/null
-                            sudo tc class add dev ${NETDEV} parent 1:1 classid 1:999 htb rate ${BANDWIDTH} ceil ${BANDWIDTH} 2>/dev/null
+                            echo 2
+                            sudo tc class add dev ${NETDEV} parent 1: classid 1:1 htb rate ${BANDWIDTH} ceil ${BANDWIDTH}
+                            echo 3
+                            sudo tc class add dev ${NETDEV} parent 1:1 classid 1:999 htb rate ${BANDWIDTH} ceil ${BANDWIDTH}
+                            echo 4
                             sudo tc qdisc add dev ${NETDEV} parent 1:999 handle 2: fq_codel
                             echo "  parent HTB added with bandwidth ${BANDWIDTH}"
                             #setup HTB for each target
