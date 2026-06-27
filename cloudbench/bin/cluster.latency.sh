@@ -283,7 +283,7 @@ mkdir -p ${LOGDIRECTORY}
                     echo "${ORIGIN}"
                     ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) '
                         ORIGIN_IP="'${ORIGIN_IP}'"
-                        TARGET_IPS=( "'${TARGET_IPS[*]}'" )
+                        TARGET_IPS=( '${TARGET_IPS[*]}' )
                         TARGET_LATENCY=( '${TARGET_LATENCY[*]}' )
                         declare -p TARGET_LATENCY
                         BANDWIDTH="16gbit"
@@ -302,9 +302,9 @@ mkdir -p ${LOGDIRECTORY}
                             IDX=0
                             for TARGET in ${TARGET_IPS[*]} ; do
                                 LATENCY=${TARGET_LATENCY[$IDX]}
-                                echo "IDX     = ${IDX}"
-                                echo "TARGET  = >${TARGET}<"
-                                echo "LATENCY = >${LATENCY}<"
+                                #echo "IDX     = ${IDX}"
+                                #echo "TARGET  = >${TARGET}<"
+                                #echo "LATENCY = >${LATENCY}<"
                                 MINOR=$(( 10 + IDX ))
                                 sudo tc class add dev ${NETDEV} parent 1:1 classid 1:${MINOR} htb rate ${BANDWIDTH} ceil ${BANDWIDTH} prio 1 &> /dev/null
                                 sudo tc qdisc add dev ${NETDEV} parent 1:${MINOR} handle ${MINOR}0: netem delay ${LATENCY} limit 1000
