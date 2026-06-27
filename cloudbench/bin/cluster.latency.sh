@@ -250,6 +250,7 @@ mkdir -p ${LOGDIRECTORY}
 
             set)
                 SERVER_SYSTEMS=$(get_property ${CLUSTER}.latency server.systems)
+                NUM_SERVERS=${#SERVER_SYSTEMS[*]}
                 [[ ${SERVER_SYSTEMS} ]] || error "no systems found. Did you run configure.latency.sh ?"
 
                 echo "    ===== Setting Network Latency ===== [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
@@ -263,7 +264,9 @@ mkdir -p ${LOGDIRECTORY}
                     unset TARGET_LATENCY
                     ORIGIN_IP=$(get_property ${ORIGIN} system.internal.ip)
                     LATENCIES=( $(get_property ${CLUSTER}.latency ${ORIGIN}.latency) )
-                    for ((IDX=0; IDX<${#SERVER_SYSTEMS[*]}; IDX++)) ; do
+                    echo "ORIGIN_IP = ${ORIGIN_IP}"
+                    echo "LATENCIES = ${LATENCIES[*]}"
+                    for ((IDX=0; IDX<NUM_SERVERS; IDX++)) ; do
                         if [[ ${ORIGIN} != ${SERVER_SYSTEMS[$IDX]} ]] && [[ ${LATENCIES[$IDX]} != 0 ]]; then
                             TARGET_IPS=( ${TARGET_IPS[*]} ${SERVER_SYSTEMS[$IDX]} )
                             TARGET_LATENCY=( ${TARGET_LATENCY[*]} ${LATENCIES[$IDX]} )
