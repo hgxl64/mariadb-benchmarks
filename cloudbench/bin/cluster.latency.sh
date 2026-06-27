@@ -261,9 +261,6 @@ mkdir -p ${LOGDIRECTORY}
 
                     ORIGIN_IP=$(get_property ${ORIGIN} system.internal.ip)
                     LATENCIES=( $(get_property ${CLUSTER}.latency ${ORIGIN}.latency) )
-                    #echo "ORIGIN    = ${ORIGIN}"
-                    #echo "ORIGIN_IP = ${ORIGIN_IP}"
-                    #echo "LATENCIES = ( ${LATENCIES[*]} )"
 
                     unset TARGET_IPS
                     unset TARGET_LATENCY
@@ -277,39 +274,29 @@ mkdir -p ${LOGDIRECTORY}
                         IDX=$((IDX+1))
                     done
 
-                    #echo "TARGET_IPS     = ( ${TARGET_IPS[*]} )"
-                    #echo "TARGET_LATENCY = ( ${TARGET_LATENCY[*]} )"
-
-                    echo "${ORIGIN}"
+                    echo "${ORIGIN}:"
                     ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) '
                         ORIGIN_IP="'${ORIGIN_IP}'"
                         TARGET_IPS=( '${TARGET_IPS[*]}' )
                         TARGET_LATENCY=( '${TARGET_LATENCY[*]}' )
-                        declare -p TARGET_LATENCY
                         BANDWIDTH="16gbit"
                         NETDEV=$(ip -o addr show | fgrep "${ORIGIN_IP}" | awk "{print \$2}")
                         if [[ ${NETDEV} ]] ; then
-                            #delete any existing rules
                             sudo tc qdisc del dev ${NETDEV} root &> /dev/null
-                            echo "  qdisc cleared for ip=${ORIGIN_IP}, device=${NETDEV}"
-                            #setup parent HTB
+                            echo "-> qdisc cleared for ip=${ORIGIN_IP}, device=${NETDEV}"
                             sudo tc qdisc add dev ${NETDEV} root handle 1: htb default 999
                             sudo tc class add dev ${NETDEV} parent 1: classid 1:1 htb rate ${BANDWIDTH} ceil ${BANDWIDTH} &> /dev/null
                             sudo tc class add dev ${NETDEV} parent 1:1 classid 1:999 htb rate ${BANDWIDTH} ceil ${BANDWIDTH} &> /dev/null
                             sudo tc qdisc add dev ${NETDEV} parent 1:999 handle 2: fq_codel
-                            echo "  parent HTB added with bandwidth ${BANDWIDTH}"
-                            #setup HTB for each target
+                            echo "-> parent HTB added with bandwidth ${BANDWIDTH}"
                             IDX=0
                             for TARGET in ${TARGET_IPS[*]} ; do
                                 LATENCY=${TARGET_LATENCY[$IDX]}
-                                #echo "IDX     = ${IDX}"
-                                #echo "TARGET  = >${TARGET}<"
-                                #echo "LATENCY = >${LATENCY}<"
                                 MINOR=$(( 10 + IDX ))
                                 sudo tc class add dev ${NETDEV} parent 1:1 classid 1:${MINOR} htb rate ${BANDWIDTH} ceil ${BANDWIDTH} prio 1 &> /dev/null
                                 sudo tc qdisc add dev ${NETDEV} parent 1:${MINOR} handle ${MINOR}0: netem delay ${LATENCY} limit 1000
                                 sudo tc filter add dev ${NETDEV} protocol ip parent 1: prio 1 u32 match ip dst ${TARGET} flowid 1:${MINOR}
-                                echo "  netem delay ${LATENCY} added for dst ${TARGET}"
+                                echo "-> netem delay ${LATENCY} added for dst ${TARGET}"
                                 IDX=$((IDX+1))
                             done
                         else
