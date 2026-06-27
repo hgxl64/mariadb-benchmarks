@@ -65,7 +65,7 @@ time {
                 SYSTEM=$(echo ${SYSTEM} | sed 's/^mariadb\.//')
                 #add to systems if not already there
                 if [[ ! " ${SYSTEMS[@]} " =~ " ${SYSTEM} " ]]; then
-                    SYSTEMS=( ${SYSTEM} ${SYSTEMS[*]} )
+                    SYSTEMS+=( ${SYSTEMS[*]} )
                 fi
             done
             echo "        SYSTEMS    = ${SYSTEMS[*]}"

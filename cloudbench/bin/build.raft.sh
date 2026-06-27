@@ -55,8 +55,8 @@ if [[ ! ${RAFT_SYSTEMS} ]] ; then echo "Invalid config file.  Expected raft.syst
 unset RAFT_EXTERNAL_IPS
 unset RAFT_BACKEND_IPS
 for SYSTEM in ${RAFT_SYSTEMS[*]} ; do
-    RAFT_EXTERNAL_IPS=( ${RAFT_EXTERNAL_IPS[*]} $(getproperty ${SYSTEM} nodes) )
-    RAFT_BACKEND_IPS=( ${RAFT_BACKEND_IPS[*]} $(get_database_backend_ips ${SYSTEM}) )
+    RAFT_EXTERNAL_IPS+=( $(getproperty ${SYSTEM} nodes) )
+    RAFT_BACKEND_IPS+=( $(get_database_backend_ips ${SYSTEM}) )
 done
 DB_USER=$(getproperty ${CLUSTER} database.user)
 DB_PASSWORD=$(getproperty ${CLUSTER} database.password)
@@ -143,7 +143,7 @@ mkdir -p ${LOGDIRECTORY}
             echo "        HOST = ${HOST}"
             ssh $(get_ssh_connection ${SYSTEM} ${HOST}) '
                 CONFIG_FILE="'${CONFIG_FILE}'"
-                RAFT_BACKEND_IPS=("'${RAFT_BACKEND_IPS[*]}'")
+                RAFT_BACKEND_IPS=( '${RAFT_BACKEND_IPS[*]}' )
                 SLAVE_THREADS="'${OPTION_SLAVE_THREADS}'"
                 OPTION_RAFT_SSL="'${OPTION_RAFT_SSL}'"
                 RAFT_FLOW_CONTROL_DRIFT_LIMIT="'${RAFT_FLOW_CONTROL_DRIFT_LIMIT}'"

@@ -187,7 +187,7 @@ mkdir -p ${LOGDIRECTORY}
                 echo "        Node = ${NODE}"
                 echo
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
-                    SERVER_NODES=( "'${SERVER_NODES[*]}'" )
+                    SERVER_NODES=( '${SERVER_NODES[*]}' )
                     DBUSER="'$(get_database_user)'"
                     DBPASSWORD="'$(get_database_password)'"
                     DBPORT="'$(get_database_port)'"
@@ -275,7 +275,7 @@ mkdir -p ${LOGDIRECTORY}
                 echo "        Node = ${NODE}"
                 echo
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
-                    SERVER_NODES=( "'${SERVER_NODES[*]}'" )
+                    SERVER_NODES=( '${SERVER_NODES[*]}' )
                     DBUSER="'$(get_database_user)'"
                     DBPASSWORD="'$(get_database_password)'"
                     DBPORT="'$(get_database_port)'"
@@ -356,7 +356,7 @@ mkdir -p ${LOGDIRECTORY}
                 echo "        Node = ${NODE}"
                 echo
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
-                    SERVER_NODES=( "'${SERVER_NODES[*]}'" )
+                    SERVER_NODES=( '${SERVER_NODES[*]}' )
                     DBUSER="'$(get_database_user)'"
                     DBPASSWORD="'$(get_database_password)'"
                     DBPORT="'$(get_database_port)'"
@@ -448,7 +448,7 @@ mkdir -p ${LOGDIRECTORY}
                 echo "        Node = ${NODE}"
                 echo
                 ssh $(get_ssh_connection ${SYSTEM} ${NODE}) '
-                    SERVER_NODES=( "'${SERVER_NODES[*]}'" )
+                    SERVER_NODES=( '${SERVER_NODES[*]}' )
                     DBUSER="'$(get_database_user)'"
                     DBPASSWORD="'$(get_database_password)'"
                     DBPORT="'$(get_database_port)'"
@@ -476,7 +476,7 @@ mkdir -p ${LOGDIRECTORY}
 
                     IDX=1
                     for SERVER in ${SERVER_NODES[*]} ; do
-                        echo "[Raft${IDX}]"                               >> ${CONFIG_FILE}
+                        echo "[Raft${IDX}]"                                 >> ${CONFIG_FILE}
                         echo "type=server"                                  >> ${CONFIG_FILE}
                         echo "address=${SERVER}"                            >> ${CONFIG_FILE}
                         echo "port=${DBPORT}"                               >> ${CONFIG_FILE}
@@ -490,7 +490,7 @@ mkdir -p ${LOGDIRECTORY}
                         (( IDX = ${IDX} + 1 ))
                     done
 
-                    echo "[RaftMonitor]"                                  >> ${CONFIG_FILE}
+                    echo "[RaftMonitor]"                                    >> ${CONFIG_FILE}
                     echo "type=monitor"                                     >> ${CONFIG_FILE}
                     echo "module=galeramon"                                 >> ${CONFIG_FILE}
                     echo "servers=${SERVERS}"                               >> ${CONFIG_FILE}
@@ -498,7 +498,7 @@ mkdir -p ${LOGDIRECTORY}
                     echo "user=${DBUSER}"                                   >> ${CONFIG_FILE}
                     echo "password=${DBPASSWORD}"                           >> ${CONFIG_FILE}
                     echo                                                    >> ${CONFIG_FILE}
-                    echo "[RaftService]"                                  >> ${CONFIG_FILE}
+                    echo "[RaftService]"                                    >> ${CONFIG_FILE}
                     echo "type=service"                                     >> ${CONFIG_FILE}
                     if [[ ${MULTIMASTER} == TRUE ]] ; then
                         echo "router=readconnroute"                         >> ${CONFIG_FILE}
@@ -512,9 +512,9 @@ mkdir -p ${LOGDIRECTORY}
                     echo "user=${DBUSER}"                                   >> ${CONFIG_FILE}
                     echo "password=${DBPASSWORD}"                           >> ${CONFIG_FILE}
                     echo                                                    >> ${CONFIG_FILE}
-                    echo "[RaftListener]"                                 >> ${CONFIG_FILE}
+                    echo "[RaftListener]"                                   >> ${CONFIG_FILE}
                     echo "type=listener"                                    >> ${CONFIG_FILE}
-                    echo "service=RaftService"                            >> ${CONFIG_FILE}
+                    echo "service=RaftService"                              >> ${CONFIG_FILE}
                     echo "address=0.0.0.0"                                  >> ${CONFIG_FILE}
                     echo "port=${DBPORT}"                                   >> ${CONFIG_FILE}
                     echo                                                    >> ${CONFIG_FILE}

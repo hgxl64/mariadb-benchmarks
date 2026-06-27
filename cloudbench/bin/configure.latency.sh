@@ -65,17 +65,17 @@ mkdir -p ${LOGDIRECTORY}
         case ${CLUSTER_TYPE} in
             mariadb_replication)
                 for SYSTEM in $(get_property ${CLUSTER} master.systems) $(get_property ${CLUSTER} slave.systems) ; do
-                    SERVER_SYSTEMS=( ${SERVER_SYSTEMS[*]} $(echo "${SYSTEM}" | sed 's/^mariadb\.//') )
+                    SERVER_SYSTEMS+=( $(echo "${SYSTEM}" | sed 's/^mariadb\.//') )
                 done
                 ;;
             galera_*)
                 for SYSTEM in $(get_property ${CLUSTER} galera.systems) ; do
-                    SERVER_SYSTEMS=( ${SERVER_SYSTEMS[*]} $(echo "${SYSTEM}" | sed 's/^mariadb\.//') )
+                    SERVER_SYSTEMS+=( $(echo "${SYSTEM}" | sed 's/^mariadb\.//') )
                 done
                 ;;
             raft_*)
                 for SYSTEM in $(get_property ${CLUSTER} raft.systems) ; do
-                    SERVER_SYSTEMS=( ${SERVER_SYSTEMS[*]} $(echo "${SYSTEM}" | sed 's/^mariadb\.//') )
+                    SERVER_SYSTEMS+=( $(echo "${SYSTEM}" | sed 's/^mariadb\.//') )
                 done
                 ;;
             *)

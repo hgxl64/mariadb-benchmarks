@@ -106,19 +106,22 @@ fi
 mkdir -p ${LOGDIRECTORY}
 
 
+# replace forbidden characters in cluster name
+SANITIZED_CLUSTER=$(echo ${CLUSTER} | sed 'tr/._/-/')
+
 # set system ids based on cluster and number
 (( NUMOFNODES = ${NUMOFSERVERS} + ${NUMOFDRIVERS} + ${NUMOFMAXSCALE} ))
 for (( IDX = 1 ; IDX <= ${NUMOFSERVERS} ; IDX++ )) ; do
-    INSTANCE_IDS=( ${INSTANCE_IDS[*]} $(echo ${CLUSTER} | sed 's/\./-/g' | sed 's/_/-/g')-server-${IDX} )
-    SERVER_INSTANCE_IDS=( ${SERVER_INSTANCE_IDS[*]} $(echo ${CLUSTER} | sed 's/\./-/g' | sed 's/_/-/g')-server-${IDX} )
+    INSTANCE_IDS+=( ${SANITIZED_CLUSTER}-server-${IDX} )
+    SERVER_INSTANCE_IDS+=( ${SANITIZED_CLUSTER}-server-${IDX} )
 done
 for (( IDX = 1 ; IDX <= ${NUMOFDRIVERS} ; IDX++ )) ; do
-    INSTANCE_IDS=( ${INSTANCE_IDS[*]} $(echo ${CLUSTER} | sed 's/\./-/g' | sed 's/_/-/g' )-driver-${IDX} )
-    DRIVER_INSTANCE_IDS=( ${DRIVER_INSTANCE_IDS[*]} $(echo ${CLUSTER} | sed 's/\./-/g' | sed 's/_/-/g')-driver-${IDX} )
+    INSTANCE_IDS+=( ${SANITIZED_CLUSTER}-driver-${IDX} )
+    DRIVER_INSTANCE_IDS+=( ${SANITIZED_CLUSTER}-driver-${IDX} )
 done
 for (( IDX = 1 ; IDX <= ${NUMOFMAXSCALE} ; IDX++ )) ; do
-    INSTANCE_IDS=( ${INSTANCE_IDS[*]} $(echo ${CLUSTER} | sed 's/\./-/g' | sed 's/_/-/g' )-maxscale-${IDX} )
-    MAXSCALE_INSTANCE_IDS=( ${MAXSCALE_INSTANCE_IDS[*]} $(echo ${CLUSTER} | sed 's/\./-/g' | sed 's/_/-/g')-maxscale-${IDX} )
+    INSTANCE_IDS+=( ${SANITIZED_CLUSTER}-maxscale-${IDX} )
+    MAXSCALE_INSTANCE_IDS+=( ${SANITIZED_CLUSTER}-maxscale-${IDX} )
 done
 
 
@@ -131,6 +134,7 @@ done
         $0 ${COMMAND_LINE}
 
             CLUSTER                 = ${CLUSTER}
+            SANITIZED_CLUSTER       = ${SANITIZED_CLUSTER}
 
             ZONE_ID                 = ${ZONE_ID}
             SERVER_INSTANCE_TYPE    = ${SERVER_INSTANCE_TYPE}
@@ -288,8 +292,8 @@ done
 
     # get server IP adresses
     for INSTANCE in ${SERVER_INSTANCE_IDS[*]} ; do
-        SERVER_EXTERNAL_IPS=( ${SERVER_EXTERNAL_IPS[*]} $(gcloud compute instances describe ${INSTANCE} --zone ${ZONE_ID} | grep 'natIP' | cut -d: -f2) )
-        SERVER_INTERNAL_IPS=( ${SERVER_INTERNAL_IPS[*]} $(gcloud compute instances describe ${INSTANCE} --zone ${ZONE_ID} | grep 'networkIP' | cut -d: -f2) )
+        SERVER_EXTERNAL_IPS+=( $(gcloud compute instances describe ${INSTANCE} --zone ${ZONE_ID} | grep 'natIP' | cut -d: -f2) )
+        SERVER_INTERNAL_IPS+=( $(gcloud compute instances describe ${INSTANCE} --zone ${ZONE_ID} | grep 'networkIP' | cut -d: -f2) )
     done
     echo
     echo "    SERVER_INSTANCE_IDS = ${SERVER_INSTANCE_IDS[*]}"
@@ -298,8 +302,8 @@ done
 
     # get driver IP adresses
     for INSTANCE in ${DRIVER_INSTANCE_IDS[*]} ; do
-        DRIVER_EXTERNAL_IPS=( ${DRIVER_EXTERNAL_IPS[*]} $(gcloud compute instances describe ${INSTANCE} --zone ${ZONE_ID} | grep 'natIP' | cut -d: -f2) )
-        DRIVER_INTERNAL_IPS=( ${DRIVER_INTERNAL_IPS[*]} $(gcloud compute instances describe ${INSTANCE} --zone ${ZONE_ID} | grep 'networkIP' | cut -d: -f2) )
+        DRIVER_EXTERNAL_IPS+=( $(gcloud compute instances describe ${INSTANCE} --zone ${ZONE_ID} | grep 'natIP' | cut -d: -f2) )
+        DRIVER_INTERNAL_IPS+=( $(gcloud compute instances describe ${INSTANCE} --zone ${ZONE_ID} | grep 'networkIP' | cut -d: -f2) )
     done
     echo
     echo "    DRIVER_INSTANCE_IDS = ${DRIVER_INSTANCE_IDS[*]}"
@@ -308,8 +312,8 @@ done
 
     # get maxscale IP adresses
     for INSTANCE in ${MAXSCALE_INSTANCE_IDS[*]} ; do
-        MAXSCALE_EXTERNAL_IPS=( ${MAXSCALE_EXTERNAL_IPS[*]} $(gcloud compute instances describe ${INSTANCE} --zone ${ZONE_ID} | grep 'natIP' | cut -d: -f2) )
-        MAXSCALE_INTERNAL_IPS=( ${MAXSCALE_INTERNAL_IPS[*]} $(gcloud compute instances describe ${INSTANCE} --zone ${ZONE_ID} | grep 'networkIP' | cut -d: -f2) )
+        MAXSCALE_EXTERNAL_IPS+=( $(gcloud compute instances describe ${INSTANCE} --zone ${ZONE_ID} | grep 'natIP' | cut -d: -f2) )
+        MAXSCALE_INTERNAL_IPS+=( $(gcloud compute instances describe ${INSTANCE} --zone ${ZONE_ID} | grep 'networkIP' | cut -d: -f2) )
     done
     echo
     echo "    MAXSCALE_INSTANCE_IDS = ${MAXSCALE_INSTANCE_IDS[*]}"
@@ -317,8 +321,8 @@ done
     echo "    MAXSCALE_INTERNAL_IPS = ${MAXSCALE_INTERNAL_IPS[*]}"
 
     # all IP adresses together
-    EXTERNAL_IPS=( ${MAXSCALE_EXTERNAL_IPS[*]} ${SERVER_EXTERNAL_IPS[*]} ${DRIVER_EXTERNAL_IPS[*]} )
-    INTERNAL_IPS=( ${MAXSCALE_INTERNAL_IPS[*]} ${SERVER_INTERNAL_IPS[*]} ${DRIVER_INTERNAL_IPS[*]} )
+    EXTERNAL_IPS=( ${SERVER_EXTERNAL_IPS[*]} ${DRIVER_EXTERNAL_IPS[*]} ${MAXSCALE_EXTERNAL_IPS[*]} )
+    INTERNAL_IPS=( ${SERVER_INTERNAL_IPS[*]} ${DRIVER_INTERNAL_IPS[*]} ${MAXSCALE_INTERNAL_IPS[*]} )
     echo
     echo "    INSTANCE_IDS = ${INSTANCE_IDS[*]}"
     echo "    EXTERNAL_IPS = ${EXTERNAL_IPS[*]}"

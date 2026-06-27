@@ -54,8 +54,8 @@ if [[ ! ${GALERA_SYSTEMS} ]] ; then echo "Invalid config file.  Expected galera.
 unset GALERA_EXTERNAL_IPS
 unset GALERA_BACKEND_IPS
 for SYSTEM in ${GALERA_SYSTEMS[*]} ; do
-    GALERA_EXTERNAL_IPS=( ${GALERA_EXTERNAL_IPS[*]} $(getproperty ${SYSTEM} nodes) )
-    GALERA_BACKEND_IPS=( ${GALERA_BACKEND_IPS[*]} $(get_database_backend_ips ${SYSTEM}) )
+    GALERA_EXTERNAL_IPS+=( $(getproperty ${SYSTEM} nodes) )
+    GALERA_BACKEND_IPS+=( $(get_database_backend_ips ${SYSTEM}) )
 done
 DB_USER=$(getproperty ${CLUSTER} database.user)
 DB_PASSWORD=$(getproperty ${CLUSTER} database.password)
@@ -141,7 +141,7 @@ mkdir -p ${LOGDIRECTORY}
             echo "        HOST = ${HOST}"
             ssh $(get_ssh_connection ${SYSTEM} ${HOST}) '
                 CONFIG_FILE="'${CONFIG_FILE}'"
-                GALERA_BACKEND_IPS=("'${GALERA_BACKEND_IPS[*]}'")
+                GALERA_BACKEND_IPS=('${GALERA_BACKEND_IPS[*]}')
                 SLAVE_THREADS="'${OPTION_SLAVE_THREADS}'"
                 GCACHE_SIZE="'${GCACHE_SIZE}'"
                 EVS_USER_SEND_WINDOW="'${EVS_USER_SEND_WINDOW}'"
