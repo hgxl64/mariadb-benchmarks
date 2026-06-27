@@ -144,7 +144,7 @@ mkdir -p ${LOGDIRECTORY}
                 echo "----- average rtt between server nodes in ms:"
                 echo
                 {
-                    echo "from\\to ${SERVER_SYSTEMS[*]}"
+                    echo "==to== ${SERVER_SYSTEMS[*]}"
                     for ORIGIN in ${SERVER_SYSTEMS[*]} ; do
                         echo -n "${ORIGIN}"
                         for TARGET in ${SERVER_SYSTEMS[*]} ; do
@@ -159,11 +159,13 @@ mkdir -p ${LOGDIRECTORY}
                     echo "----- average rtt between maxscale nodes and servers in ms:"
                     echo
                     {
-                        echo "from\\to ${SERVER_SYSTEMS[*]}"
+                        echo "==to== ${SERVER_SYSTEMS[*]}"
                         for ORIGIN in ${MAXSCALE_SYSTEMS[*]} ; do
+                            echo -n "${ORIGIN}"
                             for TARGET in ${SERVER_SYSTEMS[*]} ; do
                                 echo -n " $(tail -1 ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log | cut -d= -f2 | cut -d/ -f2)"
                             done
+                            echo
                         done
                     } | column -t
                 }
@@ -173,11 +175,13 @@ mkdir -p ${LOGDIRECTORY}
                     echo "----- average rtt between driver nodes and servers in ms:"
                     echo
                     {
-                        echo "from\\to ${SERVER_SYSTEMS[*]}"
+                        echo "==to== ${SERVER_SYSTEMS[*]}"
                         for ORIGIN in ${DRIVER_SYSTEMS[*]} ; do
+                            echo -n "${ORIGIN}"
                             for TARGET in ${SERVER_SYSTEMS[*]} ; do
                                 echo -n " $(tail -1 ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log | cut -d= -f2 | cut -d/ -f2)"
                             done
+                            echo
                         done
                     } | column -t
                     [[ ${MAXSCALE_SYSTEMS[*]} ]] && {
@@ -185,11 +189,13 @@ mkdir -p ${LOGDIRECTORY}
                         echo "----- average rtt between driver nodes and maxscales in ms:"
                         echo
                         {
-                            echo "from\\to ${SERVER_SYSTEMS[*]} ${MAXSCALE_SYSTEMS[*]}"
+                            echo "==to== ${SERVER_SYSTEMS[*]} ${MAXSCALE_SYSTEMS[*]}"
                             for ORIGIN in ${DRIVER_SYSTEMS[*]} ; do
+                                echo -n "${ORIGIN}"
                                 for TARGET in ${SERVER_SYSTEMS[*]} ${MAXSCALE_SYSTEMS[*]} ; do
                                     echo -n " $(tail -1 ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log | cut -d= -f2 | cut -d/ -f2)"
                                 done
+                                echo
                             done
                         } | column -t
                     }
