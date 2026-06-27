@@ -271,6 +271,9 @@ mkdir -p ${LOGDIRECTORY}
                     IDX=0
                     for TARGET in ${SERVER_SYSTEMS[*]} ; do
                         LATENCY=${LATENCIES[$IDX]}
+                        echo "IDX     = ${IDX}"
+                        echo "TARGET  = >${TARGET}<"
+                        echo "LATENCY = >${LATENCY}<"
                         if [[ ${ORIGIN} != ${TARGET} ]] && [[ ${LATENCY} != 0 ]]; then
                             TARGET_IPS=( ${TARGET_IPS[*]} $(get_property ${TARGET} system.internal.ip) )
                             TARGET_LATENCY=( ${TARGET_LATENCY[*]} ${LATENCY} )
