@@ -140,7 +140,7 @@ mkdir -p ${LOGDIRECTORY}
                     unset PIDLIST
                 }
 
-                [[ ${#SERVER_SYSTEMS[*]} -gt 1 ]] &&
+                [[ ${#SERVER_SYSTEMS[*]} -gt 1 ]] && {
                     echo
                     echo "----- average rtt between server nodes in ms:"
                     echo
