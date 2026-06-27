@@ -73,6 +73,9 @@ DB_PASSWORD=$(getproperty ${CLUSTER} database.password)
 # default config options
 [[ ${OPTION_SLAVE_THREADS} ]]  || OPTION_SLAVE_THREADS=0       #0 means auto-size
 [[ ${OPTION_DEFERRED_FLUSH} ]] || OPTION_DEFERRED_FLUSH=TRUE
+[[ ${EVS_SEND_WINDOW} ]]       || EVS_SEND_WINDOW=256
+[[ ${EVS_USER_SEND_WINDOW} ]]  || (( EVS_USER_SEND_WINDOW = EVS_SEND_WINDOW / 2 ))
+[[ ${GCACHE_SIZE} ]]           || GCACHE_SIZE="1G"
 
 # logging
 TEST_NAME=build.galera
@@ -137,45 +140,47 @@ mkdir -p ${LOGDIRECTORY}
             echo
             echo "        HOST = ${HOST}"
             ssh $(get_ssh_connection ${SYSTEM} ${HOST}) '
+                CONFIG_FILE="'${CONFIG_FILE}'"
                 GALERA_BACKEND_IPS=("'${GALERA_BACKEND_IPS[*]}'")
                 SLAVE_THREADS="'${OPTION_SLAVE_THREADS}'"
-                CONFIG_FILE="'${CONFIG_FILE}'"
+                GCACHE_SIZE="'${GCACHE_SIZE}'"
+                EVS_USER_SEND_WINDOW="'${EVS_USER_SEND_WINDOW}'"
+                EVS_SEND_WINDOW="'${EVS_SEND_WINDOW}'"
                 (( ${SLAVE_THREADS} == 0 )) && ((SLAVE_THREADS = $(grep -c processor /proc/cpuinfo) * 3))
                 LIBGALERA=$(find /data/cbench/install/lib/galera -name libgalera_smm.so)
                 LIBGALERA=$(find /data/cbench/install/lib/galera -name libgalera_enterprise_smm.so)
-                echo "
-[mariadb]
-wsrep_on = ON
-binlog_format = ROW
-binlog_row_image = MINIMAL
-wsrep_provider = ${LIBGALERA}
-wsrep_provider_options = \"gcache.size = 1G; evs.user_send_window = 128; evs.send_window = 256\"
-wsrep_cluster_address = gcomm://$(echo ${GALERA_BACKEND_IPS[*]} | sed "s/^ //g;s/ /,/g" )
-wsrep_slave_threads = ${SLAVE_THREADS}
-wsrep_sst_method = rsync_wan
-innodb_autoinc_lock_mode = 2" > ${CONFIG_FILE}
+                {
+                    echo
+                    echo "[mariadb]"
+                    echo "wsrep_on = ON"
+                    echo "binlog_format = ROW"
+                    echo "binlog_row_image = MINIMAL"
+                    echo "wsrep_provider = ${LIBGALERA}"
+                    echo "wsrep_provider_options = \"gcache.size=${GCACHE_SIZE}; evs.user_send_window=${EVS_USER_SEND_WINDOW}; evs.send_window=${EVS_SEND_WINDOW}\""
+                    echo "wsrep_cluster_address = gcomm://$(echo ${GALERA_BACKEND_IPS[*]} | sed "s/^ //g;s/ /,/g" )"
+                    echo "wsrep_slave_threads = ${SLAVE_THREADS}"
+                    echo "wsrep_sst_method = rsync_wan"
+                    echo "innodb_autoinc_lock_mode = 2"
+                } > ${CONFIG_FILE}
                 '
 
             if [[ ${OPTION_DEFERRED_FLUSH} == TRUE ]] ; then
-                ssh $(get_ssh_connection ${SYSTEM} ${HOST}) '
-                    CONFIG_FILE="'${CONFIG_FILE}'"
-                    echo "innodb_flush_log_at_trx_commit = 2" >> ${CONFIG_FILE}
-                '
+                ssh $(get_ssh_connection ${SYSTEM} ${HOST}) "
+                    echo 'innodb_flush_log_at_trx_commit = 2' >> ${CONFIG_FILE}
+                "
             fi
 
             CLUSTER_TYPE=$(get_property ${CLUSTER} cluster.type)
             if [[ ${CLUSTER_TYPE} == 'galera_masterslave' ]] ; then
             # for Master/Slave configurations, turn off auto_increment_control so sysbench and other similar workloads will work
-                ssh $(get_ssh_connection ${SYSTEM} ${HOST}) '
-                    CONFIG_FILE="'${CONFIG_FILE}'"
-                    echo "wsrep_auto_increment_control = 0" >> ${CONFIG_FILE}
-                '
+                ssh $(get_ssh_connection ${SYSTEM} ${HOST}) "
+                    echo 'wsrep_auto_increment_control = 0' >> ${CONFIG_FILE}
+                "
             fi
 
-            ssh $(get_ssh_connection ${SYSTEM} ${HOST}) '
-                CONFIG_FILE="'${CONFIG_FILE}'"
+            ssh $(get_ssh_connection ${SYSTEM} ${HOST}) "
                 cat ${CONFIG_FILE}
-            '
+            "
 
         done
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).setup.galera.log 2>&1
@@ -234,8 +239,8 @@ innodb_autoinc_lock_mode = 2" > ${CONFIG_FILE}
         # this needs to be done on leader node only
         ssh $(get_ssh_connection ${SYSTEM} ${GALERA_EXTERNAL_IPS[0]}) "
             /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
-                create user '${DB_USER}'@'%' identified by '${DB_PASSWORD}';
-                grant all on *.* to '${DB_USER}'@'%';
+                CREATE USER '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASSWORD}';
+                GRANT ALL ON *.* TO '${DB_USER}'@'%';
                 CREATE USER IF NOT EXISTS 'prometheus'@'localhost' IDENTIFIED VIA unix_socket WITH MAX_USER_CONNECTIONS 3;
                 GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'localhost';
                 flush privileges;\"

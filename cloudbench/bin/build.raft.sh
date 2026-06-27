@@ -73,8 +73,11 @@ DB_PASSWORD=$(getproperty ${CLUSTER} database.password)
 
 # default config options
 [[ ${OPTION_SLAVE_THREADS} ]]  || OPTION_SLAVE_THREADS=0       #0 means auto-size
-[[ ${OPTION_DEFERRED_FLUSH} ]] || OPTION_DEFERRED_FLUSH=TRUE
+[[ ${OPTION_DEFERRED_FLUSH} ]] || OPTION_DEFERRED_FLUSH=TRUE   #relaxed InnoDB flushing
 [[ ${OPTION_RAFT_SSL} ]]  || OPTION_RAFT_SSL=FALSE             #comm is local, why SSL?
+[[ ${RAFT_FLOW_CONTROL_DRIFT_LIMIT} ]]       || RAFT_FLOW_CONTROL_DRIFT_LIMIT=1000
+[[ ${RAFT_FLOW_CONTROL_MAX_THROTTLE_RATE} ]] || RAFT_FLOW_CONTROL_MAX_THROTTLE_RATE=1000
+
 
 # logging
 TEST_NAME=build.raft
@@ -139,43 +142,49 @@ mkdir -p ${LOGDIRECTORY}
             echo
             echo "        HOST = ${HOST}"
             ssh $(get_ssh_connection ${SYSTEM} ${HOST}) '
+                CONFIG_FILE="'${CONFIG_FILE}'"
                 RAFT_BACKEND_IPS=("'${RAFT_BACKEND_IPS[*]}'")
                 SLAVE_THREADS="'${OPTION_SLAVE_THREADS}'"
-                CONFIG_FILE="'${CONFIG_FILE}'"
                 OPTION_RAFT_SSL="'${OPTION_RAFT_SSL}'"
+                RAFT_FLOW_CONTROL_DRIFT_LIMIT="'${RAFT_FLOW_CONTROL_DRIFT_LIMIT}'"
+                RAFT_FLOW_CONTROL_MAX_THROTTLE_RATE="'${RAFT_FLOW_CONTROL_MAX_THROTTLE_RATE}'"
                 (( ${SLAVE_THREADS} == 0 )) && ((SLAVE_THREADS = $(grep -c processor /proc/cpuinfo) * 3))
-                echo "
-[mariadb]
-
-plugin-load-add=raft
-raft-have-ssl=$([[ ${OPTION_RAFT_SSL} == TRUE ]] && echo "0" || echo "1")
-raft-flow-control-drift-limit=1000
-raft-flow-control-max-throttle-rate=1000
-
-wsrep_on = ON
-wsrep_provider = raft
-binlog_format = ROW
-binlog_row_image = MINIMAL
-wsrep_cluster_address = gcomm://$(echo ${RAFT_BACKEND_IPS[*]} | sed "s/^ //g;s/ /,/g" )
-wsrep_slave_threads = ${SLAVE_THREADS}
-wsrep_sst_method = rsync_wan
-innodb_autoinc_lock_mode = 2" > ${CONFIG_FILE}
+                {
+                    echo
+                    echo "[mariadb]"
+                    echo
+                    echo "plugin-load-add=raft"
+                    echo "raft-flow-control-drift-limit=${RAFT_FLOW_CONTROL_DRIFT_LIMIT}"
+                    echo "raft-flow-control-max-throttle-rate=${RAFT_FLOW_CONTROL_MAX_THROTTLE_RATE}"
+                    if [[ ${OPTION_RAFT_SSL} == TRUE ]] ; then
+                        echo "raft-have-ssl=on
+                    else
+                        echo "raft-have-ssl=off
+                    fi
+                    echo
+                    echo "wsrep_on = ON"
+                    echo "wsrep_provider = raft"
+                    echo "binlog_format = ROW"
+                    echo "binlog_row_image = MINIMAL"
+                    echo "wsrep_cluster_address = gcomm://$(echo ${RAFT_BACKEND_IPS[*]} | sed "s/^ //g;s/ /,/g" )"
+                    echo "wsrep_slave_threads = ${SLAVE_THREADS}"
+                    echo "wsrep_sst_method = rsync_wan"
+                    echo "innodb_autoinc_lock_mode = 2"
+                } > ${CONFIG_FILE}"
                 '
 
             if [[ ${OPTION_DEFERRED_FLUSH} == TRUE ]] ; then
-                ssh $(get_ssh_connection ${SYSTEM} ${HOST}) '
-                    CONFIG_FILE="'${CONFIG_FILE}'"
-                    echo "innodb_flush_log_at_trx_commit = 2" >> ${CONFIG_FILE}
-                '
+                ssh $(get_ssh_connection ${SYSTEM} ${HOST}) "
+                    echo 'innodb_flush_log_at_trx_commit = 2' >> ${CONFIG_FILE}
+                "
             fi
 
             CLUSTER_TYPE=$(get_property ${CLUSTER} cluster.type)
             if [[ ${CLUSTER_TYPE} == 'raft_masterslave' ]] ; then
             # for Master/Slave configurations, turn off auto_increment_control so sysbench and other similar workloads will work
-                ssh $(get_ssh_connection ${SYSTEM} ${HOST}) '
-                    CONFIG_FILE="'${CONFIG_FILE}'"
-                    echo "wsrep_auto_increment_control = 0" >> ${CONFIG_FILE}
-                '
+                ssh $(get_ssh_connection ${SYSTEM} ${HOST}) "
+                    echo 'wsrep_auto_increment_control = 0' >> ${CONFIG_FILE}
+                "
             fi
 
             ssh $(get_ssh_connection ${SYSTEM} ${HOST}) '
@@ -240,8 +249,8 @@ innodb_autoinc_lock_mode = 2" > ${CONFIG_FILE}
         # this needs to be done on leader node only
         ssh $(get_ssh_connection ${SYSTEM} ${RAFT_EXTERNAL_IPS[0]}) "
             /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
-                create user '${DB_USER}'@'%' identified by '${DB_PASSWORD}';
-                grant all on *.* to '${DB_USER}'@'%';
+                CREATE USER '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASSWORD}';
+                GRANT PROCESS, REPLICATION CLIENT, ALL ON *.* TO '${DB_USER}'@'%';
                 CREATE USER IF NOT EXISTS 'prometheus'@'localhost' IDENTIFIED VIA unix_socket WITH MAX_USER_CONNECTIONS 3;
                 GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'localhost';
                 flush privileges;\"
