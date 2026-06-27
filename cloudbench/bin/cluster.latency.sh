@@ -69,18 +69,36 @@ mkdir -p ${LOGDIRECTORY}
                 echo
 
                 #collect list of server systems
+                unset SERVER_SYSTEMS
                 case $(get_property ${CLUSTER} cluster.type) in
                     mariadb_replication)
-                        SERVER_SYSTEMS=( $(get_property ${CLUSTER} master.systems) $(get_property ${CLUSTER} slave.systems) );;
+                        for SYSTEM in $(get_property ${CLUSTER} master.systems) $(get_property ${CLUSTER} slave.systems) ; do
+                            SERVER_SYSTEMS=( ${SERVER_SYSTEMS[*]} $(echo "SYSTEM" | sed 's/^mariadb\.//') )
+                        done
+                        ;;
                     galera_*)
-                        SERVER_SYSTEMS=( $(get_property ${CLUSTER} galera.systems) );;
+                        for SYSTEM in $(get_property ${CLUSTER} galera.systems) ; do
+                            SERVER_SYSTEMS=( ${SERVER_SYSTEMS[*]} $(echo "SYSTEM" | sed 's/^mariadb\.//') )
+                        done
+                        ;;
                     raft_*)
-                        SERVER_SYSTEMS=( $(get_property ${CLUSTER} raft.systems) );;
+                        for SYSTEM in $(get_property ${CLUSTER} raft.systems) ; do
+                            SERVER_SYSTEMS=( ${SERVER_SYSTEMS[*]} $(echo "SYSTEM" | sed 's/^mariadb\.//') )
+                        done
+                        ;;
                     *)
-                        SERVER_SYSTEMS=( $(get_property ${CLUSTER} mariadb.systems) );;
+                        for SYSTEM in $(get_property ${CLUSTER} mariadb.systems) ; do
+                            SERVER_SYSTEMS=( ${SERVER_SYSTEMS[*]} $(echo "SYSTEM" | sed 's/^mariadb\.//') )
+                        done
+                        ;;
                 esac
+
                 #and maxscale systems
-                MAXSCALE_SYSTEMS=( $(get_property ${CLUSTER} maxscale.systems) )
+                unset MAXSCALE_SYSTEMS
+                for SYSTEM in $(get_property ${CLUSTER} maxscale.systems) ; do
+                    MAXSCALE_SYSTEMS=( ${MAXSCALE_SYSTEMS[*]} $(echo "SYSTEM" | sed 's/^maxscale\.//') )
+                done
+
                 #and driver systems
                 DRIVER_SYSTEMS=( $(get_property ${CLUSTER} driver.systems) )
 
