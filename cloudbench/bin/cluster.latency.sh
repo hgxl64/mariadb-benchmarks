@@ -260,20 +260,23 @@ mkdir -p ${LOGDIRECTORY}
 
                 for ORIGIN in ${SERVER_SYSTEMS[*]} ; do
 
-                    unset TARGET_IPS
-                    unset TARGET_LATENCY
                     ORIGIN_IP=$(get_property ${ORIGIN} system.internal.ip)
                     LATENCIES=( $(get_property ${CLUSTER}.latency ${ORIGIN}.latency) )
+                    echo "ORIGIN    = ${ORIGIN}"
                     echo "ORIGIN_IP = ${ORIGIN_IP}"
                     echo "LATENCIES = ${LATENCIES[*]}"
+
+                    unset TARGET_IPS
+                    unset TARGET_LATENCY
                     for ((IDX=0; IDX<NUM_SERVERS; IDX++)) ; do
-                        if [[ ${ORIGIN} != ${SERVER_SYSTEMS[$IDX]} ]] && [[ ${LATENCIES[$IDX]} != 0 ]]; then
-                            TARGET_IPS=( ${TARGET_IPS[*]} ${SERVER_SYSTEMS[$IDX]} )
-                            TARGET_LATENCY=( ${TARGET_LATENCY[*]} ${LATENCIES[$IDX]} )
+                        TARGET=${SERVER_SYSTEMS[$IDX]}
+                        LATENCY=${LATENCIES[$IDX]}
+                        if [[ ${ORIGIN} != ${TARGET} ]] && [[ ${LATENCY} != 0 ]]; then
+                            TARGET_IPS=( ${TARGET_IPS[*]} ${TARGET} )
+                            TARGET_LATENCY=( ${TARGET_LATENCY[*]} ${LATENCY} )
                         fi
                     done
 
-                    echo "ORIGIN           = ${ORIGIN}"
                     echo "TARGET_IPS       = ${TARGET_IPS[*]}"
                     echo "TARGET_LATENCIES = ${TARGET_LATENCIES[*]}"
 
