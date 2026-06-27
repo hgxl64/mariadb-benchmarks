@@ -250,7 +250,6 @@ mkdir -p ${LOGDIRECTORY}
 
             set)
                 SERVER_SYSTEMS=$(get_property ${CLUSTER}.latency server.systems)
-                NUM_SERVERS=${#SERVER_SYSTEMS[*]}
                 [[ ${SERVER_SYSTEMS} ]] || error "no systems found. Did you run configure.latency.sh ?"
 
                 echo "    ===== Setting Network Latency ===== [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
@@ -271,12 +270,9 @@ mkdir -p ${LOGDIRECTORY}
                     IDX=0
                     for TARGET in ${SERVER_SYSTEMS[*]} ; do
                         LATENCY=${LATENCIES[$IDX]}
-                        echo "IDX     = ${IDX}"
-                        echo "TARGET  = >${TARGET}<"
-                        echo "LATENCY = >${LATENCY}<"
                         if [[ ${ORIGIN} != ${TARGET} ]] && [[ ${LATENCY} != 0 ]]; then
-                            TARGET_IPS=( ${TARGET_IPS[*]} $(get_property ${TARGET} system.internal.ip) )
-                            TARGET_LATENCY=( ${TARGET_LATENCY[*]} ${LATENCY} )
+                            TARGET_IPS+=( $(get_property ${TARGET} system.internal.ip) )
+                            TARGET_LATENCY+=( ${LATENCY} )
                         fi
                         IDX=$((IDX+1))
                     done
@@ -287,8 +283,8 @@ mkdir -p ${LOGDIRECTORY}
                     echo -n "${ORIGIN} : "
                     ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) '
                         ORIGIN_IP="'${ORIGIN_IP}'"
-                        TARGET_IPS=( "'${TARGET_IPS[*]}'" )
-                        TARGET_LATENCY=( "'${TARGET_LATENCY[*]}'" )
+                        declare -a TARGET_IPS=( "'${TARGET_IPS[*]}'" )
+                        declare -a TARGET_LATENCY=( "'${TARGET_LATENCY[*]}'" )
                         BANDWIDTH="16gbit"
                         NETDEV=$(ip -o addr show | fgrep "${ORIGIN_IP}" | awk "{print \$2}")
                         if [[ ${NETDEV} ]] ; then
