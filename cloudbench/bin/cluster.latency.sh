@@ -207,7 +207,7 @@ mkdir -p ${LOGDIRECTORY}
 
             reset)
                 ALL_SYSTEMS=$(get_property ${CLUSTER}.latency all.systems)
-                [[ ${ALL_SYSTEMS} ]] || error "no systems found. Did you configure latency?"
+                [[ ${ALL_SYSTEMS} ]] || error "no systems found. Did you run configure.latency.sh ?"
 
                 echo "    ===== Resetting Network Latency ===== [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
                 echo
@@ -231,7 +231,7 @@ mkdir -p ${LOGDIRECTORY}
 
             show)
                 ALL_SYSTEMS=$(get_property ${CLUSTER}.latency all.systems)
-                [[ ${ALL_SYSTEMS} ]] || error "no systems found. Did you configure latency?"
+                [[ ${ALL_SYSTEMS} ]] || error "no systems found. Did you run configure.latency.sh ?"
 
                 echo "    ===== Configured Network Latency ===== [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
                 echo
@@ -241,7 +241,7 @@ mkdir -p ${LOGDIRECTORY}
                 echo "configured network latency  between nodes:"
                 echo
                 {
-                    echo "from\\to ${ALL_SYSTEMS[*]}"
+                    echo "to-> ${ALL_SYSTEMS[*]}"
                     for ORIGIN in ${ALL_SYSTEMS[*]} ; do
                         echo "${ORIGIN} $(get_property ${CLUSTER}.latency ${ORIGIN}.latency)"
                     done
@@ -250,7 +250,7 @@ mkdir -p ${LOGDIRECTORY}
 
             set)
                 ALL_SYSTEMS=$(get_property ${CLUSTER}.latency all.systems)
-                [[ ${ALL_SYSTEMS} ]] || error "no systems found. Did you configure latency?"
+                [[ ${ALL_SYSTEMS} ]] || error "no systems found. Did you run configure.latency.sh ?"
 
                 echo "    ===== Setting Network Latency ===== [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
                 echo
