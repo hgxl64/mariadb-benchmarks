@@ -206,7 +206,7 @@ mkdir -p ${LOGDIRECTORY}
                 ;;
 
             reset)
-                SERVER_SYSTEMS=$(get_property ${CLUSTER}.latency all.systems)
+                SERVER_SYSTEMS=$(get_property ${CLUSTER}.latency server.systems)
                 [[ ${SERVER_SYSTEMS} ]] || error "no systems found. Did you run configure.latency.sh ?"
 
                 echo "    ===== Resetting Network Latency ===== [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
