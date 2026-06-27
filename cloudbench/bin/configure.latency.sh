@@ -60,26 +60,31 @@ mkdir -p ${LOGDIRECTORY}
     time {
 
         CLUSTER_TYPE=$(get_property ${CLUSTER} cluster.type)
-        unset ALL_SYSTEMS
 
+        unset SERVER_SYSTEMS
         case ${CLUSTER_TYPE} in
             mariadb_replication)
-                ALL_SYSTEMS=( $(get_property ${CLUSTER} master.systems) $(get_property ${CLUSTER} slave.systems) )
+                for SYSTEM in $(get_property ${CLUSTER} master.systems) $(get_property ${CLUSTER} slave.systems) ; do
+                    SERVER_SYSTEMS=( ${SERVER_SYSTEMS[*]} $(echo "${SYSTEM}" | sed 's/^mariadb\.//') )
+                done
                 ;;
-
             galera_*)
-                ALL_SYSTEMS=( $(get_property ${CLUSTER} galera.systems) )
+                for SYSTEM in $(get_property ${CLUSTER} galera.systems) ; do
+                    SERVER_SYSTEMS=( ${SERVER_SYSTEMS[*]} $(echo "${SYSTEM}" | sed 's/^mariadb\.//') )
+                done
                 ;;
-
             raft_*)
-                ALL_SYSTEMS=( $(get_property ${CLUSTER} raft.systems) )
+                for SYSTEM in $(get_property ${CLUSTER} raft.systems) ; do
+                    SERVER_SYSTEMS=( ${SERVER_SYSTEMS[*]} $(echo "${SYSTEM}" | sed 's/^mariadb\.//') )
+                done
                 ;;
-
-            *) error "Unsupported Cluster Type: CLUSTER_TYPE = ${CLUSTER_TYPE}"
+            *)
+                error "Unsupported Cluster Type: CLUSTER_TYPE = ${CLUSTER_TYPE}"
+                ;;
         esac
 
         IFS=$'\n'
-        ALL_SYSTEMS=( $(sort <<< "${ALL_SYSTEMS[*]}") )
+        SERVER_SYSTEMS=( $(sort <<< "${SERVER_SYSTEMS[*]}") )
         SLOW_SYSTEMS=( $(sort <<< "${SLOW_SYSTEMS[*]}") )
         unset IFS
 
@@ -88,7 +93,7 @@ mkdir -p ${LOGDIRECTORY}
         echo "        CLUSTER        = ${CLUSTER}"
         echo "        CLUSTER_TYPE   = ${CLUSTER_TYPE}"
         echo
-        echo "        ALL_SYSTEMS    = ( ${ALL_SYSTEMS[*]} )"
+        echo "        SERVER_SYSTEMS = ( ${SERVER_SYSTEMS[*]} )"
         echo "        SLOW_SYSTEMS   = ( ${SLOW_SYSTEMS[*]} )"
         echo "        LATENCY        = ${LATENCY}"
         echo
@@ -98,16 +103,16 @@ mkdir -p ${LOGDIRECTORY}
             echo "cluster.name = ${CLUSTER}"
             echo "cluster.type = ${CLUSTER_TYPE}"
             echo
-            echo "all.systems = ${ALL_SYSTEMS[*]}"
+            echo "server.systems = ${SERVER_SYSTEMS[*]}"
             echo "slow.systems = ${SLOW_SYSTEMS[*]}"
             echo
 
-            NUM_SYSTEMS=${#ALL_SYSTEMS[*]}
+            NUM_SYSTEMS=${#SERVER_SYSTEMS[*]}
             for (( IDX1=0; IDX1<$NUM_SYSTEMS; IDX1++ )) ; do
-                SYSTEM=${ALL_SYSTEMS[$IDX1]}
+                SYSTEM=${SERVER_SYSTEMS[$IDX1]}
                 echo -n "${SYSTEM}.latency ="
                 if [[ " ${SLOW_SYSTEMS[*]} " =~ " ${SYSTEM} " ]]; then
-                    #äthis is  slow system, set latency exept for self
+                    #this is a slow system, set latency exept for self
                     for (( IDX2=0; IDX2<$NUM_SYSTEMS; IDX2++ )) ; do
                         if (( ${IDX1} == ${IDX2} )) ; then
                             echo -n " 0"
@@ -117,8 +122,8 @@ mkdir -p ${LOGDIRECTORY}
                     done
                 else
                     #this is a fast system, set latency only when other system is slow
-                    for (( IDX2=0 ; IDX2<${#ALL_SYSTEMS[@]} ; IDX2++ )) ; do
-                        if [[ " ${SLOW_SYSTEMS[*]} " =~ " ${ALL_SYSTEMS[$IDX2]} " ]] ; then
+                    for (( IDX2=0 ; IDX2<${#SERVER_SYSTEMS[@]} ; IDX2++ )) ; do
+                        if [[ " ${SLOW_SYSTEMS[*]} " =~ " ${SERVER_SYSTEMS[$IDX2]} " ]] ; then
                             echo -n " ${LATENCY}"
                         else
                             echo -n " 0"

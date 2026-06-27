@@ -206,15 +206,15 @@ mkdir -p ${LOGDIRECTORY}
                 ;;
 
             reset)
-                ALL_SYSTEMS=$(get_property ${CLUSTER}.latency all.systems)
-                [[ ${ALL_SYSTEMS} ]] || error "no systems found. Did you run configure.latency.sh ?"
+                SERVER_SYSTEMS=$(get_property ${CLUSTER}.latency all.systems)
+                [[ ${SERVER_SYSTEMS} ]] || error "no systems found. Did you run configure.latency.sh ?"
 
                 echo "    ===== Resetting Network Latency ===== [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
                 echo
-                echo "        ALL_SYSTEMS    = ${ALL_SYSTEMS}"
+                echo "        SERVER_SYSTEMS = ${SERVER_SYSTEMS}"
                 echo
 
-                for ORIGIN in ${ALL_SYSTEMS[*]} ; do
+                for ORIGIN in ${SERVER_SYSTEMS[*]} ; do
                     echo -n "${ORIGIN} : "
                     ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) '
                         IP="'$(get_property ${ORIGIN} system.internal.ip)'"
@@ -230,42 +230,42 @@ mkdir -p ${LOGDIRECTORY}
                 ;;
 
             show)
-                ALL_SYSTEMS=$(get_property ${CLUSTER}.latency all.systems)
-                [[ ${ALL_SYSTEMS} ]] || error "no systems found. Did you run configure.latency.sh ?"
+                SERVER_SYSTEMS=$(get_property ${CLUSTER}.latency server.systems)
+                [[ ${SERVER_SYSTEMS} ]] || error "no systems found. Did you run configure.latency.sh ?"
 
                 echo "    ===== Configured Network Latency ===== [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
                 echo
-                echo "        ALL_SYSTEMS    = ${ALL_SYSTEMS}"
+                echo "        SERVER_SYSTEMS = ${SERVER_SYSTEMS}"
                 echo
 
-                echo "configured network latency  between nodes:"
+                echo "configured network latency between nodes:"
                 echo
                 {
-                    echo "to-> ${ALL_SYSTEMS[*]}"
-                    for ORIGIN in ${ALL_SYSTEMS[*]} ; do
+                    echo "to-> ${SERVER_SYSTEMS[*]}"
+                    for ORIGIN in ${SERVER_SYSTEMS[*]} ; do
                         echo "${ORIGIN} $(get_property ${CLUSTER}.latency ${ORIGIN}.latency)"
                     done
                 } | column -t
                 ;;
 
             set)
-                ALL_SYSTEMS=$(get_property ${CLUSTER}.latency all.systems)
-                [[ ${ALL_SYSTEMS} ]] || error "no systems found. Did you run configure.latency.sh ?"
+                SERVER_SYSTEMS=$(get_property ${CLUSTER}.latency server.systems)
+                [[ ${SERVER_SYSTEMS} ]] || error "no systems found. Did you run configure.latency.sh ?"
 
                 echo "    ===== Setting Network Latency ===== [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
                 echo
-                echo "        ALL_SYSTEMS    = ${ALL_SYSTEMS}"
+                echo "        SERVER_SYSTEMS = ${SERVER_SYSTEMS}"
                 echo
 
-                for ORIGIN in ${ALL_SYSTEMS[*]} ; do
+                for ORIGIN in ${SERVER_SYSTEMS[*]} ; do
 
                     unset TARGET_IPS
                     unset TARGET_LATENCY
                     ORIGIN_IP=$(get_property ${ORIGIN} system.internal.ip)
                     LATENCIES=$(get_property ${CLUSTER}.lateny ${ORIGIN}.latency)
-                    for ((IDX=0; IDX<${#ALL_SYSTEMS[*]}; IDX++)) ; do
-                        if [[ ${ORIGIN} != ${ALL_SYSTEMS[$IDX]} ]] ; then
-                            TARGET_IPS=( ${TARGET_IPS[*]} ${ALL_SYSTEMS[$IDX]} )
+                    for ((IDX=0; IDX<${#SERVER_SYSTEMS[*]}; IDX++)) ; do
+                        if [[ ${ORIGIN} != ${SERVER_SYSTEMS[$IDX]} ]] ; then
+                            TARGET_IPS=( ${TARGET_IPS[*]} ${SERVER_SYSTEMS[$IDX]} )
                             TARGET_LATENCY=( ${TARGET_LATENCY[*]} ${LATENCIES[$IDX]} )
                         fi
                     done
@@ -277,6 +277,7 @@ mkdir -p ${LOGDIRECTORY}
                         TARGET_LATENCY=( "'${TARGET_LATENCY[*]}'" )
                         BANDWIDTH="16gbit"
                         NETDEV=$(ip -o addr show | fgrep "${ORIGIN_IP}" | awk "{print \$2}")
+                        echo "found ${NETDEV} for ${ORIGIN_IP}"
                         if [[ ${NETDEV} ]] ; then
                             #delete any existing rules
                             sudo tc qdisc del dev ${NETDEV} root &> /dev/null
