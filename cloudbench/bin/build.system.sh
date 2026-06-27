@@ -123,7 +123,7 @@ process_connection_info;
 # target OS
 if [[ ! ${OS} ]] ; then
     OS="ubuntu-2404"
-    [[ ${OPTION_ARM} = TRUE ]] && ARCH="ubuntu-2404-arm"
+    [[ ${OPTION_ARM} = TRUE ]] && OS="ubuntu-2404-arm"
 fi
 
 # target architecture
@@ -243,35 +243,6 @@ mkdir -p ${LOGDIRECTORY}
                 rm build.properties
                 unlock_semaphore
 
-                echo
-                echo "        copying ${TARGET} to ${SYSTEM}"
-                time {
-                    if ( ! scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
-                        error "scp to ${SYSTEM} failed"
-                    fi
-                }
-
-                echo
-                echo "        unpacking MariaDB"
-                time ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
-                    cd /data/cbench
-                    [[ -d install ]] || mkdir install
-                    tar xfz '$(basename ${TARGET})' -C install --strip-components=1
-                    [[ -d datadir ]] || mkdir datadir
-                    cd install
-                    ln -s ../datadir var
-                    cd etc
-                    mkdir my.cnf.d
-                    echo "#"                                             | sudo tee /etc/my.cnf    >  my.cnf
-                    echo "# include *.cnf from the config directory"     | sudo tee -a /etc/my.cnf >> my.cnf
-                    echo "#"                                             | sudo tee -a /etc/my.cnf >> my.cnf
-                    echo "!includedir /data/cbench/install/etc/my.cnf.d" | sudo tee -a /etc/my.cnf >> my.cnf
-                    echo                                                 | sudo tee -a /etc/my.cnf >> my.cnf
-                    echo "[client]"                                      | sudo tee -a /etc/my.cnf >> my.cnf
-                    echo "socket = /data/cbench/mariadb.sock"            | sudo tee -a /etc/my.cnf >> my.cnf
-                    echo                                                 | sudo tee -a /etc/my.cnf >> my.cnf
-                '
-
             elif [[ ${MARIADB_SOURCE} == 'tarball' ]] ; then
                 echo
                 echo "        Installing MariaDB Enterprise Server from TARBALL"
@@ -282,35 +253,42 @@ mkdir -p ${LOGDIRECTORY}
                 [[ -f ${TARGET} ]] || error "${TARGET} doesn't exist! Exiting"
                 echo "        found ${TARGET}"
 
-                echo
-                echo "        copying ${TARGET} to ${SYSTEM}"
-                time {
-                    if ( ! scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
-                        error "scp to ${SYSTEM} failed. Exiting"
-                    fi
-                }
-
-                echo
-                echo "        unpacking MariaDB"
-                time ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
-                    cd /data/cbench
-                    [[ -d install ]] || mkdir install
-                    tar xfz '$(basename ${TARGET})' -C install --strip-components=1
-                    [[ -d datadir ]] || mkdir datadir
-                    cd install
-                    ln -s ../datadir var
-                    cd etc
-                    mkdir my.cnf.d
-                    echo "#"                                             | sudo tee /etc/my.cnf    >  my.cnf
-                    echo "# include *.cnf from the config directory"     | sudo tee -a /etc/my.cnf >> my.cnf
-                    echo "#"                                             | sudo tee -a /etc/my.cnf >> my.cnf
-                    echo "!includedir /data/cbench/install/etc/my.cnf.d" | sudo tee -a /etc/my.cnf >> my.cnf
-                    echo                                                 | sudo tee -a /etc/my.cnf >> my.cnf
-                '
-
             else
                 error "Invalid MariaDB source specified: ${MARIADB_SOURCE}"
             fi
+
+            echo
+            echo "        copying ${TARGET} to ${SYSTEM}"
+            time {
+                if ( ! scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
+                    error "scp to ${SYSTEM} failed"
+                fi
+            }
+
+            echo
+            echo "        unpacking MariaDB"
+            time ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+                cd /data/cbench
+                [[ -d install ]] || mkdir install
+                tar xfz '$(basename ${TARGET})' -C install --strip-components=1
+                #remove Enterprise config, it loads AUDIT plugin & more
+                [[ -f /data/cbench/install/etc/mariadb-enterprise.cnf ]] && rm /data/cbench/install/etc/mariadb-enterprise.cnf
+                [[ -d datadir ]] || mkdir datadir
+                cd install
+                ln -s ../datadir var
+                cd etc
+                mkdir my.cnf.d
+                {
+                    echo "#"
+                    echo "# include *.cnf from the config directory"
+                    echo "#"
+                    echo "!includedir /data/cbench/install/etc/my.cnf.d"
+                    echo
+                    echo "[client]"
+                    echo "socket = /data/cbench/mariadb.sock"
+                    echo
+                } | sudo tee /etc/my.cnf > my.cnf
+            '
 
             if [[ ${OPTION_GALERA} == TRUE ]] ; then
                 if [[ ${GALERA_SOURCE} == 'jenkins' ]] ; then
@@ -365,22 +343,6 @@ mkdir -p ${LOGDIRECTORY}
                     rm -f build.properties
                     unlock_semaphore
 
-                    echo
-                    echo "        copying ${TARGET} to ${SYSTEM}"
-                    time {
-                         if ( ! scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
-                             error "        scp to ${SYSTEM} failed"
-                         fi
-                    }
-
-                    echo
-                    echo "        unpacking Galera"
-                    time ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
-                        cd /data/cbench
-                        [[ -d install ]] || mkdir install
-                        tar xfz '$(basename ${TARGET})' -C install --strip-components=1
-                    '
-
                 elif [[ ${GALERA_SOURCE} == 'tarball' ]] ; then
                     echo
                     echo "        Installing GALERA from TARBALL"
@@ -391,24 +353,26 @@ mkdir -p ${LOGDIRECTORY}
                     [[ -f ${TARGET} ]] || error "${TARGET} doesn't exist! Exiting"
                     echo "        found ${TARGET}"
 
-                    echo
-                    echo "        copying ${TARGET} to ${SYSTEM}"
-                    time {
-                         if ( ! scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
-                             error "scp to ${SYSTEM} failed"
-                         fi
-                    }
-
-                    echo
-                    echo "        unpacking Galera"
-                    time ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
-                        cd /data/cbench
-                        [[ -d install ]] || mkdir install
-                        tar xfz '$(basename ${TARGET})' -C install --strip-components=1
-                    '
                 else
                     error "Invalid Galera source specified: $GALERA_SOURCE"
                 fi
+
+                #finalize Galera installation
+                echo
+                echo "        copying ${TARGET} to ${SYSTEM}"
+                time {
+                     if ( ! scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
+                         error "        scp to ${SYSTEM} failed"
+                     fi
+                }
+
+                echo
+                echo "        unpacking Galera"
+                time ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+                    cd /data/cbench
+                    [[ -d install ]] || mkdir install
+                    tar xfz '$(basename ${TARGET})' -C install --strip-components=1
+                '
             fi
 
             if [[ ${OPTION_RAFT} == TRUE ]] ; then
@@ -463,20 +427,6 @@ mkdir -p ${LOGDIRECTORY}
                     rm build.properties
                     unlock_semaphore
 
-                    echo "        copying ${TARGET} to ${SYSTEM}"
-                    time {
-                        if ( ! time scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
-                            error "scp to ${SYSTEM} failed"
-                        fi
-                    }
-
-                    echo "        unpacking Raft"
-                    time ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
-                        cd /data/cbench
-                        [[ -d install ]] || mkdir install
-                        tar xfz '$(basename ${TARGET})' -C install --strip-components=1
-                    '
-
                 elif [[ ${RAFT_SOURCE} == 'tarball' ]] ; then
                     echo
                     echo "        Installing RAFT from TARBALL"
@@ -486,25 +436,24 @@ mkdir -p ${LOGDIRECTORY}
                     TARGET="${DOWNLOAD_DIR}/${RAFT_TARBALL}"
                     [[ -f ${TARGET} ]] || error "${TARGET} doesn't exist! Exiting"
                     echo "        found ${TARGET}"
-
-                    echo
-                    echo "        copying ${TARGET} to ${SYSTEM}"
-                    time {
-                         if ( ! scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
-                             error "scp to ${SYSTEM} failed"
-                         fi
-                    }
-
-                    echo
-                    echo "        unpacking Raft"
-                    time ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
-                        cd /data/cbench
-                        [[ -d install ]] || mkdir install
-                        tar xfz '$(basename ${TARGET})' -C install --strip-components=1
-                    '
                 else
                     error "Invalid Raft source specified: $RAFT_SOURCE"
                 fi
+
+                #finalize Raft installation
+                echo "        copying ${TARGET} to ${SYSTEM}"
+                time {
+                    if ( ! time scp $(get_scp_copy_to_connection ${CLUSTER} ${SYSTEM} ${TARGET} /data/cbench/) ) ; then
+                        error "scp to ${SYSTEM} failed"
+                    fi
+                }
+
+                echo "        unpacking Raft"
+                time ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) '
+                    cd /data/cbench
+                    [[ -d install ]] || mkdir install
+                    tar xfz '$(basename ${TARGET})' -C install --strip-components=1
+                '
             fi
         fi
 
@@ -820,29 +769,18 @@ mkdir -p ${LOGDIRECTORY}
         echo "    ===== Finalize Database =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         echo
 
-        if [[ ${DB_PASSWORD} ]] ; then
-            ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "
-                uname -n
-                /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
-                    CREATE USER '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASSWORD}';
-                    GRANT ALL ON *.* TO '${DB_USER}'@'%';
-                    CREATE USER '${DB_USER}'@'127.0.0.1' IDENTIFIED BY '${DB_PASSWORD}';
-                    GRANT ALL ON *.* TO '${DB_USER}'@'127.0.0.1';
-                    CREATE USER IF NOT EXISTS 'prometheus'@'localhost' IDENTIFIED VIA unix_socket WITH MAX_USER_CONNECTIONS 3;
-                    GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'localhost';
-                    FLUSH PRIVILEGES;
-                \"
-                "
-        else
-           ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "
-               uname -n
-               /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
-                   CREATE USER '${DB_USER}'@'%';
-                   GRANT ALL ON *.* TO '${DB_USER}'@'%';
-                   FLUSH PRIVILEGES;
-               \"
-           "
-        fi
+        ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "
+            uname -n
+            /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
+                CREATE USER '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASSWORD}';
+                GRANT PROCESS, REPLICATION CLIENT, ALL ON *.* TO '${DB_USER}'@'%';
+                CREATE USER '${DB_USER}'@'127.0.0.1' IDENTIFIED BY '${DB_PASSWORD}';
+                GRANT PROCESS, REPLICATION CLIENT, ALL ON *.* TO '${DB_USER}'@'127.0.0.1';
+                CREATE USER IF NOT EXISTS 'prometheus'@'localhost' IDENTIFIED VIA unix_socket WITH MAX_USER_CONNECTIONS 3;
+                GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'localhost';
+                FLUSH PRIVILEGES;
+            \"
+            "
 
         if [[ ${OPTION_SSL} == TRUE ]] ; then
             echo "        Checking SSL"
@@ -910,7 +848,7 @@ mkdir -p ${LOGDIRECTORY}
         echo "    ===== Check Database Connection =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         mariadb -vvv $(get_database_connection) -e "
             create schema if not exists test;
-            select @@innodb_buffer_pool_size/1024/1024 AS 'InnoDB Buffer Pool Size [MB]';
+            select @@innodb_buffer_pool_size/1024/1024/1024 AS 'InnoDB Buffer Pool Size [GB]';
             select version();
         "
         if [[ ${OPTION_MASTER} == TRUE ]] ; then
