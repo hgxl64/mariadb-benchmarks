@@ -262,7 +262,7 @@ mkdir -p ${LOGDIRECTORY}
                     unset TARGET_IPS
                     unset TARGET_LATENCY
                     ORIGIN_IP=$(get_property ${ORIGIN} system.internal.ip)
-                    LATENCIES=$(get_property ${CLUSTER}.lateny ${ORIGIN}.latency)
+                    LATENCIES=$(get_property ${CLUSTER}.latency ${ORIGIN}.latency)
                     for ((IDX=0; IDX<${#SERVER_SYSTEMS[*]}; IDX++)) ; do
                         if [[ ${ORIGIN} != ${SERVER_SYSTEMS[$IDX]} ]] ; then
                             TARGET_IPS=( ${TARGET_IPS[*]} ${SERVER_SYSTEMS[$IDX]} )
@@ -277,11 +277,10 @@ mkdir -p ${LOGDIRECTORY}
                         TARGET_LATENCY=( "'${TARGET_LATENCY[*]}'" )
                         BANDWIDTH="16gbit"
                         NETDEV=$(ip -o addr show | fgrep "${ORIGIN_IP}" | awk "{print \$2}")
-                        echo "found ${NETDEV} for ${ORIGIN_IP}"
                         if [[ ${NETDEV} ]] ; then
                             #delete any existing rules
                             sudo tc qdisc del dev ${NETDEV} root &> /dev/null
-                            echo "qdisc cleared for ip=${IP}, device=${NETDEV}"
+                            echo "qdisc cleared for ip=${ORIGIN_IP}, device=${NETDEV}"
                             #setup parent HTB
                             sudo tc qdisc add dev ${NETDEV} root handle 1: htb default 999
                             sudo tc class add dev ${NETDEV} parent 1: classid 1:1 htb rate ${BANDWIDTH} ceil ${BANDWIDTH}
