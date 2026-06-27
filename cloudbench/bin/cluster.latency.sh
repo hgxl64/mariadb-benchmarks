@@ -277,20 +277,21 @@ mkdir -p ${LOGDIRECTORY}
                         IDX=$((IDX+1))
                     done
 
-                    echo "TARGET_IPS     = ( ${TARGET_IPS[*]} )"
-                    echo "TARGET_LATENCY = ( ${TARGET_LATENCY[*]} )"
+                    #echo "TARGET_IPS     = ( ${TARGET_IPS[*]} )"
+                    #echo "TARGET_LATENCY = ( ${TARGET_LATENCY[*]} )"
 
-                    echo -n "${ORIGIN} : "
+                    echo "${ORIGIN}"
                     ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) '
                         ORIGIN_IP="'${ORIGIN_IP}'"
-                        declare -a TARGET_IPS=( "'${TARGET_IPS[*]}'" )
-                        declare -a TARGET_LATENCY=( "'${TARGET_LATENCY[*]}'" )
+                        TARGET_IPS=( "'${TARGET_IPS[*]}'" )
+                        TARGET_LATENCY=( '${TARGET_LATENCY[*]}' )
+                        declare -p TARGET_LATENCY
                         BANDWIDTH="16gbit"
                         NETDEV=$(ip -o addr show | fgrep "${ORIGIN_IP}" | awk "{print \$2}")
                         if [[ ${NETDEV} ]] ; then
                             #delete any existing rules
                             sudo tc qdisc del dev ${NETDEV} root &> /dev/null
-                            echo "qdisc cleared for ip=${ORIGIN_IP}, device=${NETDEV}"
+                            echo "  qdisc cleared for ip=${ORIGIN_IP}, device=${NETDEV}"
                             #setup parent HTB
                             sudo tc qdisc add dev ${NETDEV} root handle 1: htb default 999
                             sudo tc class add dev ${NETDEV} parent 1: classid 1:1 htb rate ${BANDWIDTH} ceil ${BANDWIDTH} &> /dev/null
@@ -305,11 +306,8 @@ mkdir -p ${LOGDIRECTORY}
                                 echo "TARGET  = >${TARGET}<"
                                 echo "LATENCY = >${LATENCY}<"
                                 MINOR=$(( 10 + IDX ))
-                                echo 1
-                                sudo tc class add dev ${NETDEV} parent 1:1 classid 1:${MINOR} htb rate ${BANDWIDTH} ceil ${BANDWIDTH} prio 1
-                                echo 2
+                                sudo tc class add dev ${NETDEV} parent 1:1 classid 1:${MINOR} htb rate ${BANDWIDTH} ceil ${BANDWIDTH} prio 1 &> /dev/null
                                 sudo tc qdisc add dev ${NETDEV} parent 1:${MINOR} handle ${MINOR}0: netem delay ${LATENCY} limit 1000
-                                echo 3
                                 sudo tc filter add dev ${NETDEV} protocol ip parent 1: prio 1 u32 match ip dst ${TARGET} flowid 1:${MINOR}
                                 echo "  netem delay ${LATENCY} added for dst ${TARGET}"
                                 IDX=$((IDX+1))
