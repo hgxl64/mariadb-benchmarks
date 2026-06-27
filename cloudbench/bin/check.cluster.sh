@@ -101,14 +101,19 @@ mkdir -p ${LOGDIRECTORY}
             ssh $(get_ssh_connection ${CLUSTER} ${NODE}) '
                 echo -n "MaxScale System : "
                 hostname
+                echo
                 echo "---- MaxScale Version ----"
                 /data/cbench/install/bin/maxscale --version
+                echo
                 echo "----- maxscale servers -----"
                 /data/cbench/install/bin/maxctrl2 --format=ascii list servers
+                echo
                 echo "----- maxscale services -----"
                 /data/cbench/install/bin/maxctrl2 --format=ascii list services
+                echo
                 echo "----- maxscale server details -----"
                 /data/cbench/install/bin/maxctrl2 --format=ascii show servers
+                echo
                 echo "----- maxscale service details -----"
                 /data/cbench/install/bin/maxctrl2 --format=ascii show services
             '
