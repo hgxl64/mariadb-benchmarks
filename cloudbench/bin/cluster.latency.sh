@@ -5,10 +5,10 @@ source ${CBENCH_HOME}/bin/cbench.sh
 USAGE="usage: $0
 
     Set, reset or show network latency between the server nodes of a cluster.
-    The latencies are stored in cluster.latency.properties
+    The latencies are stored in \${CLUSTER}.latency.properties
 
     Or check the latencies between all types of nodes. This does not require
-    cluster.latency.properties
+    \${CLUSTER}.latency.properties
 
     Parameters:
         ...
@@ -115,7 +115,7 @@ mkdir -p ${LOGDIRECTORY}
                     for ORIGIN in ${SERVER_SYSTEMS[*]} ; do
                         for TARGET in ${SERVER_SYSTEMS[*]} ; do
                             TARGET_IP=$(get_property ${TARGET} system.internal.ip)
-                            ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) "ping -A -c 10 ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
+                            ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) "ping -i 0.5 -c 20 ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
                             PIDLIST="${PIDLIST} $!"
                         done
                     done
@@ -123,7 +123,7 @@ mkdir -p ${LOGDIRECTORY}
                     for ORIGIN in ${MAXSCALE_SYSTEMS[*]} ; do
                         for TARGET in ${SERVER_SYSTEMS[*]} ; do
                             TARGET_IP=$(get_property ${TARGET} system.internal.ip)
-                            ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) "ping -A -c 10 ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
+                            ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) "ping -i 0.5 -c 20 ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
                             PIDLIST="${PIDLIST} $!"
                         done
                     done
@@ -131,7 +131,7 @@ mkdir -p ${LOGDIRECTORY}
                     for ORIGIN in ${DRIVER_SYSTEMS[*]} ; do
                         for TARGET in ${SERVER_SYSTEMS[*]} ${MAXSCALE_SYSTEMS[*]} ; do
                             TARGET_IP=$(get_property ${TARGET} system.internal.ip)
-                            ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) "ping -A -c 10 ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
+                            ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) "ping -i 0.5 -c 20 ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
                             PIDLIST="${PIDLIST} $!"
                         done
                     done
