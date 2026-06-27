@@ -167,7 +167,7 @@ mkdir -p ${LOGDIRECTORY}
                         echo "----- average rtt between driver nodes and maxscales in ms:"
                         echo
                         {
-                            echo "from\\to ${SERVER_SYSTEMS[*]} ${MAXSCALE_SYSTEMS[*]"
+                            echo "from\\to ${SERVER_SYSTEMS[*]} ${MAXSCALE_SYSTEMS[*]}"
                             for ORIGIN in ${DRIVER_SYSTEMS[*]} ; do
                                 for TARGET in ${SERVER_SYSTEMS[*]} ${MAXSCALE_SYSTEMS[*]} ; do
                                     echo -n " $(tail -1 ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log | cut -d= -f2 | cut -d/ -f2)"
