@@ -7,6 +7,7 @@ use Getopt::Long;
 use HTTP::Request;
 use LWP::UserAgent;
 use JSON::MaybeXS;
+use Data::Dumper;
 
 #default options
 my $host= undef;
@@ -35,7 +36,6 @@ options: --host ........ where Grafana listens
 
 EOM
 
-
 die $helpmessage
 unless Getopt::Long::GetOptions(
                                 "host=s"      => \$host,
@@ -48,18 +48,27 @@ unless Getopt::Long::GetOptions(
                                )
 and not $help;
 
-my $ua= LWP::UserAgent->new();
 
+# get dashboard
+my $ua= LWP::UserAgent->new();
 my $req = HTTP::Request->new(
   'GET' => "http://$host:$port/apis/dashboard.grafana.app/v1/namespaces/default/dashboards/$dashboard"
                             );
 $req->header("Authorization" => "Bearer $token");
 $req->accept_decodable;
-
 my $res= $ua->request($req);
-if ($res->is_success) {
-    print $res->decoded_content;
-} else {
+unless ($res->is_success) {
     print STDERR $res->status_line, "\n";
+    exit 1;
 }
+my $dash= decode_json $res->decoded_content;
+
+print Dumper($dash);
+exit 0;
+
+# modify dashboard for snapshot
+$dash->{"time"}{"from"}= $ts_from;
+$dash->{"time"}{"to"}= $ts_to;
+$dash->{"refresh"}="";
+
 
