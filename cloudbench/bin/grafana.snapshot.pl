@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# (w) Axel XL Schwenke for MariaDB
+# (w) Axel "XL" Schwenke for MariaDB
 #
 # $Id$
 
