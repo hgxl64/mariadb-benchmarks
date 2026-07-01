@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
 #
+# (w) Axel XL Schwenke for MariaDB
 #
+# $Id$
 
 use strict;
 use Getopt::Long;
@@ -14,26 +16,26 @@ my $host= undef;
 my $port= 3000;
 my $token= undef;
 my $dashboard= "nodeexporter";
+my $cluster= $ENV{"CLUSTER"};
 my $ts_to= time();
 my $ts_from= $ts_to-3600;
-my $valid= 365*24*60*60;
+my $expires= 365*24*60*60;
 my $help= 0;
 #end
 
 my $helpmessage= <<EOM;
 $0 -  snapshot a Grafana dashboard
 
-usage: $0 --host ... --token ... [options]
+usage: $0 --host ... --token ... --cluster ... [options]
 
 options: --host ........ where Grafana listens
          --port ........ Grafana port (default: $port)
          --auth ........ auth token
          --dashboard ... dashboard UID (default: $dashboard)
+         --cluster ..... cluster to select in dashboard
          --from ........ start time of snapshot (default: now-1h)
          --to .......... end time of snapshot (default: now)
-         --valid ....... how long the snapshot is valid (default: 1 year)
-
-
+         --expires ..... how long the snapshot is valid (default: 1 year)
 EOM
 
 die $helpmessage
@@ -44,6 +46,7 @@ unless Getopt::Long::GetOptions(
                                 "dashboard=s" => \$dashboard,
                                 "from=s"      => \$ts_from,
                                 "to=s"        => \$ts_to,
+                                "expires=s"   => \$expires,
                                 "help|?!"     => \$help
                                )
 and not $help;
@@ -51,24 +54,57 @@ and not $help;
 
 # get dashboard
 my $ua= LWP::UserAgent->new();
-my $req = HTTP::Request->new(
-  'GET' => "http://$host:$port/apis/dashboard.grafana.app/v1/namespaces/default/dashboards/$dashboard"
-                            );
+my $req = HTTP::Request->new();
+$req->method('GET');
+$req->uri("http://$host:$port/apis/dashboard.grafana.app/v1/namespaces/default/dashboards/$dashboard");
 $req->header("Authorization" => "Bearer $token");
 $req->accept_decodable;
 my $res= $ua->request($req);
-unless ($res->is_success) {
-    print STDERR $res->status_line, "\n";
-    exit 1;
-}
+die $res->status_line unless ($res->is_success);
 my $dash= decode_json $res->decoded_content;
 
 print Dumper($dash);
-exit 0;
+#exit 0;
 
 # modify dashboard for snapshot
-$dash->{"time"}{"from"}= $ts_from;
-$dash->{"time"}{"to"}= $ts_to;
-$dash->{"refresh"}="";
+# set time span
+$dash->{"spec"}{"time"}{"from"}= $ts_from;
+$dash->{"spec"}{"time"}{"to"}= $ts_to;
+# disable refresh
+$dash->{"spec"}{"refresh"}="";
+# set current cluster as default
+my @var_templates= @{$dash->{"spec"}->{"templating"}->{"list"}};
+foreach my $var (@var_templates) {
+    if ($var->{"name"} == "cluster") {
+        $var->{"current"}{"selected"}= 1;
+        $var->{"current"}{"text"}= $cluster;
+        $var->{"current"}{"value"}= $cluster;
+        $var->{"options"}= $var->{"current"};
+        $var->{"type"}= "custom";
+        $var->{"query"}= $cluster;
+    }
+}
 
+print Dumper($dash);
+
+# build request
+my $snap= {
+    "dasboard" => $dash,
+    "expires" => $expires,
+    "name" => "$dashboard snapshot"
+};
+
+$req->method('PUT');
+$req->uri("http://$host:$port/api/snapshots");
+$req->header("Authorization" => "Bearer $token");
+$req->content(encode_json $snap);
+$req->accept_decodable;
+$res= $ua->request($req);
+die $res->status_line unless ($res->is_success);
+
+my $snap_res= decode_json $res->decoded_content;
+
+print Dumper($snap_res);
+
+exit 0;
 
