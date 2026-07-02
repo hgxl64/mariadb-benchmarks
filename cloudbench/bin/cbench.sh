@@ -1538,3 +1538,102 @@ start_prometheus_mysqld_exporter() {
     fi
 }
 
+
+get_database_node_names() {
+    [[ ${CLUSTER} ]] || return 0
+    local NODES
+    for SYSTEM in $(get_property ${CLUSTER} mariadb.systems) \
+                  $(get_property ${CLUSTER} master.systems) \
+                  $(get_property ${CLUSTER} slave.systems) \
+                  $(get_property ${CLUSTER} galera.systems) \
+                  $(get_property ${CLUSTER} slave.systems) ; do
+        SYSTEM=$(echo ${SYSTEM} | sed 's/^mariadb\.//')
+        if [[ ! " ${NODES[*]} " =~ " ${SYSTEM} " ]] ; then
+            NODES+=${SYSTEM}
+        fi
+    done
+    echo "${NODES[*]}"
+}
+
+
+get_maxscale_node_names() {
+    [[ ${CLUSTER} ]] || return 0
+    local NODES
+    for SYSTEM in $(get_property ${CLUSTER} maxscale.systems) ; do
+        SYSTEM=$(echo ${SYSTEM} | sed 's/^maxscale\.//')
+        if [[ ! " ${NODES[*]} " =~ " ${SYSTEM} " ]] ; then
+            NODES+=${SYSTEM}
+        fi
+    done
+    echo "${NODES[*]}"
+}
+
+
+get_driver_node_names() {
+    [[ ${CLUSTER} ]] || return 0
+    local NODES
+    for SYSTEM in $(get_property ${CLUSTER} driver.systems) ; do
+        if [[ ! " ${NODES[*]} " =~ " ${SYSTEM} " ]] ; then
+            NODES+=${SYSTEM}
+        fi
+    done
+    echo "${NODES[*]}"
+}
+
+
+get_all_node_names() {
+    [[ ${CLUSTER} ]] || return 0
+    local NODES
+    for SYSTEM in $(get_property ${CLUSTER} mariadb.systems) \
+                  $(get_property ${CLUSTER} master.systems) \
+                  $(get_property ${CLUSTER} slave.systems) \
+                  $(get_property ${CLUSTER} galera.systems) \
+                  $(get_property ${CLUSTER} slave.systems) ; do
+        SYSTEM=$(echo ${SYSTEM} | sed 's/^mariadb\.//')
+        if [[ ! " ${NODES[*]} " =~ " ${SYSTEM} " ]] ; then
+            NODES+=${SYSTEM}
+        fi
+    done
+    for SYSTEM in $(get_property ${CLUSTER} maxscale.systems) ; do
+        SYSTEM=$(echo ${SYSTEM} | sed 's/^maxscale\.//')
+        if [[ ! " ${NODES[*]} " =~ " ${SYSTEM} " ]] ; then
+            NODES+=${SYSTEM}
+        fi
+    done
+    for SYSTEM in $(get_property ${CLUSTER} driver.systems) ; do
+        if [[ ! " ${NODES[*]} " =~ " ${SYSTEM} " ]] ; then
+            NODES+=${SYSTEM}
+        fi
+    done
+    echo "${NODES[*]}"
+}
+
+
+start_grafana() {
+    GRAFANA_START=$(date --utc --iso-8601=seconds)
+}
+
+
+stop_grafana() {
+    GRAFANA_STOP=$(date --utc --iso-8601=seconds)
+    # check if we are in a cloud
+    local CLOUD=$(get_property ${CLUSTER} server.cloud)
+    if [[ ${CLOUD} ]] ; then
+        # source cloud-specific config
+        [[ -f ${CBENCH_HOME}/config/${CLOUD}.conf ]] && source ${CBENCH_HOME}/config/${CLOUD}.conf
+        # check if a grafana server is configured
+        if [[ ${GRAFANA_KEYNAME} ]] ; then
+            local TOKEN=$(vault GRAFANA_KEYNAME)
+
+            echo "=== Node Exporter"
+            for NODE in $(get_all_node_names) ; do
+                echo -n "${NODE}: "
+                grafana.snapshot.pl --host=${GRAFANA_EXT_HOST} --port=${GRAFANA_EXT_PORT} \
+                  --auth=${TOKEN} --from=${GRAFANA_START} --to=${GRAFANA_STOP} \
+                  --dashboard=nodeexporter --cluster=${CLUSTER} --node=${NODE} \
+                  | sed "s(http://localhost:3000)(${GRAFANA_PUBLIC_HOST})"
+            done
+        fi
+    fi
+}
+

@@ -233,6 +233,8 @@ time {
 #    echo "    ===== Start Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 #    time start_performance_monitor ${CLUSTER} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).start.performance.monitor 2>&1
 
+    start_grafana
+
     echo
     echo "    ===== Run Performance Curve =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     time {
@@ -361,7 +363,10 @@ time {
     echo
     echo "    ===== Post Processing =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     time {
+
 #        stop_monitors;
+        stop_grafana > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.log 2>&1
+
         gather_posttest_snapshot ${CLUSTER};
         if [[ ${OPTION_CLEANUP} ]] ; then
             echo "    ===== Clean Up : Delete Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
