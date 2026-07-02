@@ -19,6 +19,7 @@ my $port= 3000;
 my $token= undef;
 my $dashboard= "nodeexporter";
 my $cluster= $ENV{"CLUSTER"} || undef;
+my $node= undef;
 my $ts_to= time();
 my $ts_from= $ts_to-3600;
 my $expires= 365*24*60*60;
@@ -34,7 +35,8 @@ options: --host ........ where Grafana listens
          --port ........ Grafana port (default: $port)
          --auth ........ auth token
          --dashboard ... dashboard UID (default: $dashboard)
-         --cluster ..... cluster to select in dashboard
+         --cluster ..... cluster to select in snapshot
+         --node ........ node to select in snapshot
          --from ........ start time of snapshot (default: now-1h)
          --to .......... end time of snapshot (default: now)
          --expires ..... how long the snapshot is valid (default: 1 year)
@@ -47,6 +49,7 @@ unless Getopt::Long::GetOptions(
                                 "auth=s"      => \$token,
                                 "dashboard=s" => \$dashboard,
                                 "cluster=s"   => \$cluster,
+                                "node=s"      => \$node,
                                 "from=s"      => \$ts_from,
                                 "to=s"        => \$ts_to,
                                 "expires=i"   => \$expires,
@@ -65,12 +68,11 @@ $req->accept_decodable;
 my $res= $ua->request($req);
 die $res->status_line unless ($res->is_success);
 
-open $LOG, "> original_json.txt" or die $!;
-print $LOG $res->decoded_content;
-close $LOG;
+#open $LOG, "> original_json.txt" or die $!;
+#print $LOG $res->decoded_content;
+#close $LOG;
 
-my $dash_res= decode_json($res->decoded_content);
-my $dash= $dash_res->{"dashboard"};
+my $dash= decode_json($res->decoded_content)->{"dashboard"};
 
 open $LOG, "> original.txt" or die $!;
 print $LOG Dumper($dash);
@@ -82,7 +84,7 @@ $dash->{"time"}{"from"}= $ts_from;
 $dash->{"time"}{"to"}= $ts_to;
 # disable refresh
 $dash->{"refresh"}="";
-# set current cluster as default
+# set cluster and node
 my @var_templates= @{$dash->{"templating"}{"list"}};
 foreach my $var (@var_templates) {
     if ($var->{"name"} eq "cluster") {
@@ -92,6 +94,14 @@ foreach my $var (@var_templates) {
         $var->{"options"}= $var->{"current"};
         $var->{"type"}= "custom";
         $var->{"query"}= $cluster;
+    }
+    if ($var->{"name"} eq "node") {
+        $var->{"current"}{"selected"}= 1;
+        $var->{"current"}{"text"}= $node;
+        $var->{"current"}{"value"}= $node;
+        $var->{"options"}= $var->{"current"};
+        $var->{"type"}= "custom";
+        $var->{"query"}= $node;
     }
 }
 
@@ -106,13 +116,13 @@ my $snap= {
     "name" => "$dashboard snapshot"
 };
 
-open $LOG, "> snap_request.txt" or die $!;
-print $LOG Dumper($snap);
-close $LOG;
+#open $LOG, "> snap_request.txt" or die $!;
+#print $LOG Dumper($snap);
+#close $LOG;
 
-open $LOG, "> snap_request_json.txt" or die $!;
-print $LOG encode_json $snap;
-close $LOG;
+#open $LOG, "> snap_request_json.txt" or die $!;
+#print $LOG encode_json $snap;
+#close $LOG;
 
 $req->method('POST');
 $req->uri("http://$host:$port/api/snapshots");
@@ -129,5 +139,6 @@ open $LOG, "> snap_result.txt" or die $!;
 print $LOG Dumper($snap_res);
 close $LOG;
 
-exit 0;
+print $snap_res->{"url"};
 
+exit 0;
