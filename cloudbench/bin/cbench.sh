@@ -1549,7 +1549,7 @@ get_database_node_names() {
                   $(get_property ${CLUSTER} slave.systems) ; do
         SYSTEM=$(echo ${SYSTEM} | sed 's/^mariadb\.//')
         if [[ ! " ${NODES[*]} " =~ " ${SYSTEM} " ]] ; then
-            NODES+=${SYSTEM}
+            NODES+=( ${SYSTEM} )
         fi
     done
     echo "${NODES[*]}"
@@ -1562,7 +1562,7 @@ get_maxscale_node_names() {
     for SYSTEM in $(get_property ${CLUSTER} maxscale.systems) ; do
         SYSTEM=$(echo ${SYSTEM} | sed 's/^maxscale\.//')
         if [[ ! " ${NODES[*]} " =~ " ${SYSTEM} " ]] ; then
-            NODES+=${SYSTEM}
+            NODES+=( ${SYSTEM} )
         fi
     done
     echo "${NODES[*]}"
@@ -1574,7 +1574,7 @@ get_driver_node_names() {
     local NODES
     for SYSTEM in $(get_property ${CLUSTER} driver.systems) ; do
         if [[ ! " ${NODES[*]} " =~ " ${SYSTEM} " ]] ; then
-            NODES+=${SYSTEM}
+            NODES+=( ${SYSTEM} )
         fi
     done
     echo "${NODES[*]}"
@@ -1591,18 +1591,18 @@ get_all_node_names() {
                   $(get_property ${CLUSTER} slave.systems) ; do
         SYSTEM=$(echo ${SYSTEM} | sed 's/^mariadb\.//')
         if [[ ! " ${NODES[*]} " =~ " ${SYSTEM} " ]] ; then
-            NODES+=${SYSTEM}
+            NODES+=( ${SYSTEM} )
         fi
     done
     for SYSTEM in $(get_property ${CLUSTER} maxscale.systems) ; do
         SYSTEM=$(echo ${SYSTEM} | sed 's/^maxscale\.//')
         if [[ ! " ${NODES[*]} " =~ " ${SYSTEM} " ]] ; then
-            NODES+=${SYSTEM}
+            NODES+=( ${SYSTEM} )
         fi
     done
     for SYSTEM in $(get_property ${CLUSTER} driver.systems) ; do
         if [[ ! " ${NODES[*]} " =~ " ${SYSTEM} " ]] ; then
-            NODES+=${SYSTEM}
+            NODES+=( ${SYSTEM} )
         fi
     done
     echo "${NODES[*]}"
