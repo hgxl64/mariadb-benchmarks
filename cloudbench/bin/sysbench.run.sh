@@ -118,6 +118,7 @@ if [[ ${BENCHMARK} == 'sysbench-tpcc' ]] ; then
     SYSBENCH_DRIVER='sysbench-tpcc'
     [[ ${SCHEMA} ]] || SCHEMA='sysbench_tpcc'
     [[ ${DBSCALE} ]] || DBSCALE=10
+    [[ ${TABLES} ]] || TABLES=10
     # Single driver
     NUMOFDRIVERS=1
     DRIVER_NODES=( ${DRIVER_NODES[0]} )
@@ -125,8 +126,8 @@ else
     [[ ${SCHEMA} ]] || SCHEMA=${BENCHMARK}
     [[ ${WORKLOAD} ]] || WORKLOAD=9010
     [[ ${DBSCALE} ]] || DBSCALE=10
-    [[ ${TABLES} ]] || TABLES=${DBSCALE}
-    [[ ${TABLESIZE} ]] || (( TABLESIZE = ${DBSCALE} * 1000000 / ${TABLES} ))
+    [[ ${TABLES} ]] || TABLES=10
+    [[ ${TABLESIZE} ]] || (( TABLESIZE = ${DBSCALE} * 4000000 / ${TABLES} ))
     [[ ! ${DISTRIBUTION} ]] && DISTRIBUTION='uniform'
 fi
 
