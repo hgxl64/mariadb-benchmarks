@@ -9,9 +9,6 @@ use Getopt::Long;
 use HTTP::Request;
 use LWP::UserAgent;
 use JSON::MaybeXS;
-#use Data::Dumper;
-#$Data::Dumper::Indent= 1;
-#my $LOG;
 
 #default options
 my $host= undef;
@@ -68,15 +65,7 @@ $req->accept_decodable;
 my $res= $ua->request($req);
 die $res->status_line unless ($res->is_success);
 
-#open $LOG, "> original_json.txt" or die $!;
-#print $LOG $res->decoded_content;
-#close $LOG;
-
 my $dash= decode_json($res->decoded_content)->{"dashboard"};
-
-#open $LOG, "> original.txt" or die $!;
-#print $LOG Dumper($dash);
-#close $LOG;
 
 # modify dashboard for snapshot
 # set time span
@@ -105,24 +94,12 @@ foreach my $var (@var_templates) {
     }
 }
 
-#open $LOG, "> modified.txt" or die $!;
-#print $LOG Dumper($dash);
-#close $LOG;
-
 # build request
 my $snap= {
     "dashboard" => $dash,
     "expires" => $expires,
-    "name" => "$dashboard snapshot"
+    "name" => "$dashboard, $cluster, $node"
 };
-
-#open $LOG, "> snap_request.txt" or die $!;
-#print $LOG Dumper($snap);
-#close $LOG;
-
-#open $LOG, "> snap_request_json.txt" or die $!;
-#print $LOG encode_json $snap;
-#close $LOG;
 
 $req->method('POST');
 $req->uri("http://$host:$port/api/snapshots");
@@ -135,10 +112,5 @@ die $res->status_line unless ($res->is_success);
 
 my $snap_res= decode_json $res->decoded_content;
 
-#open $LOG, "> snap_result.txt" or die $!;
-#print $LOG Dumper($snap_res);
-#close $LOG;
-
 print $snap_res->{"url"}, "\n";
 
-exit 0;
