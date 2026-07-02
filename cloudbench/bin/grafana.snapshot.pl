@@ -16,7 +16,7 @@ my $host= undef;
 my $port= 3000;
 my $token= undef;
 my $dashboard= "nodeexporter";
-my $cluster= $ENV{"CLUSTER"};
+my $cluster= $ENV{"CLUSTER"} || undef;
 my $ts_to= time();
 my $ts_from= $ts_to-3600;
 my $expires= 365*24*60*60;
@@ -41,12 +41,13 @@ EOM
 die $helpmessage
 unless Getopt::Long::GetOptions(
                                 "host=s"      => \$host,
-                                "port=s"      => \$port,
+                                "port=i"      => \$port,
                                 "auth=s"      => \$token,
                                 "dashboard=s" => \$dashboard,
-                                "from=s"      => \$ts_from,
-                                "to=s"        => \$ts_to,
-                                "expires=s"   => \$expires,
+                                "cluster=s"   => \$cluster,
+                                "from=i"      => \$ts_from,
+                                "to=i"        => \$ts_to,
+                                "expires=i"   => \$expires,
                                 "help|?!"     => \$help
                                )
 and not $help;
