@@ -117,7 +117,7 @@ SYSBENCH_OPTIONS="${SYSBENCH_OPTIONS} --histogram"
 if [[ ${BENCHMARK} == 'sysbench-tpcc' ]] ; then
     SYSBENCH_DRIVER='sysbench-tpcc'
     [[ ${SCHEMA} ]] || SCHEMA='sysbench_tpcc'
-    [[ ${DBSCALE} ]] || DBSCALE=100
+    [[ ${DBSCALE} ]] || DBSCALE=10
     # Single driver
     NUMOFDRIVERS=1
     DRIVER_NODES=( ${DRIVER_NODES[0]} )

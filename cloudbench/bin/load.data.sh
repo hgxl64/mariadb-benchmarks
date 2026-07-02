@@ -112,7 +112,7 @@ case ${BENCHMARK} in
         ;;
     sysbench-tpcc)
         [[ ${SCHEMA} ]] || SCHEMA='sysbench_tpcc'
-        [[ ${DBSCALE} ]] || DBSCALE=100
+        [[ ${DBSCALE} ]] || DBSCALE=10
         [[ ${SYSBENCH_TABLES} ]] || SYSBENCH_TABLES=10
         ;;
     sysbench)
