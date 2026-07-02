@@ -78,6 +78,7 @@ while [[ $# > 0 ]] ; do
         --skipcheck)            export OPTION_SKIPCHECK=TRUE;;
         --skipstats)            export OPTION_SKIPSTATS=TRUE;;
         --cloud)                OPTION_CLOUD="--cloud";;
+        --grafana)              OPTION_GRAFANA=TRUE;;
 
         -h|--help)              echo -e "$USAGE"; exit 1;;
 
@@ -233,7 +234,7 @@ time {
 #    echo "    ===== Start Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 #    time start_performance_monitor ${CLUSTER} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).start.performance.monitor 2>&1
 
-    start_grafana
+    [[ ${OPTION_GRAFANA} == TRUE ]] && start_grafana
 
     echo
     echo "    ===== Run Performance Curve =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
@@ -365,7 +366,7 @@ time {
     time {
 
 #        stop_monitors;
-        stop_grafana > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.log 2>&1
+        [[ ${OPTION_GRAFANA} == TRUE ]] && stop_grafana > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.log 2>&1
 
         gather_posttest_snapshot ${CLUSTER};
         if [[ ${OPTION_CLEANUP} ]] ; then
