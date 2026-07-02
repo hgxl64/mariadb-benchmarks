@@ -79,7 +79,7 @@ $dash->{"spec"}{"refresh"}="";
 # set current cluster as default
 my @var_templates= @{$dash->{"spec"}->{"templating"}->{"list"}};
 foreach my $var (@var_templates) {
-    if ($var->{"name"} == "cluster") {
+    if ($var->{"name"} eq "cluster") {
         $var->{"current"}{"selected"}= 1;
         $var->{"current"}{"text"}= $cluster;
         $var->{"current"}{"value"}= $cluster;
@@ -100,7 +100,7 @@ my $snap= {
     "name" => "$dashboard snapshot"
 };
 
-$req->method('PUT');
+$req->method('POST');
 $req->uri("http://$host:$port/api/snapshots");
 $req->header("Authorization" => "Bearer $token");
 $req->content(encode_json $snap);
@@ -113,7 +113,6 @@ my $snap_res= decode_json $res->decoded_content;
 open $LOG, "> snap_result.txt" or die $!;
 print $LOG Dumper($snap_res);
 close $LOG;
-es);
 
 exit 0;
 
