@@ -9,16 +9,16 @@ use Getopt::Long;
 use HTTP::Request;
 use LWP::UserAgent;
 use JSON::MaybeXS;
-use Data::Dumper;
-$Data::Dumper::Indent= 1;
-my $LOG;
+#use Data::Dumper;
+#$Data::Dumper::Indent= 1;
+#my $LOG;
 
 #default options
 my $host= undef;
 my $port= 3000;
 my $token= undef;
 my $dashboard= "nodeexporter";
-my $cluster= $ENV{"CLUSTER"} || undef;
+my $cluster= undef;
 my $node= undef;
 my $ts_to= time();
 my $ts_from= $ts_to-3600;
@@ -29,7 +29,7 @@ my $help= 0;
 my $helpmessage= <<EOM;
 $0 -  snapshot a Grafana dashboard
 
-usage: $0 --host ... --token ... --cluster ... [options]
+usage: $0 --host ... --token ... --cluster ... --node ... [options]
 
 options: --host ........ where Grafana listens
          --port ........ Grafana port (default: $port)
@@ -74,9 +74,9 @@ die $res->status_line unless ($res->is_success);
 
 my $dash= decode_json($res->decoded_content)->{"dashboard"};
 
-open $LOG, "> original.txt" or die $!;
-print $LOG Dumper($dash);
-close $LOG;
+#open $LOG, "> original.txt" or die $!;
+#print $LOG Dumper($dash);
+#close $LOG;
 
 # modify dashboard for snapshot
 # set time span
@@ -95,7 +95,7 @@ foreach my $var (@var_templates) {
         $var->{"type"}= "custom";
         $var->{"query"}= $cluster;
     }
-    if ($var->{"name"} eq "node") {
+    elsif ($var->{"name"} eq "node") {
         $var->{"current"}{"selected"}= 1;
         $var->{"current"}{"text"}= $node;
         $var->{"current"}{"value"}= $node;
@@ -105,9 +105,9 @@ foreach my $var (@var_templates) {
     }
 }
 
-open $LOG, "> modified.txt" or die $!;
-print $LOG Dumper($dash);
-close $LOG;
+#open $LOG, "> modified.txt" or die $!;
+#print $LOG Dumper($dash);
+#close $LOG;
 
 # build request
 my $snap= {
@@ -135,10 +135,10 @@ die $res->status_line unless ($res->is_success);
 
 my $snap_res= decode_json $res->decoded_content;
 
-open $LOG, "> snap_result.txt" or die $!;
-print $LOG Dumper($snap_res);
-close $LOG;
+#open $LOG, "> snap_result.txt" or die $!;
+#print $LOG Dumper($snap_res);
+#close $LOG;
 
-print $snap_res->{"url"};
+print $snap_res->{"url"}, "\n";
 
 exit 0;
