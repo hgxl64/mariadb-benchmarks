@@ -52,7 +52,7 @@ while [[ $# > 0 ]] ; do
         --server-nodes)             NUMOFSERVERS="$1"; shift;;
         --server-type)              SERVER_INSTANCE_TYPE="$1"; shift;;
         --server1-type)             SERVER1_INSTANCE_TYPE="$1"; shift;;
-        --threads-per-core)         OPTION_THREADS_PER_CORE="$1"; shift
+        --threads-per-core)         OPTION_THREADS_PER_CORE="$1"; shift;;
 
         --driver-nodes)             NUMOFDRIVERS="$1"; shift;;
         --driver-type)              DRIVER_INSTANCE_TYPE="$1"; shift;;
