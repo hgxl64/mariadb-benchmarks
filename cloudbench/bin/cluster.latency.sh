@@ -122,7 +122,7 @@ mkdir -p ${LOGDIRECTORY}
                         for ORIGIN in ${SERVER_SYSTEMS[*]} ; do
                             for TARGET in ${SERVER_SYSTEMS[*]} ; do
                                 TARGET_IP=$(get_property ${TARGET} system.internal.ip)
-                                ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) "ping -i 0.5 -c 20 ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
+                                ssh $(get_ssh_connection ${ORIGIN}) "ping -i 0.5 -c 20 ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
                                 PIDLIST="${PIDLIST} $!"
                             done
                         done
@@ -130,7 +130,7 @@ mkdir -p ${LOGDIRECTORY}
                         for ORIGIN in ${MAXSCALE_SYSTEMS[*]} ; do
                             for TARGET in ${SERVER_SYSTEMS[*]} ; do
                                 TARGET_IP=$(get_property ${TARGET} system.internal.ip)
-                                ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) "ping -i 0.5 -c 20 ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
+                                ssh $(get_ssh_connection ${ORIGIN}) "ping -i 0.5 -c 20 ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
                                 PIDLIST="${PIDLIST} $!"
                             done
                         done
@@ -138,7 +138,7 @@ mkdir -p ${LOGDIRECTORY}
                         for ORIGIN in ${DRIVER_SYSTEMS[*]} ; do
                             for TARGET in ${SERVER_SYSTEMS[*]} ${MAXSCALE_SYSTEMS[*]} ; do
                                 TARGET_IP=$(get_property ${TARGET} system.internal.ip)
-                                ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) "ping -i 0.5 -c 20 ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
+                                ssh $(get_ssh_connection ${ORIGIN}) "ping -i 0.5 -c 20 ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
                                 PIDLIST="${PIDLIST} $!"
                             done
                         done
@@ -224,7 +224,7 @@ mkdir -p ${LOGDIRECTORY}
 
                     for ORIGIN in ${SERVER_SYSTEMS[*]} ; do
                         echo -n "${ORIGIN} : "
-                        ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) '
+                        ssh $(get_ssh_connection ${ORIGIN}) '
                             IP="'$(get_property ${ORIGIN} system.internal.ip)'"
                             NETDEV=$(ip -o addr show | fgrep "${IP}" | awk "{print \$2}")
                             if [[ ${NETDEV} ]] ; then
@@ -284,7 +284,7 @@ mkdir -p ${LOGDIRECTORY}
                         done
 
                         echo "${ORIGIN}:"
-                        ssh $(get_ssh_connection ${CLUSTER} ${ORIGIN}) '
+                        ssh $(get_ssh_connection ${ORIGIN}) '
                             ORIGIN_IP="'${ORIGIN_IP}'"
                             TARGET_IPS=( '${TARGET_IPS[*]}' )
                             TARGET_LATENCY=( '${TARGET_LATENCY[*]}' )
