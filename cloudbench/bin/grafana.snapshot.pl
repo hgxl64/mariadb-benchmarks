@@ -47,8 +47,8 @@ unless Getopt::Long::GetOptions(
                                 "auth=s"      => \$token,
                                 "dashboard=s" => \$dashboard,
                                 "cluster=s"   => \$cluster,
-                                "from=i"      => \$ts_from,
-                                "to=i"        => \$ts_to,
+                                "from=s"      => \$ts_from,
+                                "to=s"        => \$ts_to,
                                 "expires=i"   => \$expires,
                                 "help|?!"     => \$help
                                )
@@ -59,12 +59,18 @@ and not $help;
 my $ua= LWP::UserAgent->new();
 my $req = HTTP::Request->new();
 $req->method('GET');
-$req->uri("http://$host:$port/apis/dashboard.grafana.app/v1/namespaces/default/dashboards/$dashboard");
+$req->uri("http://$host:$port/api/dashboards/uid/$dashboard");
 $req->header("Authorization" => "Bearer $token");
 $req->accept_decodable;
 my $res= $ua->request($req);
 die $res->status_line unless ($res->is_success);
-my $dash= decode_json $res->decoded_content;
+
+open $LOG, "> original_json.txt" or die $!;
+print $LOG $res->decoded_content;
+close $LOG;
+
+my $dash_res= decode_json($res->decoded_content);
+my $dash= $dash_res->{"dashboard"};
 
 open $LOG, "> original.txt" or die $!;
 print $LOG Dumper($dash);
@@ -72,12 +78,12 @@ close $LOG;
 
 # modify dashboard for snapshot
 # set time span
-$dash->{"spec"}{"time"}{"from"}= $ts_from;
-$dash->{"spec"}{"time"}{"to"}= $ts_to;
+$dash->{"time"}{"from"}= $ts_from;
+$dash->{"time"}{"to"}= $ts_to;
 # disable refresh
-$dash->{"spec"}{"refresh"}="";
+$dash->{"refresh"}="";
 # set current cluster as default
-my @var_templates= @{$dash->{"spec"}->{"templating"}->{"list"}};
+my @var_templates= @{$dash->{"templating"}{"list"}};
 foreach my $var (@var_templates) {
     if ($var->{"name"} eq "cluster") {
         $var->{"current"}{"selected"}= 1;
