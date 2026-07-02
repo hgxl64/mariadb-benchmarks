@@ -11,7 +11,7 @@ use LWP::UserAgent;
 use JSON::MaybeXS;
 use Data::Dumper;
 $Data::Dumper::Indent= 1;
-
+my $LOG;
 
 #default options
 my $host= undef;
@@ -66,11 +66,9 @@ my $res= $ua->request($req);
 die $res->status_line unless ($res->is_success);
 my $dash= decode_json $res->decoded_content;
 
-open(my $LOG, '>', 'original.txt');
-select $LOG;
-print Dumper($dash);
-select STDOUT;
-close($LOG);
+open $LOG, "> original.txt" or die $!;
+print $LOG Dumper($dash);
+close $LOG;
 
 # modify dashboard for snapshot
 # set time span
@@ -91,15 +89,13 @@ foreach my $var (@var_templates) {
     }
 }
 
-open($LOG, '>', 'modified.txt');
-select $LOG;
-print Dumper($dash);
-select STDOUT;
-close($LOG);
+open $LOG, "> modified.txt" or die $!;
+print $LOG Dumper($dash);
+close $LOG;
 
 # build request
 my $snap= {
-    "dasboard" => $dash,
+    "dashboard" => $dash,
     "expires" => $expires,
     "name" => "$dashboard snapshot"
 };
@@ -114,7 +110,10 @@ die $res->status_line unless ($res->is_success);
 
 my $snap_res= decode_json $res->decoded_content;
 
-print Dumper($snap_res);
+open $LOG, "> snap_result.txt" or die $!;
+print $LOG Dumper($snap_res);
+close $LOG;
+es);
 
 exit 0;
 
