@@ -210,6 +210,7 @@ time {
                         DBUSER=$(get_database_user ${CLUSTER})
                         DBPASS=$(get_database_password ${CLUSTER})
                         VUSER=$(ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) 'cat /proc/cpuinfo' | grep -c processor | awk '{ print int($1) }')
+                        VUSER=$((${VUSER} * 2))
                         [[ ${OPTION_ENGINE} ]] || OPTION_ENGINE='innodb'
 
                         SCRIPT="/data/cbench/load-tprocc.tcl"
