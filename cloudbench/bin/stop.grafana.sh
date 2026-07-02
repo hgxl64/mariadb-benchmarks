@@ -35,8 +35,23 @@ else
 fi
 mkdir -p ${LOGDIRECTORY}
 
+{
+    [[ ${GRAFANA_STOP} ]] || GRAFANA_STOP=$(date --utc --iso-8601=seconds)
 
-stop_grafana 2>&1 | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${TEST_NAME}.log
+    echo "    ===== Begin $0 =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    echo
+    echo "        CLUSTER             = ${CLUSTER}"
+    echo
+    echo "        START TIME          = ${GRAFANA_START}"
+    echo "        STOP TIME           = ${GRAFANA_STOP}"
+    echo
+    echo "        TESTID              = ${TESTID}"
+    echo "        LOGDIRECTORY        = ${LOGDIRECTORY}"
+    echo
+
+    stop_grafana
+
+} 2>&1 | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${TEST_NAME}.log
 
 unset GRAFANA_START
 

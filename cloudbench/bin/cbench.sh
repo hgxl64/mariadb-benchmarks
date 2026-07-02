@@ -1615,14 +1615,20 @@ start_grafana() {
 
 
 stop_grafana() {
-    GRAFANA_STOP=$(date --utc --iso-8601=seconds)
+    [[ ${GRAFANA_STOP} ]] || GRAFANA_STOP=$(date --utc --iso-8601=seconds)
     # check if we are in a cloud
     local CLOUD=$(get_property ${CLUSTER} server.cloud)
     if [[ ${CLOUD} ]] ; then
+        echo "        CLOUD               = ${CLOUD}"
         # source cloud-specific config
         [[ -f ${CBENCH_HOME}/config/${CLOUD}.conf ]] && source ${CBENCH_HOME}/config/${CLOUD}.conf
         # check if a grafana server is configured
         if [[ ${GRAFANA_KEYNAME} ]] ; then
+            echo "        GRAFANA_EXT_HOST    = ${GRAFANA_EXT_HOST}"
+            echo "        GRAFANA_EXT_PORT    = ${GRAFANA_EXT_PORT}"
+            echo "        GRAFANA_PUBLIC_HOST = ${GRAFANA_PUBLIC_HOST}"
+            echo "        GRAFANA_KEYNAME     = ${GRAFANA_KEYNAME}"
+            echo "        GRAFANA TOKEN       = $(vault ${GRAFANA_KEYNAME})"
 
             echo "=== Node Exporter"
             for NODE in $(get_all_node_names) ; do
