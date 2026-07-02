@@ -100,11 +100,20 @@ my $snap= {
     "name" => "$dashboard snapshot"
 };
 
+open $LOG, "> snap_request.txt" or die $!;
+print $LOG Dumper($snap);
+close $LOG;
+
+open $LOG, "> snap_request_json.txt" or die $!;
+print $LOG encode_json $snap;
+close $LOG;
+
 $req->method('POST');
 $req->uri("http://$host:$port/api/snapshots");
 $req->header("Authorization" => "Bearer $token");
-$req->content(encode_json $snap);
+$req->header("Content-Type" => "application/json");
 $req->accept_decodable;
+$req->content(encode_json $snap);
 $res= $ua->request($req);
 die $res->status_line unless ($res->is_success);
 
