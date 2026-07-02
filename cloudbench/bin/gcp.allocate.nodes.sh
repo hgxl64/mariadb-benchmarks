@@ -470,19 +470,19 @@ done
             NODE=$(gcloud compute instances describe ${INSTANCE} --zone ${ZONE_ID} | grep natIP | cut -f6 -d' ')
             echo "Node = ${NODE}"
             {
-                echo 'sudo mkdir -p /data/cbench'
+                echo "sudo mkdir -p /data/cbench"
                 if [[ ${PERSISTENTDISK} ]] ; then
                     [[ ${DISK_DEVICE} ]] || DISK_DEVICE="/dev/sdb"
-                    echo 'sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j ${DISK_DEVICE}'
+                    echo "sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j ${DISK_DEVICE}"
                     echo "sudo mount -o discard ${DISABLE_WRITE_BARRIER} ${DISK_DEVICE} /data/cbench"
                     echo "sudo blockdev --getra ${DISK_DEVICE}"
                     if [[ ${READAHEAD_CACHE} ]] ; then
                         echo "sudo blockdev --setra ${READAHEAD_CACHE} ${DISK_DEVICE}"
                         echo "sudo blockdev --getra ${DISK_DEVICE}"
                     fi
-                elif [[ ${DISKINTERFACE} = 'nvme' ]] ; then
+                elif [[ ${DISKINTERFACE} = "nvme" ]] ; then
                     if (( ${NUMOFLOCALDISKS} == 1 )) ; then
-                        echo 'sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j /dev/nvme0n1'
+                        echo "sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j /dev/nvme0n1"
                         echo "sudo mount -o discard ${DISABLE_WRITE_BARRIER} /dev/nvme0n1 /data/cbench"
                         echo "sudo blockdev --getra /dev/nvme0n1"
                         if [[ ${READAHEAD_CACHE} ]] ; then
@@ -490,9 +490,9 @@ done
                             echo "sudo blockdev --getra /dev/nvme0n1"
                         fi
                     elif (( ${NUMOFLOCALDISKS} == 2 )) ; then
-                        echo 'sudo yum -y install mdadm'
-                        echo 'sudo mdadm --create /dev/md0 -l0 -n2 /dev/nvme0n1 /dev/nvme0n2'
-                        echo 'sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j /dev/md0'
+                        echo "sudo yum -y install mdadm"
+                        echo "sudo mdadm --create /dev/md0 -l0 -n2 /dev/nvme0n1 /dev/nvme0n2"
+                        echo "sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j /dev/md0"
                         echo "sudo mount -o discard ${DISABLE_WRITE_BARRIER} /dev/md0 /data/cbench"
                         echo "sudo blockdev --getra /dev/md0"
                         if [[ ${READAHEAD_CACHE} ]] ; then
@@ -500,9 +500,9 @@ done
                             echo "sudo blockdev --getra /dev/md0"
                         fi
                     elif (( ${NUMOFLOCALDISKS} == 4 )) ; then
-                        echo 'sudo yum -y install mdadm'
-                        echo 'sudo mdadm --create /dev/md0 -l0 -n4 /dev/nvme0n1 /dev/nvme0n2 /dev/nvme0n3 /dev/nvme0n4'
-                        echo 'sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j /dev/md0'
+                        echo "sudo yum -y install mdadm"
+                        echo "sudo mdadm --create /dev/md0 -l0 -n4 /dev/nvme0n1 /dev/nvme0n2 /dev/nvme0n3 /dev/nvme0n4"
+                        echo "sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j /dev/md0"
                         echo "sudo mount -o discard ${DISABLE_WRITE_BARRIER} /dev/md0 /data/cbench"
                         echo "sudo blockdev --getra /dev/md0"
                         if [[ ${READAHEAD_CACHE} ]] ; then
@@ -510,9 +510,9 @@ done
                             echo "sudo blockdev --getra /dev/md0"
                         fi
                     elif (( ${NUMOFLOCALDISKS} == 8 )) ; then
-                        echo 'sudo yum -y install mdadm'
-                        echo 'sudo mdadm --create /dev/md0 -l0 -n8 /dev/nvme0n1 /dev/nvme0n2 /dev/nvme0n3 /dev/nvme0n4 /dev/nvme0n5 /dev/nvme0n6 /dev/nvme0n7 /dev/nvme0n8'
-                        echo 'sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j /dev/md0'
+                        echo "sudo yum -y install mdadm"
+                        echo "sudo mdadm --create /dev/md0 -l0 -n8 /dev/nvme0n1 /dev/nvme0n2 /dev/nvme0n3 /dev/nvme0n4 /dev/nvme0n5 /dev/nvme0n6 /dev/nvme0n7 /dev/nvme0n8"
+                        echo "sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j /dev/md0"
                         echo "sudo mount -o discard ${DISABLE_WRITE_BARRIER} /dev/md0 /data/cbench"
                         echo "sudo blockdev --getra /dev/md0"
                         if [[ ${READAHEAD_CACHE} ]] ; then
@@ -522,7 +522,7 @@ done
                     fi
                 else
                     if (( ${NUMOFLOCALDISKS} == 1 )) ; then
-                        echo 'sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j /dev/sdb'
+                        echo "sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j /dev/sdb"
                         echo "sudo mount -o discard ${DISABLE_WRITE_BARRIER} /dev/sdb /data/cbench"
                         echo "sudo blockdev --getra /dev/sdb"
                         if [[ ${READAHEAD_CACHE} ]] ; then
@@ -530,9 +530,9 @@ done
                             echo "sudo blockdev --getra /dev/sdb"
                         fi
                     elif (( ${NUMOFLOCALDISKS} == 2 )) ; then
-                        echo 'sudo yum -y install mdadm'
-                        echo 'sudo mdadm --create /dev/md0 -l0 -n2 /dev/sdb /dev/sdc'
-                        echo 'sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j /dev/md0'
+                        echo "sudo yum -y install mdadm"
+                        echo "sudo mdadm --create /dev/md0 -l0 -n2 /dev/sdb /dev/sdc"
+                        echo "sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j /dev/md0"
                         echo "sudo mount -o discard ${DISABLE_WRITE_BARRIER} /dev/md0 /data/cbench"
                         echo "sudo blockdev --getra /dev/md0"
                         if [[ ${READAHEAD_CACHE} ]] ; then
@@ -540,9 +540,9 @@ done
                             echo "sudo blockdev --getra /dev/md0"
                         fi
                     elif (( ${NUMOFLOCALDISKS} == 4 )) ; then
-                        echo 'sudo yum -y install mdadm'
-                        echo 'sudo mdadm --create /dev/md0 -l0 -n4 /dev/sdb /dev/sdc /dev/sdd /dev/sde'
-                        echo 'sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j /dev/md0'
+                        echo "sudo yum -y install mdadm"
+                        echo "sudo mdadm --create /dev/md0 -l0 -n4 /dev/sdb /dev/sdc /dev/sdd /dev/sde"
+                        echo "sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j /dev/md0"
                         echo "sudo mount -o discard ${DISABLE_WRITE_BARRIER} /dev/md0 /data/cbench"
                         echo "sudo blockdev --getra /dev/md0"
                         if [[ ${READAHEAD_CACHE} ]] ; then
@@ -550,9 +550,9 @@ done
                             echo "sudo blockdev --getra /dev/md0"
                         fi
                     elif (( ${NUMOFLOCALDISKS} == 8 )) ; then
-                        echo 'sudo yum -y install mdadm'
-                        echo 'sudo mdadm --create /dev/md0 -l0 -n8 /dev/sdb /dev/sdc /dev/sdd /dev/sde /dev/sdf /dev/sdg /dev/sdh /dev/sdi'
-                        echo 'sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j /dev/md0'
+                        echo "sudo yum -y install mdadm"
+                        echo "sudo mdadm --create /dev/md0 -l0 -n8 /dev/sdb /dev/sdc /dev/sdd /dev/sde /dev/sdf /dev/sdg /dev/sdh /dev/sdi"
+                        echo "sudo mkfs.ext4 -F ${OPTION_LAZY_INIT} -j /dev/md0"
                         echo "sudo mount -o discard ${DISABLE_WRITE_BARRIER} /dev/md0 /data/cbench"
                         echo "sudo blockdev --getra /dev/md0"
                         if [[ ${READAHEAD_CACHE} ]] ; then
@@ -562,8 +562,8 @@ done
                     fi
                 fi
 
-                echo 'sudo chmod a+w /data/cbench'
-                echo 'df -h'
+                echo "sudo chmod a+w /data/cbench"
+                echo "df -h"
             } | ssh -T -o "StrictHostKeyChecking no" -i ${SSH_PEM_FILE} ${SSH_USER}@${NODE}
         done
         wait
