@@ -107,7 +107,7 @@ mkdir -p ${LOGDIRECTORY}
 
 
 # replace forbidden characters in cluster name
-SANITIZED_CLUSTER=$(echo ${CLUSTER} | sed 's/./-/g' | sed 's/_/-/g')
+SANITIZED_CLUSTER=$(echo ${CLUSTER} | sed 's/\./-/g' | sed 's/_/-/g')
 
 # set system ids based on cluster and number
 (( NUMOFNODES = ${NUMOFSERVERS} + ${NUMOFDRIVERS} + ${NUMOFMAXSCALE} ))
