@@ -54,4 +54,5 @@ mkdir -p ${LOGDIRECTORY}
 } 2>&1 | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${TEST_NAME}.log
 
 unset GRAFANA_START
+unset GRAFANA_STOP
 

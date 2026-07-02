@@ -1628,7 +1628,6 @@ stop_grafana() {
             echo "        GRAFANA_EXT_PORT    = ${GRAFANA_EXT_PORT}"
             echo "        GRAFANA_PUBLIC_HOST = ${GRAFANA_PUBLIC_HOST}"
             echo "        GRAFANA_KEYNAME     = ${GRAFANA_KEYNAME}"
-            echo "        GRAFANA TOKEN       = $(vault ${GRAFANA_KEYNAME})"
 
             echo "=== Node Exporter"
             for NODE in $(get_all_node_names) ; do
