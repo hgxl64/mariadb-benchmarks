@@ -1623,15 +1623,14 @@ stop_grafana() {
         [[ -f ${CBENCH_HOME}/config/${CLOUD}.conf ]] && source ${CBENCH_HOME}/config/${CLOUD}.conf
         # check if a grafana server is configured
         if [[ ${GRAFANA_KEYNAME} ]] ; then
-            local TOKEN=$(vault GRAFANA_KEYNAME)
 
             echo "=== Node Exporter"
             for NODE in $(get_all_node_names) ; do
                 echo -n "${NODE}: "
                 grafana.snapshot.pl --host=${GRAFANA_EXT_HOST} --port=${GRAFANA_EXT_PORT} \
-                  --auth=${TOKEN} --from=${GRAFANA_START} --to=${GRAFANA_STOP} \
+                  --auth=$(vault ${GRAFANA_KEYNAME}) --from=${GRAFANA_START} --to=${GRAFANA_STOP} \
                   --dashboard=nodeexporter --cluster=${CLUSTER} --node=${NODE} \
-                  | sed "s(http://localhost:3000)(${GRAFANA_PUBLIC_HOST})"
+                  | perl -pe "s(http://localhost:3000)(${GRAFANA_PUBLIC_HOST})"
             done
         fi
     fi
