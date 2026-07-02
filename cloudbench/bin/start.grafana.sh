@@ -3,7 +3,7 @@
 source ${CBENCH_HOME}/bin/cbench.sh
 
 USAGE="usage: $0
-    Snapshot preconfigured Grafana dashboards
+    set snapshot start time
 
     Parameters:
         --cluster
@@ -26,7 +26,7 @@ done
 [[ ${CLUSTER} ]] || error "no CLUSTER given, aborting"
 
 # logging
-TEST_NAME=stop.grafana
+TEST_NAME=start.grafana
 if [[ ! ${TESTID} ]] ; then TESTID=$(date +%y%m%d.%H%M%S).${CLUSTER}; fi
 if [[ ! ${LOGDIRECTORY} ]] ; then
     export LOGDIRECTORY=${CBENCH_LOG_HOME}/${CLUSTER}/${TESTID}.${TEST_NAME}
@@ -36,24 +36,18 @@ fi
 mkdir -p ${LOGDIRECTORY}
 
 {
-    [[ ${GRAFANA_STOP} ]] || GRAFANA_STOP=$(date --utc --iso-8601=seconds)
-    [[ ${GRAFANA_START} ]] || GRAFANA_START=$(cat /tmp/grafana_start.$$)
+    start_grafana
 
     echo "    ===== Begin $0 =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     echo
     echo "        CLUSTER             = ${CLUSTER}"
     echo
     echo "        GRAFANA_START       = ${GRAFANA_START}"
-    echo "        GRAFANA_STOP        = ${GRAFANA_STOP}"
     echo
     echo "        TESTID              = ${TESTID}"
     echo "        LOGDIRECTORY        = ${LOGDIRECTORY}"
     echo
 
-    stop_grafana
 
 } 2>&1 | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${TEST_NAME}.log
-
-unset GRAFANA_START
-unset GRAFANA_STOP
 

@@ -98,7 +98,7 @@ foreach my $var (@var_templates) {
 my $snap= {
     "dashboard" => $dash,
     "expires" => $expires,
-    "name" => "$dashboard, $cluster, $node"
+    "name" => "$dashboard, cluster=$cluster, node=$node"
 };
 
 $req->method('POST');

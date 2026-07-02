@@ -1611,6 +1611,7 @@ get_all_node_names() {
 
 start_grafana() {
     GRAFANA_START=$(date --utc --iso-8601=seconds)
+    echo ${GRAFANA_START} > /tmp/grafana_start.$$
 }
 
 
