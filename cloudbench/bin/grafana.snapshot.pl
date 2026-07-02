@@ -10,6 +10,8 @@ use HTTP::Request;
 use LWP::UserAgent;
 use JSON::MaybeXS;
 use Data::Dumper;
+$Data::Dumper::Indent= 1;
+
 
 #default options
 my $host= undef;
@@ -64,8 +66,11 @@ my $res= $ua->request($req);
 die $res->status_line unless ($res->is_success);
 my $dash= decode_json $res->decoded_content;
 
+open(my $LOG, '>', 'original.txt');
+select $LOG;
 print Dumper($dash);
-#exit 0;
+select STDOUT;
+close($LOG);
 
 # modify dashboard for snapshot
 # set time span
@@ -86,7 +91,11 @@ foreach my $var (@var_templates) {
     }
 }
 
+open($LOG, '>', 'modified.txt');
+select $LOG;
 print Dumper($dash);
+select STDOUT;
+close($LOG);
 
 # build request
 my $snap= {
