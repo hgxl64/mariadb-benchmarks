@@ -110,7 +110,7 @@ mkdir -p ${LOGDIRECTORY}
         echo
         echo "    ===== Run Performance Curve - Pass ${IDX} - Cluster ${CLUSTER} - Benchmark ${BENCHMARK} - Workload ${OPTION_WORKLOAD}  - Start Stream ${START_STREAMS} - MaxStream ${MAX_STREAMS}  =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time {
-            COMMAND="sysbench.curve.sh --cluster ${CLUSTER} --workload ${OPTION_WORKLOAD} --start_streams ${START_STREAMS} --max_streams ${MAX_STREAMS} --cloud"
+            COMMAND="sysbench.curve.sh --cluster ${CLUSTER} --workload ${OPTION_WORKLOAD} --start_streams ${START_STREAMS} --max_streams ${MAX_STREAMS}"
             [[ ${SBTABLESIZE} ]]             && COMMAND="${COMMAND} --sbtablesize ${SBTABLESIZE}"
             [[ ${SBTABLES} ]]                && COMMAND="${COMMAND} --sbtables ${SBTABLES}"
             [[ ${OPTION_SKIP_TRANSACTION} ]] && COMMAND="${COMMAND} --skiptransaction"
