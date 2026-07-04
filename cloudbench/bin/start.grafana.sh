@@ -41,12 +41,15 @@ mkdir -p ${LOGDIRECTORY}
 
 {
     start_grafana
+    TMPFILE=/tmp/grafana_start.$$
+    echo ${GRAFANA_START} > ${TMPFILE}
 
     echo "    ===== Begin $0 =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     echo
     echo "        CLUSTER             = ${CLUSTER}"
     echo
     echo "        GRAFANA_START       = ${GRAFANA_START}"
+    echo "        TMPFILE             = ${TMPFILE}"
     echo
     echo "        TESTID              = ${TESTID}"
     echo "        LOGDIRECTORY        = ${LOGDIRECTORY}"

@@ -1614,35 +1614,43 @@ get_all_node_names() {
 
 
 start_grafana() {
-    GRAFANA_START=$(date --utc --iso-8601=seconds)
-    echo ${GRAFANA_START} > /tmp/grafana_start.$$
+    export GRAFANA_START=$(date --utc --iso-8601=seconds)
 }
 
 
 stop_grafana() {
     [[ ${GRAFANA_STOP} ]] || GRAFANA_STOP=$(date --utc --iso-8601=seconds)
+    [[ ${GRAFANA_START} ]] || {
+        echo "someting went wrong, no GRAFANA_START timestamp!"
+        return 1
+    }
+
     # check if we are in a cloud
     local CLOUD=$(get_property ${CLUSTER} server.cloud)
     if [[ ${CLOUD} ]] ; then
         echo "        CLOUD               = ${CLOUD}"
-        # source cloud-specific config
-        [[ -f ${CBENCH_HOME}/config/${CLOUD}.conf ]] && source ${CBENCH_HOME}/config/${CLOUD}.conf
-        # check if a grafana server is configured
-        if [[ ${GRAFANA_KEYNAME} ]] ; then
-            echo "        GRAFANA_EXT_HOST    = ${GRAFANA_EXT_HOST}"
-            echo "        GRAFANA_EXT_PORT    = ${GRAFANA_EXT_PORT}"
-            echo "        GRAFANA_PUBLIC_HOST = ${GRAFANA_PUBLIC_HOST}"
-            echo "        GRAFANA_KEYNAME     = ${GRAFANA_KEYNAME}"
-
-            echo "=== Node Exporter"
-            for NODE in $(get_all_node_names) ; do
-                echo -n "${NODE}: "
-                grafana.snapshot.pl --host=${GRAFANA_EXT_HOST} --port=${GRAFANA_EXT_PORT} \
-                  --auth=$(vault ${GRAFANA_KEYNAME}) --from=${GRAFANA_START} --to=${GRAFANA_STOP} \
-                  --dashboard=nodeexporter --cluster=${CLUSTER} --node=${NODE} \
-                  | perl -pe "s(http://localhost:3000)(${GRAFANA_PUBLIC_HOST})"
-            done
+        if [[ -f ${CBENCH_HOME}/config/${CLOUD}.conf ]] ; then
+            source ${CBENCH_HOME}/config/${CLOUD}.conf
+            echo "        ${CLOUD} config loaded from ${CBENCH_HOME}/config/${CLOUD}.conf"
         fi
+    fi
+
+    # check if a grafana server is configured
+    if [[ ${GRAFANA_KEYNAME} ]] ; then
+        echo "        GRAFANA_EXT_HOST    = ${GRAFANA_EXT_HOST}"
+        echo "        GRAFANA_EXT_PORT    = ${GRAFANA_EXT_PORT}"
+        echo "        GRAFANA_PUBLIC_HOST = ${GRAFANA_PUBLIC_HOST}"
+        echo
+        echo "  ===== Node Exporter Snapshots ====="
+        for NODE in $(get_all_node_names) ; do
+            echo -n "${NODE}: "
+            grafana.snapshot.pl --host=${GRAFANA_EXT_HOST} --port=${GRAFANA_EXT_PORT} \
+              --auth=$(vault ${GRAFANA_KEYNAME}) --from=${GRAFANA_START} --to=${GRAFANA_STOP} \
+              --dashboard=nodeexporter --cluster=${CLUSTER} --node=${NODE} \
+              | perl -pe "s(http://localhost:3000)(${GRAFANA_PUBLIC_HOST})"
+        done
+    else
+        echo "no GRAFANA server configured!"
     fi
 }
 

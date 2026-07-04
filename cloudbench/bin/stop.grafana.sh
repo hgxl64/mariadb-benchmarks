@@ -56,8 +56,9 @@ mkdir -p ${LOGDIRECTORY}
 
     stop_grafana
 
+    echo
+    echo "    ===== End $0 =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 } 2>&1 | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${TEST_NAME}.log
 
 unset GRAFANA_START
 unset GRAFANA_STOP
-
