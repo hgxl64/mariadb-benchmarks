@@ -2,7 +2,9 @@
 #
 # monitor MariaDB GTID replication
 #
-# (c) Axel XL Schwenke, axel@mariadb.com
+# (w) Axel XL Schwenke for MariaDB
+#
+# $Id$
 
 use strict;
 use DBI;

@@ -2,7 +2,7 @@
 #
 # (w) Axel XL Schwenke for MariaDB
 #
-# $Id§
+# $Id$
 
 #
 # Common Functions

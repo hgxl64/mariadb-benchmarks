@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# (w) Axel XL Schwenke for MariaDB
+#
+# $Id$
 
 source ${CBENCH_HOME}/bin/cbench.sh
 

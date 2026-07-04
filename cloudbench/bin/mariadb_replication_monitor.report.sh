@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# (w) Axel XL Schwenke for MariaDB
+#
+# $Id$
 
 USAGE="usage: $0
     Creates a report (graphics and html file) from a monitor log.
