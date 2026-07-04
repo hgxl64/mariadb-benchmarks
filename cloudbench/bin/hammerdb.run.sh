@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# (w) Axel XL Schwenke for MariaDB
+#
+# $Id$
 
 source ${CBENCH_HOME}/bin/cbench.sh
 
@@ -11,16 +15,7 @@ USAGE="usage: $0
         [ --dbscale <<dbscale>> ]
         [ --streams <<streams>> ]
         [ --exectime <<exectime>> ]
-        [ --reload ]
-        [ --durability <<levelofdurability>> ]
         [ -h|--help ]
-    Notes:
-        1.  cluster : name of the cluster identified by properties file clustername.properties.  Default : look in dbconnect.properties
-        2.  dbscale : size of the database in million of records.  Default : sysbench.default.dbscale defined in properties file or 10
-        3.  streams : number of streams per driver.  Default : sysbench.default.streams defined in properties file or 100
-        4.  load|reload : option to load fresh or restore from backup.  Default : neither
-        5.  exectime : Length of test in seconds.  Default : 300
-        6.  durability: Controls level of durability the test will run. (Values: default, strict, relaxed)  Default : relaxed
 "
 
 COMMAND_LINE="$@"
@@ -29,15 +24,10 @@ while [[ $# > 0 ]] ; do
     key="$1"; shift;
     case ${key} in
 
-        --benchmark)            BENCHMARK="$1"; shift;;
-
-        # Connection Info
         --cluster)              CLUSTER="$1"; shift;;
 
-        --database)             DATABASE="$1"; shift;;
-        --drivers)              DRIVERS="$1"; shift;;
-
         # Benchmark Controls
+        --benchmark)            BENCHMARK="$1"; shift;;
         --schema)               SCHEMA="$1"; shift;;
         --dbscale)              DBSCALE="$1"; shift;;
         --duration)             DURATION="$1"; shift;;
@@ -46,33 +36,18 @@ while [[ $# > 0 ]] ; do
         --warmtime)             RAMPUP="$1"; shift;;
         --streams)              TOTAL_STREAMS="$1"; shift;;
         --totalstreams)         TOTAL_STREAMS="$1"; shift;;
-        --reload)               OPTION_LOADTABLES=TRUE;LOAD_OPTIONS="${LOAD_OPTIONS} --restore";;
-        --load)                 OPTION_LOADTABLES=TRUE;LOAD_OPTIONS="${LOAD_OPTIONS} --load";;
-        --restore)              OPTION_LOADTABLES=TRUE;LOAD_OPTIONS="${LOAD_OPTIONS} --restore";;
-        --import)               OPTION_LOADTABLES=TRUE;LOAD_OPTIONS="${LOAD_OPTIONS} --import";;
-        --noload)               LOAD_OPTIONS="${LOAD_OPTIONS} --noload";;
-        --slices)               LOAD_OPTIONS="${LOAD_OPTIONS} --slices $1"; shift;;
-        --replicas)             LOAD_OPTIONS="${LOAD_OPTIONS} --replicas $1"; shift;;
-        --dbversion)            LOAD_OPTIONS="${LOAD_OPTIONS} --dbversion $1"; shift;;
-        --engine)               LOAD_OPTIONS="${LOAD_OPTIONS} --engine $1"; ENGINE="$1"; shift;;
 
         # HammerDB Options
-        --ssl)                  OPTION_SSL=TRUE;;
         --prepared)             PREPARED=TRUE;;
         --allwarehouse)         ALLWAREHOUSE=TRUE;;
-
+        --engine)               ENGINE="$1"; shift;;
+        --ssl)                  OPTION_SSL=TRUE;;
 
         # CBENCH Options
-        --binlogging)           ENABLE_BINLOGGING=TRUE;;
-        --slave_delay)          OPTION_SLAVE_DELAY=TRUE;;
-
-        --testid)               TESTID="$1"; shift;;
         --skipcheck)            OPTION_SKIPCHECK=TRUE;;
         --skipsnapshot)         OPTION_SNAPSHOT=FALSE;;
-        --skipstats)            OPTION_SKIPSTATS=TRUE;;
-        --cloud)                OPTION_CLOUD="--cloud";;
-        --cleanup)              OPTION_CLEANUP=TRUE;;
         --monitor)              OPTION_PERFMONITOR=TRUE;;
+        --grafana)              OPTION_GRAFANA=TRUE;;
 
         -h|--help)              echo -e "$USAGE"; exit 1;;
 
@@ -81,45 +56,25 @@ while [[ $# > 0 ]] ; do
     esac
 done
 
+process_connection_info;
+
+#cbench defaults
 [[ ${OPTION_SNAPSHOT} ]] || OPTION_SNAPSHOT=TRUE
 [[ ${OPTION_PERFMONITOR} ]] || OPTION_PERFMONITOR=FALSE
+[[ ${OPTION_GRAFANA} ]] || OPTION_GRAFANA=FALSE
 
+#HammerDB defaults
+[[ ${DATABASE} ]]  || DATABASE='mariadb'
+[[ ${ENGINE} ]]    || ENGINE='innodb'
+[[ ${BENCHMARK} ]] || BENCHMARK='tproc-c'
 [[ ${PREPARED} ]] || PREPARED=TRUE
 [[ ${STOREDPROC} ]] || STOREDPROC=TRUE
 [[ ${ALLWAREHOUSE} ]] || ALLWAREHOUSE=FALSE
 
-[[ ${DURATION} ]] || DURATION=300
-
-#round duration to whole minutes
-DURATION_MINUTES=$(( ${DURATION} / 60 ))
-if [[ $(( ${DURATION_MINUTES} * 60 )) < ${DURATION} ]] ; then
-    DURATION_MINUTES=$(( ${DURATION_MINUTES} + 1 ))
-    DURATION=$(( ${DURATION_MINUTES} * 60 ))
-fi
-
-[[ ${RAMPUP} ]] || RAMPUP=60
-
-#round ramp-up time to whole minutes
-RAMPUP_MINUTES=$(( ${RAMPUP} / 60 ))
-if [[ $(( ${RAMPUP_MINUTES} * 60 )) < ${RAMPUP} ]] ; then
-    RAMPUP_MINUTES=$(( ${RAMPUP_MINUTES} + 1 ))
-    RAMPUP=$(( ${RAMPUP_MINUTES} * 60 ))
-fi
-
-DURATION=$(( ${DURATION} + ${RAMPUP} ))
-
-
-process_connection_info;
-
-[[ ${DATABASE} ]] || DATABASE='mariadb'
-[[ ${ENGINE} ]] || ENGINE='innodb'
-[[ ${BENCHMARK} ]] || BENCHMARK='tproc-c'
-
 if [[ ${BENCHMARK} == 'tproc-c' ]] ; then
-    BENCHMARK_DRIVER='hammerdbcli'
     [[ ${SCHEMA} ]] || SCHEMA='tprocc'
     [[ ${DBSCALE} ]] || DBSCALE=100
-    # Single driver
+    # force single driver
     NUMOFDRIVERS=1
     DRIVER_NODE=( ${DRIVER_NODES[0]} )
 else
@@ -127,7 +82,28 @@ else
     exit 1
 fi
 
+# default 5 min runtime
+[[ ${DURATION} ]] || DURATION=300
+DURATION_MINUTES=$(( ${DURATION} / 60 ))
+if [[ $(( ${DURATION_MINUTES} * 60 )) < ${DURATION} ]] ; then
+    DURATION_MINUTES=$(( ${DURATION_MINUTES} + 1 ))
+    DURATION=$(( ${DURATION_MINUTES} * 60 ))
+fi
+
+# default 1 min rampup
+[[ ${RAMPUP} ]] || RAMPUP=60
+RAMPUP_MINUTES=$(( ${RAMPUP} / 60 ))
+if [[ $(( ${RAMPUP_MINUTES} * 60 )) < ${RAMPUP} ]] ; then
+    RAMPUP_MINUTES=$(( ${RAMPUP_MINUTES} + 1 ))
+    RAMPUP=$(( ${RAMPUP_MINUTES} * 60 ))
+fi
+
+
 [[ ${TOTAL_STREAMS} ]] || TOTAL_STREAMS=$(( ${DBSCALE} / 10 ))
+
+if [[ ${OPTION_SSL} == TRUE ]] ; then
+    echo "Option SSL : not implemented; FIXME!"
+fi
 
 
 TEST_NAME=${BENCHMARK}.run
@@ -148,16 +124,14 @@ time {
     echo "$0 ${COMMAND_LINE}"
     print_variable_report 12 TESTID "" BENCHMARK "" CLUSTER DATABASE "" \
         NUMOFNODES CLUSTER_NODES NUMOFDRIVERS DRIVER_NODES "" \
-        SCHEMA DBSCALE TOTAL_STREAMS RAMPUP_MINUTES DURATION_MINUTES \
-        LOAD_OPTIONS "" ALLWAREHOUSE STOREDPROC PREPARED ""
-    print_variable_report 12 OPTION_SKIPCHECK OPTION_CLEANUP OPTION_SNAPSHOT "" LOGDIRECTORY
+        SCHEMA DBSCALE TOTAL_STREAMS RAMPUP_MINUTES DURATION_MINUTES "" \
+        ALLWAREHOUSE STOREDPROC PREPARED ""
+    print_variable_report 12 OPTION_SKIPCHECK OPTION_SNAPSHOT OPTION_PERFMONITOR \
+        OPTION_GRAFANA "" LOGDIRECTORY
 
     echo
     echo "    ===== Pre Test Processing  =====       [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     time {
-
-        echo "            Properties File:"
-        showproperties
 
         if [[ ! ${OPTION_SKIPCHECK} ]] ; then
             echo
@@ -170,18 +144,6 @@ time {
             time set_max_prepared_stmt_count ${CLUSTER} $(( 100 * ${TOTAL_STREAMS} ))
         fi
         time set_max_connections ${CLUSTER} $(( ${TOTAL_STREAMS} + 10 ))
-
-        if [[ ${OPTION_SSL} ]] ; then
-            echo "            Option SSL : not implemented; FIXME!"
-        fi
-
-        if [[ ! ${OPTION_SKIPCHECK} || ${OPTION_LOADTABLES} ]] ; then
-            echo
-            echo "    ===== Check/Load Data =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-            COMMAND="load.data.sh --cluster ${CLUSTER} --benchmark ${BENCHMARK} --schema ${SCHEMA} --dbscale ${DBSCALE} ${LOAD_OPTIONS}"
-            echo "        COMMAND = ${COMMAND}"
-            time ${COMMAND}
-        fi
 
         echo
         echo "    ===== Gather Pretest Snapshot =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
@@ -200,19 +162,17 @@ time {
         time gather_before_data
 
         start_performance_monitor ${CLUSTER};
+        [[ ${OPTION_GRAFANA} == TRUE ]] && start_grafana
+
 
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).preprocessing.log 2>&1
-
-    echo
-    echo "            Operating System : $(get_os_version)"
-    echo "            Database Version : $(get_database_version)"
 
     echo
     echo "    ===== Run Performance Test =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     time {
 
         echo
-        echo "        Running ${TOTAL_STREAMS} total threads."
+        echo "        Running ${TOTAL_STREAMS} total virtual users."
 
         SCRIPT="/data/cbench/run-tprocc.tcl"
 
@@ -236,7 +196,6 @@ time {
                         TOTAL_STREAMS="'${TOTAL_STREAMS}'"
                         RAMPUP_MINUTES="'${RAMPUP_MINUTES}'"
                         DURATION_MINUTES="'${DURATION_MINUTES}'"
-                        DURATION="'${DURATION}'"
                         ALLWAREHOUSE="'${ALLWAREHOUSE}'"
                         ENGINE="'${ENGINE}'"
                         SCRIPT="'${SCRIPT}'"
@@ -281,7 +240,7 @@ time {
                 ;;
         esac
 
-        COMMAND="./${BENCHMARK_DRIVER} auto ${SCRIPT}"
+        COMMAND="./hammerdbcli auto ${SCRIPT}"
 
         echo "        COMMAND = ${COMMAND}"
 
@@ -378,12 +337,6 @@ time {
     echo
     echo "    ===== Test Complete =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-    if [[ ${STOP_DELAY} ]] ; then
-        echo
-        echo "    Stop Delay:  Sleeping for ${STOP_DELAY} seconds.        [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-        time sleep ${STOP_DELAY}
-    fi
-
     echo
     echo "    ===== Post Test Processing =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     time {
@@ -416,15 +369,11 @@ time {
         echo "        ===== Stop Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time stop_monitors
 
+        [[ ${OPTION_GRAFANA} == TRUE ]] && stop_grafana  2>&1 | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.log
+
         echo
         echo "        ===== Post Test Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time gather_posttest_snapshot ${CLUSTER};
-
-        if [[ ${OPTION_CLEANUP} ]] ; then
-            echo
-            echo "        ===== Clean Up:  Delete Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-            time mysql -vvv $(get_database_connection) -e "drop database ${SCHEMA}"
-        fi
 
         echo
         echo "        ===== Generate Interval Graph =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
