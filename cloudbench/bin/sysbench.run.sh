@@ -128,7 +128,7 @@ if [[ ${BENCHMARK} == 'sysbench-tpcc' ]] ; then
     NUMOFDRIVERS=1
     DRIVER_NODES=( ${DRIVER_NODES[0]} )
 else
-    [[ ${SCHEMA} ]] || SCHEMA=${BENCHMARK}
+    [[ ${SCHEMA} ]] || SCHEMA='sysbench'
     [[ ${WORKLOAD} ]] || WORKLOAD=9010
     [[ ${DBSCALE} ]] || DBSCALE=10
     [[ ${TABLES} ]] || TABLES=10
