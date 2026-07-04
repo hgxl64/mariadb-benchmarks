@@ -986,8 +986,9 @@ generate_performance_curve_graph() {
             {
                 echo "
                     set terminal png size 960,480 noenhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2
-                    set yrange [0:${TARGET_LATENCY}]
                     set xrange [0:]
+                    set logscale y 2
+                    set yrange [*:${TARGET_LATENCY}]
                     set grid ytics lc rgb '#bbbbbb' lw 1 lt 0
                     set grid xtics lc rgb '#bbbbbb' lw 1 lt 0
                     set ylabel 'Avg Latency (ms)'

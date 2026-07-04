@@ -103,7 +103,8 @@ mkdir -p ${LOGDIRECTORY}
         LABELS=( ${LABELS[*]} 'Pass-'${IDX} )
         {
             echo "set terminal png size 960,480 noenhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
-            echo "set yrange [0:${MAXLATENCY}]"
+            echo "set logscale y 2"
+            echo "set yrange [*:${MAXLATENCY}]"
             echo "set xrange [0:]"
             echo "set grid ytics lc rgb '#bbbbbb' lw 1 lt 0"
             echo "set grid xtics lc rgb '#bbbbbb' lw 1 lt 0"
