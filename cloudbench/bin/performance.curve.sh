@@ -96,6 +96,7 @@ process_connection_info
 case ${BENCHMARK} in
     tproc-c)
         [[ ${BENCHMARK_DRIVER} ]] || BENCHMARK_DRIVER='hammerdb'
+        [[ ${SCHEMA} ]] || SCHEMA='tprocc'
         [[ ${START_STREAMS} ]] || START_STREAMS=8
         [[ ${MAX_STREAMS} ]] || MAX_STREAMS=1024
         [[ ${TARGET_LATENCY} ]] || TARGET_LATENCY=25
