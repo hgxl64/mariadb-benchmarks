@@ -91,27 +91,23 @@ process_connection_info
 [[ ${OPTION_GRAFANA} ]] || OPTION_GRAFANA=FALSE
 
 [[ ${DATABASE} ]] || DATABASE='mariadb'
-[[ ${INTER_TEST_DELAY} ]] || INTER_TEST_DELAY=30
+[[ ${INTER_TEST_DELAY} ]] || INTER_TEST_DELAY=10
 
 case ${BENCHMARK} in
     tproc-c)
         [[ ${BENCHMARK_DRIVER} ]] || BENCHMARK_DRIVER='hammerdb'
-        [[ ${SCHEMA} ]] || SCHEMA='tprocc'
         [[ ${START_STREAMS} ]] || START_STREAMS=8
         [[ ${MAX_STREAMS} ]] || MAX_STREAMS=1024
-        [[ ${TARGET_LATENCY} ]] || TARGET_LATENCY=25
+        [[ ${TARGET_LATENCY} ]] || TARGET_LATENCY=20
         ;;
     sysbench-tpcc)
         [[ ${BENCHMARK_DRIVER} ]] || BENCHMARK_DRIVER='sysbench'
-        [[ ${SCHEMA} ]] || SCHEMA='sysbench_tpcc'
         [[ ${START_STREAMS} ]] || START_STREAMS=8
         [[ ${MAX_STREAMS} ]] || MAX_STREAMS=1024
         [[ ${TARGET_LATENCY} ]] || TARGET_LATENCY=50
         ;;
     sysbench)
         [[ ${BENCHMARK_DRIVER} ]] || BENCHMARK_DRIVER='sysbench'
-        [[ ${WORKLOAD} ]] || WORKLOAD='9010'
-        [[ ${DBSCALE} ]] || DBSCALE=10
         [[ ${START_STREAMS} ]] || START_STREAMS=8
         [[ ${MAX_STREAMS} ]] || MAX_STREAMS=$(( 2048 * ${NUMOFDRIVERS} ))
         if [[ ! ${TARGET_LATENCY} ]] ; then
@@ -126,7 +122,6 @@ case ${BENCHMARK} in
         ;;
 esac
 
-[[ ${SCHEMA} ]] || SCHEMA=${BENCHMARK}
 
 if [[ ${ENABLE_BINLOGGING} ]] ; then
     if [[ ${WORKLOAD} ]] ; then
