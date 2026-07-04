@@ -3,7 +3,7 @@
 source ${CBENCH_HOME}/bin/cbench.sh
 source ${CBENCH_HOME}/config/gcp.conf
 
-export CLUSTER='PERF-532'
+export CLUSTER='perf-532'
 
 TEST_NAME="PERF-532"
 [[ ${TESTID} ]] || TESTID=$(date +%y%m%d.%H%M%S).${TEST_NAME}

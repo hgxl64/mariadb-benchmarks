@@ -97,6 +97,8 @@ done
 [[ ${LAZY_INIT} ]] || LAZY_INIT=true
 [[ ${LAZY_INIT} == true ]] && OPTION_LAZY_INIT='-E lazy_itable_init=0,lazy_journal_init=0,discard'
 
+# replace forbidden characters in cluster name
+SANITIZED_CLUSTER=$(echo ${CLUSTER} | perl -pe 'tr/A-Z\._/a-z\-\-/')
 
 # logging
 TEST_NAME=gcp.allocate.nodes
@@ -109,9 +111,6 @@ else
 fi
 mkdir -p ${LOGDIRECTORY}
 
-
-# replace forbidden characters in cluster name
-SANITIZED_CLUSTER=$(echo ${CLUSTER} | perl -pe 'tr/A-Z\._/a-z\-\-/')
 
 # set system ids based on cluster and number
 (( NUMOFNODES = ${NUMOFSERVERS} + ${NUMOFDRIVERS} + ${NUMOFMAXSCALE} ))
