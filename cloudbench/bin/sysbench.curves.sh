@@ -31,6 +31,7 @@ while [[ $# > 0 ]] ; do
         --dbtables)         SBTABLES=$1; shift;;
         --tablesize)        SBTABLESIZE=$1; shift;;
         --sbtablesize)      SBTABLESIZE=$1; shift;;
+        --grafana)          OPTION_GRAFANA=TRUE;;
         -h|--help)          echo -e "$USAGE"; exit 1;;
         *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
     esac
@@ -83,6 +84,8 @@ mkdir -p ${LOGDIRECTORY}
 
     [[ ${START_STREAMS} ]] || START_STREAMS=8
     [[ ${MAX_STREAMS} ]] || MAX_STREAMS=2048
+
+    [[ ${OPTION_GRAFANA} == TRUE ]] && start_grafana
 
     for (( IDX = 1 ; IDX <= ${OPTION_REPEATS} ; IDX++ )) ; do
 
@@ -148,6 +151,8 @@ mkdir -p ${LOGDIRECTORY}
             sleep ${OPTION_INTER_TEST_DELAY};
         fi
     done
+
+    [[ ${OPTION_GRAFANA} == TRUE ]] && stop_grafana > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.log 2>&1
 
     echo
     echo "    ===== Consolidate Results =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S') ]"

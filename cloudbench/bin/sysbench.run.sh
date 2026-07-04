@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# (w) Axel XL Schwenke for MariaDB
+#
+# $Id§
 
 source ${CBENCH_HOME}/bin/cbench.sh
 
@@ -98,6 +102,7 @@ while [[ $# > 0 ]] ; do
         --cloud)                OPTION_CLOUD="--cloud";;
         --cleanup)              OPTION_CLEANUP=TRUE;;
         --monitor)              OPTION_PERFMONITOR=TRUE;;
+        --grafana)              OPTION_GRAFANA=TRUE;;
 
         -h|--help)              echo -e "$USAGE"; exit 1;;
 
@@ -183,9 +188,6 @@ time {
     echo "    ===== Pre Test Processing  =====       [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     time {
 
-        echo "            Properties File:"
-        showproperties
-
         if [[ ! ${OPTION_SKIPCHECK} ]] ; then
             echo
             echo "    ===== Check Cluster/Drivers =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
@@ -197,20 +199,6 @@ time {
             time set_max_prepared_stmt_count ${CLUSTER} $(( 10 * ${TABLES} * ${TOTAL_STREAMS} ))
         fi
         time set_max_connections ${CLUSTER} $(( ${TOTAL_STREAMS} + 10 ))
-
-        if [[ ! ${OPTION_SKIPCHECK} || ${OPTION_LOADTABLES} ]] ; then
-            echo
-            echo "    ===== Check/Load Data =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-            COMMAND="sysbench.load.sh --cluster ${CLUSTER} --schema ${SCHEMA} --benchmark ${BENCHMARK} ${OPTION_TABLES} --dbscale ${DBSCALE} ${LOAD_OPTIONS}"
-            [[ ${TABLES} ]] && COMMAND="${COMMAND} --tables ${TABLES}"
-            [[ ${TABLESIZE} ]] && COMMAND="${COMMAND} --table-size ${TABLESIZE}"
-            [[ ${OPTION_SKIPCHECK} ]] && COMMAND="${COMMAND} --skipcheck"
-            echo "        COMMAND = ${COMMAND}"
-            time ${COMMAND}
-        fi
-
-        echo
-        echo "    WORKLOAD = ${WORKLOAD}"
 
         echo
         echo "    ===== Gather Pretest Snapshot =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
@@ -235,6 +223,8 @@ time {
         fi
 
         start_performance_monitor ${CLUSTER};
+        [[ ${OPTION_GRAFANA} == TRUE ]] && start_grafana
+
 
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).preprocessing.log 2>&1
 
@@ -510,12 +500,7 @@ time {
         echo
         echo "        ===== Stop Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time stop_monitors
-
-        if [[ ${OPTION_CLEANUP} ]] ; then
-            echo
-            echo "        ===== Clean Up:  Delete Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-            time mariadb -vvv $(get_database_connection) -e "drop database ${SCHEMA}"
-        fi
+        [[ ${OPTION_GRAFANA} == TRUE ]] && stop_grafana > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.log 2>&1
 
         echo
         echo "        ===== Generate Interval Graph =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
