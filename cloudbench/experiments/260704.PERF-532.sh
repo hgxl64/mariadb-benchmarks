@@ -23,23 +23,23 @@ mkdir -p ${LOGDIRECTORY}
     export OPTION_SKIPCHECK=TRUE
 
     start_grafana
-    sysbench.load.sh --cluster ${CLUSTER} --bulkload
-    sysbench.curves.sh --cluster ${CLUSTER} --repeats 3 --workload oltp_point_select
-    sysbench.curves.sh --cluster ${CLUSTER} --repeats 3 --workload oltp_read_write
+    load.data.sh --cluster ${CLUSTER} --benchmark sysbench --bulkload
+    export DURATION=120 #point select needs only 120s runtime
+    performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- --benchmark sysbench --workload oltp_point_select
+    unset DURATION
+    performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- --benchmark sysbench --workload oltp_read_write
     stop.grafana.sh --cluster ${CLUSTER}
+    load.data.sh --cluster ${CLUSTER} --benchmark sysbench --clean
 
     start_grafana
     load.data.sh --cluster ${CLUSTER} --benchmark sysbench-tpcc --load
-    performance.curve.sh --cluster ${CLUSTER} --benchmark sysbench-tpcc
-    performance.curve.sh --cluster ${CLUSTER} --benchmark sysbench-tpcc
-    performance.curve.sh --cluster ${CLUSTER} --benchmark sysbench-tpcc
+    performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- --benchmark sysbench-tpcc
     stop.grafana.sh --cluster ${CLUSTER}
+    load.data.sh --cluster ${CLUSTER} --benchmark sysbench-tpcc --clean
 
     start_grafana
     load.data.sh --cluster ${CLUSTER} --benchmark tproc-c --load
-    performance.curve.sh --cluster ${CLUSTER} --benchmark tproc-c
-    performance.curve.sh --cluster ${CLUSTER} --benchmark tproc-c
-    performance.curve.sh --cluster ${CLUSTER} --benchmark tproc-c
+    performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- --benchmark tproc-c
     stop.grafana.sh --cluster ${CLUSTER}
 
 } | tee ${LOGDIRECTORY}/${TESTNAME}.log
