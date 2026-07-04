@@ -85,7 +85,7 @@ mkdir -p ${LOGDIRECTORY}
         fi
 
         echo
-        echo "    ===== Run Performance Curve - Pass ${IDX} - Cluster ${CLUSTER} - ${START_STREAMS}..${MAX_STREAMS} Streams =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        echo "    ===== Run Performance Curve - Pass ${IDX} - Cluster ${CLUSTER} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time {
             COMMAND="performance.curve.sh --cluster ${CLUSTER} $@"
             echo
