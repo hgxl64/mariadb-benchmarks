@@ -66,7 +66,7 @@ while [[ $# > 0 ]] ; do
         --histogram)            SYSBENCH_ARGS="${SYSBENCH_ARGS} --histogram";;
 
         # HammerDB Options
-        --allwarehouse          ALLWAREHOUSE=TRUE;;
+        --allwarehouse)         ALLWAREHOUSE=TRUE;;
 
         # CBENCH Options
         --binlogging)           ENABLE_BINLOGGING=TRUE;;
