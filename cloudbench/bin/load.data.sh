@@ -45,6 +45,7 @@ while [[ $# > 0 ]] ; do
         --dbscale)              DBSCALE="$1"; shift;;
 
         --load)                 LOAD_OPTION='load';;
+        --clean)                LOAD_OPTION='clean';;
         --noload)               LOAD_OPTION='noload';;
         --check)                LOAD_OPTION='noload';;
 
@@ -120,6 +121,7 @@ case ${BENCHMARK} in
         [[ ${SYSBENCH_TABLES} ]] || SYSBENCH_TABLES=10
         ;;
     sysbench)
+        [[ ${SCHEMA} ]] || SCHEMA='sysbench'
         [[ ${DBSCALE} ]] || DBSCALE=10
         [[ ${SYSBENCH_TABLES} ]] || SYSBENCH_TABLES=${DBSCALE}
         [[ ${SYSBENCH_TABLESIZE} ]] || (( SYSBENCH_TABLESIZE = ${DBSCALE} * 4000000 / ${SYSBENCH_TABLES} ))
@@ -128,7 +130,6 @@ case ${BENCHMARK} in
     *) echo "Unsupported Benchmark : BENCHMARK = ${BENCHMARK}"; echo -e "$USAGE"; exit 1;;
 esac
 
-[[ ${SCHEMA} ]] || SCHEMA=${BENCHMARK}
 
 TEST_NAME=${BENCHMARK}.load
 if [[ ! ${TESTID} ]] ; then TESTID=$(date +%y%m%d.%H%M%S).${CLUSTER}; fi
@@ -357,6 +358,11 @@ time {
                 esac
 
             }
+
+        elif [[ ${LOAD_OPTION} == 'clean' ]] ; then
+            echo "        Drop database ${SCHEMA}"
+            echo "            mariadb -vvv $(get_database_connection)"
+            mariadb -vvv $(get_database_connection) -e "drop database if exists ${SCHEMA}"
 
         fi
 
