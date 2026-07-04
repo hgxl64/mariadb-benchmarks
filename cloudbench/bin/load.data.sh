@@ -122,7 +122,7 @@ case ${BENCHMARK} in
     sysbench)
         [[ ${DBSCALE} ]] || DBSCALE=10
         [[ ${SYSBENCH_TABLES} ]] || SYSBENCH_TABLES=${DBSCALE}
-        [[ ${SYSBENCH_TABLESIZE} ]] || (( SYSBENCH_TABLESIZE = ${DBSCALE} * 1000000 / ${SYSBENCH_TABLES} ))
+        [[ ${SYSBENCH_TABLESIZE} ]] || (( SYSBENCH_TABLESIZE = ${DBSCALE} * 4000000 / ${SYSBENCH_TABLES} ))
         [[ ${SYSBENCH_SCRIPT} ]] || SYSBENCH_SCRIPT='oltp_read_write.lua'
         ;;
     *) echo "Unsupported Benchmark : BENCHMARK = ${BENCHMARK}"; echo -e "$USAGE"; exit 1;;
