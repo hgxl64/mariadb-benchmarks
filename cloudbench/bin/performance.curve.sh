@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# (w) Axel XL Schwenke for MariaDB
+#
+# $Id$
 
 source ${CBENCH_HOME}/bin/cbench.sh
 
@@ -37,12 +41,6 @@ while [[ $# > 0 ]] ; do
         # Benchmark/Workload Controls
         --schema)               SCHEMA="$1"; shift;;
         --dbscale)              DBSCALE="$1"; shift;;
-        --reload)               OPTION_LOADTABLES=TRUE;LOAD_OPTIONS="${LOAD_OPTIONS} --restore";;
-        --load)                 OPTION_LOADTABLES=TRUE;LOAD_OPTIONS="${LOAD_OPTIONS} --load";;
-        --restore)              OPTION_LOADTABLES=TRUE;LOAD_OPTIONS="${LOAD_OPTIONS} --restore";;
-        --import)               OPTION_LOADTABLES=TRUE;LOAD_OPTIONS="${LOAD_OPTIONS} --import";;
-        --noload)               LOAD_OPTIONS="${LOAD_OPTIONS} --noload";;
-        --engine)               LOAD_OPTIONS="${LOAD_OPTIONS} --engine $1"; shift;;
         --cleanup)              OPTION_CLEANUP=TRUE;;
 
         --duration)             CBENCH_ARGS="${CBENCH_ARGS} --duration $1"; shift;;
@@ -63,10 +61,12 @@ while [[ $# > 0 ]] ; do
         --skiptransaction)      SYSBENCH_ARGS="${SYSBENCH_ARGS} --skiptransaction";;
         --ignoreerrors)         SYSBENCH_ARGS="${SYSBENCH_ARGS} --ignoreerrors";;
         --reconnect)            SYSBENCH_ARGS="${SYSBENCH_ARGS} --reconnect $1"; shift;;
-        --seeded)               SYSBENCH_ARGS="${SYSBENCH_ARGS} --seeded";;
         --ssl)                  SYSBENCH_ARGS="${SYSBENCH_ARGS} --ssl";;
         --skipbinlog)           SYSBENCH_ARGS="${SYSBENCH_ARGS} --skipbinlog";;
         --histogram)            SYSBENCH_ARGS="${SYSBENCH_ARGS} --histogram";;
+
+        # HammerDB Options
+        --allwarehouse          ALLWAREHOUSE=TRUE;;
 
         # CBENCH Options
         --binlogging)           ENABLE_BINLOGGING=TRUE;;
@@ -76,8 +76,6 @@ while [[ $# > 0 ]] ; do
         --skipmonitor)          OPTION_PERFMONITOR=FALSE;;
         --skipsnapshot)         export OPTION_SNAPSHOT=FALSE;;
         --skipcheck)            export OPTION_SKIPCHECK=TRUE;;
-        --skipstats)            export OPTION_SKIPSTATS=TRUE;;
-        --cloud)                OPTION_CLOUD="--cloud";;
         --grafana)              OPTION_GRAFANA=TRUE;;
 
         -h|--help)              echo -e "$USAGE"; exit 1;;
@@ -90,17 +88,24 @@ done
 process_connection_info
 
 [[ ${OPTION_PERFMONITOR} ]] || OPTION_PERFMONITOR=TRUE
+[[ ${OPTION_GRAFANA} ]] || OPTION_GRAFANA=FALSE
 
 [[ ${DATABASE} ]] || DATABASE='mariadb'
-[[ ${INTER_TEST_DELAY} ]] || INTER_TEST_DELAY=10
+[[ ${INTER_TEST_DELAY} ]] || INTER_TEST_DELAY=30
 
 case ${BENCHMARK} in
+    tproc-c)
+        [[ ${BENCHMARK_DRIVER} ]] || BENCHMARK_DRIVER='hammerdb'
+        [[ ${START_STREAMS} ]] || START_STREAMS=8
+        [[ ${MAX_STREAMS} ]] || MAX_STREAMS=1024
+        [[ ${TARGET_LATENCY} ]] || TARGET_LATENCY=25
+        ;;
     sysbench-tpcc)
         [[ ${BENCHMARK_DRIVER} ]] || BENCHMARK_DRIVER='sysbench'
         [[ ${SCHEMA} ]] || SCHEMA='sysbench_tpcc'
         [[ ${START_STREAMS} ]] || START_STREAMS=8
         [[ ${MAX_STREAMS} ]] || MAX_STREAMS=1024
-        [[ ${TARGET_LATENCY} ]] || TARGET_LATENCY=100
+        [[ ${TARGET_LATENCY} ]] || TARGET_LATENCY=50
         ;;
     sysbench)
         [[ ${BENCHMARK_DRIVER} ]] || BENCHMARK_DRIVER='sysbench'
@@ -198,21 +203,6 @@ time {
             echo
             echo "    ===== Check System/Cluster =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
             time check_cluster
-
-            echo
-            echo "    ===== Check Drivers =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-            time check_and_update_remote_drivers
-        fi
-
-        if [[ ! ${OPTION_SKIPCHECK} || ${OPTION_LOADTABLES} ]] ; then
-            echo
-            echo "    ===== Check/Load Data =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-            time {
-                COMMAND="load.data.sh --cluster ${CLUSTER} --benchmark ${BENCHMARK} --schema ${SCHEMA} --dbscale ${DBSCALE} ${LOAD_OPTIONS}"
-                if [[ ${BENCHMARK} == sysbench ]] ; then COMMAND="${COMMAND} ${SYSBENCH_TABLE_ARGS}" ; fi
-                echo "        COMMAND = ${COMMAND}"
-                time ${COMMAND}
-            }
         fi
 
         echo
@@ -230,9 +220,9 @@ time {
 
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).preprocessing.log 2>&1
 
-#    echo
-#    echo "    ===== Start Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-#    time start_performance_monitor ${CLUSTER} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).start.performance.monitor 2>&1
+    echo
+    echo "    ===== Start Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    time start_performance_monitor ${CLUSTER} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).start.performance.monitor 2>&1
 
     [[ ${OPTION_GRAFANA} == TRUE ]] && start_grafana
 
@@ -289,6 +279,13 @@ time {
                     [[ ${CBENCH_ARGS} ]] && COMMAND="${COMMAND} ${CBENCH_ARGS}"
                     [[ ${SYSBENCH_TABLE_ARGS} ]] && COMMAND="${COMMAND} ${SYSBENCH_TABLE_ARGS}"
                     [[ ${SYSBENCH_ARGS} ]] && COMMAND="${COMMAND} ${SYSBENCH_ARGS}"
+                elif [[ ${BENCHMARK_DRIVER} == "hammerdb" ]] ; then
+                    COMMAND="hammerdb.run.sh --cluster ${CLUSTER} --skipcheck --benchmark ${BENCHMARK}"
+                    [[ ${SCHEMA} ]] && COMMAND="${COMMAND} --schema ${SCHEMA}"
+                    [[ ${DBSCALE} ]] && COMMAND="${COMMAND} --dbscale ${DBSCALE}"
+                    [[ ${STREAMS} ]] && COMMAND="${COMMAND} --totalstreams ${STREAMS}"
+                    [[ ${CBENCH_ARGS} ]] && COMMAND="${COMMAND} ${CBENCH_ARGS}"
+                    [[ ${ALLWAREHOUSE} ]] && COMMAND="${COMMAND} --allwarehouse"
                 fi
                 echo "        COMMAND = ${COMMAND}"
 
@@ -317,6 +314,18 @@ time {
 
                     ERRORS=$( tail -1 ${LOGDIRECTORY}/test.data | awk '{ print $5 }')
 
+                elif [[ ${BENCHMARK_DRIVER} == "hammerdb" ]] ; then
+                    {
+                        echo ${CLUSTER}
+                        echo
+                        echo ${TESTID}.${TEST_NAME}
+                        printf "%-11s %12s %12s %8s\n" 'concurrency' 'throughput' 'avg_latency' 'errors'
+                        for RESULT_FILE in ${LOGDIRECTORY}/*.run/test.data ; do
+                            tail -1 ${RESULT_FILE} | awk '{ printf "%-11d %12.2f %12.3f %8d\n", $1, $2, $3, $8 }'
+                        done
+                    } > ${LOGDIRECTORY}/test.data
+
+                    ERRORS=$( tail -1 ${LOGDIRECTORY}/test.data | awk '{ print $4 }')
                 fi
 
                 echo
@@ -365,14 +374,17 @@ time {
     echo "    ===== Post Processing =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     time {
 
-#        stop_monitors;
+        stop_monitors;
+
         [[ ${OPTION_GRAFANA} == TRUE ]] && stop_grafana > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.log 2>&1
 
         gather_posttest_snapshot ${CLUSTER};
+
         if [[ ${OPTION_CLEANUP} ]] ; then
             echo "    ===== Clean Up : Delete Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-            mysql -vvv $(get_database_connection) -e "drop database ${SCHEMA}" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).delete.data.log 2>&1
+            mariadb -vvv $(get_database_connection) -e "drop database ${SCHEMA}" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).delete.data.log 2>&1
         fi
+
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).post.processing.log 2>&1
 
     echo
