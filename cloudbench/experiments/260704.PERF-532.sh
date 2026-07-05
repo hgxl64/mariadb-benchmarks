@@ -137,7 +137,7 @@ mkdir -p ${LOGDIRECTORY}
     echo
     echo "        SYSTEMS = ${SYSTEMS[*]}"
 
-    [[ ${SYSTEMS} ]] || error "ERROR Unable to allocate nodes."
+    ${DEBUG} || [[ ${SYSTEMS} ]] || error "ERROR Unable to allocate nodes."
 
     echo
     echo "=== Configure Cluster [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
