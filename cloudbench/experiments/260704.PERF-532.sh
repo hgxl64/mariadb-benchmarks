@@ -97,6 +97,11 @@ else
     export OPTION_THREADS_PER_CORE=2
 fi
 
+exec() {
+    if [[ ! ${DEBUG} ]] ; then
+        ${CMD}
+    fi
+}
 
 export CLUSTER='perf-532'
 
@@ -123,45 +128,39 @@ mkdir -p ${LOGDIRECTORY}
     echo "=== Allocate Nodes [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
     echo
     start_timer
-    time {
-        COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER} --server-nodes 1 --driver-nodes 1"
-        COMMAND="${COMMAND} --server-instance-type ${SERVER_INSTANCE_TYPE}"
-        COMMAND="${COMMAND} --driver-instance-type ${DRIVER_INSTANCE_TYPE}"
-        COMMAND="${COMMAND} --threads-per-core ${OPTION_THREADS_PER_CORE}"
-        echo "${COMMAND}"
-        [[ ${DEBUG} ]] || ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).allocate.nodes.${CLUSTER}.log 2>&1
-    }
+    COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER} --server-nodes 1 --driver-nodes 1"
+    COMMAND="${COMMAND} --server-instance-type ${SERVER_INSTANCE_TYPE}"
+    COMMAND="${COMMAND} --driver-instance-type ${DRIVER_INSTANCE_TYPE}"
+    COMMAND="${COMMAND} --threads-per-core ${OPTION_THREADS_PER_CORE}"
+    echo "${COMMAND}"
+    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).allocate.nodes.${CLUSTER}.log 2>&1
     ALLOCATE_SEC=$(stop_timer)
 
     SYSTEMS=( $(get_property ${CLUSTER} systems) )
     echo
     echo "        SYSTEMS = ${SYSTEMS[*]}"
 
-    [[ ${DEBUG} ]] || [[ ${SYSTEMS} ]] || error "ERROR Unable to allocate nodes."
+    exec [[ ${SYSTEMS} ]] || error "ERROR Unable to allocate nodes."
 
     echo
     echo "=== Configure Cluster [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
     echo
-    time {
-        COMMAND="configure.cluster.sh --cluster ${CLUSTER} --cluster-type mariadb"
-        COMMAND="${COMMAND} --mariadb-system ${SYSTEMS[0]} --driver-system ${SYSTEMS[1]}"
-        echo "${COMMAND}"
-        [[ ${DEBUG} ]] || ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).configure.cluster.${CLUSTER}.log 2>&1
-    }
+    COMMAND="configure.cluster.sh --cluster ${CLUSTER} --cluster-type mariadb"
+    COMMAND="${COMMAND} --mariadb-system ${SYSTEMS[0]} --driver-system ${SYSTEMS[1]}"
+    echo "${COMMAND}"
+    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).configure.cluster.${CLUSTER}.log 2>&1
 
     echo
     echo "=== Build Cluster [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
     echo
     start_timer
-    time {
-        COMMAND="build.cluster.sh --cluster ${CLUSTER}"
-        [[ ${OPT_SOURCE} ]]  && COMMAND="${COMMAND} --mariadb-source ${OPT_SOURCE}"
-        [[ ${OPT_BRANCH} ]]  && COMMAND="${COMMAND} --mariadb-branch ${OPT_BRANCH}"
-        [[ ${OPT_COMMIT} ]]  && COMMAND="${COMMAND} --mariadb-commit ${OPT_COMMIT}"
-        [[ ${OPT_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${OPT_TARBALL}"
-        echo "${COMMAND}"
-        [[ ${DEBUG} ]] || ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.cluster.${CLUSTER}.log 2>&1
-    }
+    COMMAND="build.cluster.sh --cluster ${CLUSTER}"
+    [[ ${OPT_SOURCE} ]]  && COMMAND="${COMMAND} --mariadb-source ${OPT_SOURCE}"
+    [[ ${OPT_BRANCH} ]]  && COMMAND="${COMMAND} --mariadb-branch ${OPT_BRANCH}"
+    [[ ${OPT_COMMIT} ]]  && COMMAND="${COMMAND} --mariadb-commit ${OPT_COMMIT}"
+    [[ ${OPT_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${OPT_TARBALL}"
+    echo "${COMMAND}"
+    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.cluster.${CLUSTER}.log 2>&1
     BUILD_SEC=$(stop_timer)
 
     export OPTION_SKIPCHECK=TRUE
@@ -171,91 +170,81 @@ mkdir -p ${LOGDIRECTORY}
     echo
     start_grafana
     start_timer
-    time {
-        COMMAND="load.data.sh --cluster ${CLUSTER} --benchmark sysbench --bulkload"
-        echo "${COMMAND}"
-        [[ ${DEBUG} ]] || ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).load.data.sysbench.log 2>&1
-    }
+    COMMAND="load.data.sh --cluster ${CLUSTER} --benchmark sysbench --bulkload"
+    echo "${COMMAND}"
+    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).load.data.sysbench.log 2>&1
     LOAD1_SEC=$(stop_timer)
+
     echo
     echo "=== Run Sysbench point-select Curves [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
     echo
     start_timer
-    time {
-        COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- --benchmark sysbench --workload oltp_point_select"
-        echo "${COMMAND}"
-        export DURATION=120
-        [[ ${DEBUG} ]] || ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).sysbench.point-select.curves.log 2>&1
-        unset DURATION
-    }
+    COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- --benchmark sysbench --workload oltp_point_select"
+    echo "${COMMAND}"
+    export DURATION=120
+    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).sysbench.point-select.curves.log 2>&1
+    unset DURATION
     CURVES1_SEC=$(stop_timer)
+
     echo
     echo "=== Run Sysbench read/write Curves [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
     echo
     start_timer
-    time {
-        COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- --benchmark sysbench --workload oltp_read_write"
-        echo "${COMMAND}"
-        [[ ${DEBUG} ]] || ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).sysbench.read-write.curves.log 2>&1
-    }
+    COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- --benchmark sysbench --workload oltp_read_write"
+    echo "${COMMAND}"
+    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).sysbench.read-write.curves.log 2>&1
     CURVES2_SEC=$(stop_timer)
-    [[ ${DEBUG} ]] || stop.grafana.sh --cluster ${CLUSTER} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.sysbench.log 2>&1
-    [[ ${DEBUG} ]] || load.data.sh --cluster ${CLUSTER} --benchmark sysbench --clean &> /dev/null
+    exec "stop.grafana.sh --cluster ${CLUSTER}" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.sysbench.log 2>&1
+    exec "load.data.sh --cluster ${CLUSTER} --benchmark sysbench --clean" &> /dev/null
 
     echo
     echo "=== Load Data for Sysbench TPC-C [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
     echo
     start_grafana
     start_timer
-    time {
-        COMMAND="load.data.sh --cluster ${CLUSTER} --benchmark sysbench-tpcc --load"
-        echo "${COMMAND}"
-        [[ ${DEBUG} ]] || ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).load.data.sysbench-tpcc.log 2>&1
-    }
+    COMMAND="load.data.sh --cluster ${CLUSTER} --benchmark sysbench-tpcc --load"
+    echo "${COMMAND}"
+    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).load.data.sysbench-tpcc.log 2>&1
     LOAD2_SEC=$(stop_timer)
+
     echo
     echo "=== Run Sysbench TPC-C Curves [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
     echo
     start_timer
-    time {
-        COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- --benchmark sysbench-tpcc"
-        echo "${COMMAND}"
-        [[ ${DEBUG} ]] || ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).sysbench-tpcc.curves.log 2>&1
-    }
+    COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- --benchmark sysbench-tpcc"
+    echo "${COMMAND}"
+    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).sysbench-tpcc.curves.log 2>&1
     CURVES3_SEC=$(stop_timer)
-    [[ ${DEBUG} ]] || stop.grafana.sh --cluster ${CLUSTER} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.sysbench-tpcc.log 2>&1
-    [[ ${DEBUG} ]] || load.data.sh --cluster ${CLUSTER} --benchmark sysbench-tpcc --clean &> /dev/null
+    exec "stop.grafana.sh --cluster ${CLUSTER}" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.sysbench-tpcc.log 2>&1
+    exec "load.data.sh --cluster ${CLUSTER} --benchmark sysbench-tpcc --clean" &> /dev/null
 
     echo
     echo "=== Load Data for HammerDB TPROC-C [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
     echo
     start_grafana
     start_timer
-    time {
-        COMMAND="load.data.sh --cluster ${CLUSTER} --benchmark tproc-c --load"
-        echo "${COMMAND}"
-        [[ ${DEBUG} ]] || ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).load.data.hammerdb-tprocc.log 2>&1
-    }
+    COMMAND="load.data.sh --cluster ${CLUSTER} --benchmark tproc-c --load"
+    echo "${COMMAND}"
+    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).load.data.hammerdb-tprocc.log 2>&1
     LOAD3_SEC=$(stop_timer)
+
     echo
     echo "=== Run HammerDB TPROC-C Curves [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
     echo
     start_timer
-    time {
-        COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- --benchmark tproc-c"
-        echo "${COMMAND}"
-        [[ ${DEBUG} ]] || ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).hammerdb-tprocc.curves.log 2>&1
-    }
+    COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- --benchmark tproc-c"
+    echo "${COMMAND}"
+    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).hammerdb-tprocc.curves.log 2>&1
     CURVES4_SEC=$(stop_timer)
-    [[ ${DEBUG} ]] || stop.grafana.sh --cluster ${CLUSTER} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.sysbench-tpcc.log 2>&1
+    exec "stop.grafana.sh --cluster ${CLUSTER}" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.sysbench-tpcc.log 2>&1
 
+    echo
     echo "=== Release Nodes [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
+    echo
     start_timer
-    time {
-        COMMAND="gcp.release.nodes.sh --cluster ${CLUSTER}"
-        echo "${COMMAND}"
-        [[ ${DEBUG} ]] || ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).release.nodes.${CLUSTER}.log 2>&1
-    }
+    COMMAND="gcp.release.nodes.sh --cluster ${CLUSTER}"
+    echo "${COMMAND}"
+    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).release.nodes.${CLUSTER}.log 2>&1
     RELEASE_SEC=$(stop_timer)
 
     (( LOAD_SEC = LOAD1_SEC + LOAD2_SEC + LOAD3_SEC ))
