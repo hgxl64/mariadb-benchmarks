@@ -94,8 +94,12 @@ done
 [[ ! ${PERSISTENTDISK} && ${NUMOFLOCALDISKS} == 0 ]] && PERSISTENTDISK=TRUE
 
 # default lazyinit on
-[[ ${LAZY_INIT} ]] || LAZY_INIT=true
-[[ ${LAZY_INIT} == true ]] && OPTION_LAZY_INIT='-E lazy_itable_init=0,lazy_journal_init=0,discard'
+[[ ${LAZY_INIT} ]] || LAZY_INIT=TRUE
+[[ ${LAZY_INIT} == TRUE ]] && OPTION_LAZY_INIT='-E lazy_itable_init=0,lazy_journal_init=0,discard'
+
+# default create swapfile
+[[ ${MKSWAP} ]] || MKSWAP=TRUE
+
 
 # replace forbidden characters in cluster name
 SANITIZED_CLUSTER=$(echo ${CLUSTER} | perl -pe 'tr/A-Z\._/a-z\-\-/')
@@ -567,7 +571,14 @@ done
 
                 echo "sudo chmod a+w /data/cbench"
                 echo "df -h"
-            } | ssh -T -o "StrictHostKeyChecking no" -i ${SSH_PEM_FILE} ${SSH_USER}@${NODE}
+                if [[ ${MKSWAP} == TRUE ]] ; then
+                    echo "cd /data/cbench"
+                    echo "sudo if=/dev/zero of=swapfile bs=1m count=16384"
+                    echo "sudo mkswap swapfile"
+                    echo "sudo chmod 600 swapfile"
+                    echo "sudo swapon swapfile"
+                fi
+            } | ssh -T -o "StrictHostKeyChecking no" -i ${SSH_PEM_FILE} ${SSH_USER}@${NODE} &
         done
         wait
         sleep 10
