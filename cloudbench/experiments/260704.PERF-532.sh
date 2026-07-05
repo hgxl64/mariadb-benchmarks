@@ -99,7 +99,7 @@ fi
 
 exec() {
     if [[ ! ${DEBUG} ]] ; then
-        ${CMD}
+        $*
     fi
 }
 
