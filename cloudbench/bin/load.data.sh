@@ -107,8 +107,8 @@ if [[ ! ${BENCHMARK} ]] ; then echo "Benchmark parameter required."; echo -e "$U
 process_connection_info;
 
 [[ ${CLUSTER_TYPE} ]] || CLUSTER_TYPE=$(get_property ${CLUSTER} cluster.type)
-[[ ${LOAD_OPTION} ]] || LOAD_OPTION=noload
 [[ ${OPTION_SNAPSHOT} ]] || OPTION_SNAPSHOT=FALSE
+[[ ${LOAD_OPTION} ]] || LOAD_OPTION=noload
 
 case ${BENCHMARK} in
     tproc-c)
@@ -140,235 +140,224 @@ else
 fi
 mkdir -p ${LOGDIRECTORY}
 
+STARTSECONDS=$SECONDS
+
 time {
 
     echo
     echo "===== Begin $0 =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     echo
 
-    STARTSECONDS=$SECONDS
-
-    echo
-    echo "         $0 ${COMMAND_LINE}"
-    echo
-    echo "            TESTID                  = ${TESTID}"
-    echo
-    echo "            DATABASE                = ${DATABASE}"
-    echo "            BENCHMARK               = ${BENCHMARK}"
-    echo "            CLUSTER                 = ${CLUSTER}"
-    echo
-    echo "            SCHEMA                  = ${SCHEMA}"
-    echo "            DBSCALE                 = ${DBSCALE}"
-    echo "            LOAD_OPTION             = ${LOAD_OPTION}"
-    echo "            OPTION_SKIPCHECK        = ${OPTION_SKIPCHECK}"
-    echo
-    echo "            OPTION_ENGINE           = ${OPTION_ENGINE}"
-    echo
-    echo "            LOGDIRECTORY            = ${LOGDIRECTORY}"
-    if [[ ${BENCHMARK} == sysbench* ]] ; then
-        echo
-        echo "            SYSBENCH_TABLES         = ${SYSBENCH_TABLES}"
-        echo "            SYSBENCH_SEED_METHOD    = ${SYSBENCH_SEED_METHOD}"
-    fi
-
-    echo
-    echo "            Database Connection     = mariadb $(get_database_connection)"
-    mariadb $(get_database_connection) -e 'select version()'
-
-    echo "            Properties File:"
-    showproperties
-
-    check_cluster;
-    gather_pretest_snapshot ${CLUSTER}
-    start_performance_monitor;
-
-    if [[ ${LOAD_OPTION} != noload ]] ; then
-
-        start_timer
+    if [[ ${LOAD_OPTION} == 'load' ]] ; then
 
         echo
         echo "    ===== Loading Data : LOAD_OPTION = ${LOAD_OPTION} =====       [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-
-        if [[ ${LOAD_OPTION} == 'load' ]] ; then
-
-            time {
-
-                case ${BENCHMARK} in
-
-                    tproc-c)
-                        # Only use 1 driver
-                        echo "        Driver : ${HEADDRIVER}"
-                        check_and_update_remote_drivers;
-                        echo "        Drop and recreate database"
-                        echo "            mariadb -vvv $(get_database_connection)"
-                        [[ ${OPTION_SKIP_DROP} ]] || mariadb -vvv $(get_database_connection) -e "drop database if exists ${SCHEMA}"
-                        mariadb -vvv $(get_database_connection) -e "create database if not exists ${SCHEMA}"
-                        mariadb -vvv $(get_database_connection) -e "show databases"
-                        # 200317 workaround for maxscale issue with loading initial database info
-                        time mariadb -vvv $(get_database_connection) -e "
-                            use ${SCHEMA};
-                            show tables;
-                            "
-
-                        DBHOST=$(get_database_internal_host ${CLUSTER})
-                        DBPORT=$(get_database_port ${CLUSTER})
-                        DBUSER=$(get_database_user ${CLUSTER})
-                        DBPASS=$(get_database_password ${CLUSTER})
-                        VUSER=$(ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) 'cat /proc/cpuinfo' | grep -c processor | awk '{ print int($1) }')
-                        VUSER=$((${VUSER} * 2))
-                        [[ ${OPTION_ENGINE} ]] || OPTION_ENGINE='innodb'
-
-                        SCRIPT="/data/cbench/load-tprocc.tcl"
-
-                        if [[ ${DATABASE} == 'mariadb' ]] ; then
-                            ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
-                                DBHOST="'${DBHOST}'"
-                                DBPORT="'${DBPORT}'"
-                                DBUSER="'${DBUSER}'"
-                                DBPASS="'${DBPASS}'"
-                                SCHEMA="'${SCHEMA}'"
-                                DBSCALE="'${DBSCALE}'"
-                                VUSER="'${VUSER}'"
-                                SCRIPT="'${SCRIPT}'"
-                                ENGINE="'${OPTION_ENGINE}'"
-                                PARTITION="'${PARTITION}'"
-                                [[ -f ${SCRIPT} ]] && rm -f ${SCRIPT}
-                                echo "dbset db maria"                            >> ${SCRIPT}
-                                echo "diset connection maria_host ${DBHOST}"     >> ${SCRIPT}
-                                echo "diset connection maria_port ${DBPORT}"     >> ${SCRIPT}
-                                echo "diset connection maria_socket null"        >> ${SCRIPT}
-                                echo "diset tpcc maria_dbase ${SCHEMA}"          >> ${SCRIPT}
-                                echo "diset tpcc maria_user ${DBUSER}"           >> ${SCRIPT}
-                                echo "diset tpcc maria_pass ${DBPASS}"           >> ${SCRIPT}
-                                echo "diset tpcc maria_storage_engine ${ENGINE}" >> ${SCRIPT}
-                                echo "diset tpcc maria_count_ware ${DBSCALE}"    >> ${SCRIPT}
-                                echo "diset tpcc maria_num_vu ${VUSER}"          >> ${SCRIPT}
-                                if [[ ${PARTITION} == TRUE ]] ; then
-                                    echo "diset tpcc maria_partition true"       >> ${SCRIPT}
-                                fi
-                                echo "diset tpcc maria_raiseerror true"          >> ${SCRIPT}
-                                echo "print dict"                                >> ${SCRIPT}
-                                echo "buildschema"                               >> ${SCRIPT}
-                                echo
-                                echo "    ===== TCL script ${SCRIPT} created for MariaDB ====="
-                                echo
-                                cat ${SCRIPT}
-                                echo
-                            '
-                        fi
-
-                        COMMAND="./hammerdbcli auto ${SCRIPT}"
-
-                        echo
-                        echo "    ===== Load Data =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S') ]"
-                        echo "        COMMAND = ${COMMAND}"
-                        time ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
-                            COMMAND="'${COMMAND}'"
-                            SCRIPT="'${SCRIPT}'"
-                            echo "        Driver: $(uname -n)"
-                            echo "        COMMAND = ${COMMAND}"
-                            echo
-                            cd /data/cbench/HammerDB-5.0
-                            [[ -d tmp ]] && rm -rf tmp
-                            mkdir tmp
-                            TMP=$(pwd)/tmp ${COMMAND}
-                        '
-                        scp $(get_scp_copy_from_connection ${CLUSTER} ${HEADDRIVER} ${SCRIPT} ${LOGDIRECTORY}/. )
-                        ;;
-
-                    sysbench-tpcc)
-                        # Only use 1 driver
-                        echo "        Driver : ${HEADDRIVER}"
-                        check_and_update_remote_drivers;
-                        echo "        Drop and recreate database"
-                        echo "            mariadb -vvv $(get_database_connection)"
-                        [[ ${OPTION_SKIP_DROP} ]] || mariadb -vvv $(get_database_connection) -e "drop database if exists ${SCHEMA}"
-                        mariadb -vvv $(get_database_connection) -e "create database if not exists ${SCHEMA}"
-                        mariadb -vvv $(get_database_connection) -e "show databases"
-                        # 200317 workaround for maxscale issue with loading initial database info
-                        time mariadb -vvv $(get_database_connection) -e "
-                            use ${SCHEMA};
-                            show tables;
-                            "
-                        [[ ${STREAMS} ]] || STREAMS=${SYSBENCH_TABLES}
-
-                        COMMAND="sysbench /data/cbench/driver/lua/tpcc.lua $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER}) --scale=${DBSCALE} --use_fk=0 ${SYSBENCH_OPTIONS}"
-                        [[ ${OPTION_ENGINE} ]] && COMMAND="${COMMAND} --mysql_storage_engine=${OPTION_ENGINE}"
-                        [[ ${SYSBENCH_TABLES} ]] && COMMAND="${COMMAND} --tables=${SYSBENCH_TABLES} --threads=${SYSBENCH_TABLES}"
-                        [[ ${OPTION_NOAUTOINC} ]] && COMMAND="${COMMAND} --auto-inc=off"
-                        [[ ${OPTION_DIRECTEXEC} ]] && COMMAND="${COMMAND} --db-ps-mode=disable"
-                        [[ ${OPTION_NOSECONDARY} ]] && COMMAND="${COMMAND} --secondary=off --create_secondary=off"
-                        [[ ${SKIP_BINLOG} ]] && COMMAND="${COMMAND} --skip-binlog=on"
-                        COMMAND="${COMMAND} --mysql-db=${SCHEMA}"
-                        COMMAND="${COMMAND} prepare"
-                        echo
-                        echo "    ===== Load Data =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S') ]"
-                        echo "        COMMAND = ${COMMAND}"
-                        time ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
-                            COMMAND="'${COMMAND}'"
-                            echo "        Driver: $(uname -n)"
-                            echo "        COMMAND = ${COMMAND}"
-                            export LUA_PATH="/data/cbench/driver/lua//?.lua;;"
-                            ${COMMAND}
-                        '
-                        ;;
-
-                    sysbench)
-                        # Only use 1 driver
-                        echo "        Driver : ${HEADDRIVER}"
-                        check_and_update_remote_drivers;
-                        echo "        Drop and recreate database"
-                        echo "            mariadb -vvv $(get_database_connection)"
-                        [[ ${OPTION_SKIP_DROP} ]] || mariadb -vvv $(get_database_connection) -e "drop database if exists ${SCHEMA}"
-                        mariadb -vvv $(get_database_connection) -e "create database if not exists ${SCHEMA}"
-                        mariadb -vvv $(get_database_connection) -e "show databases"
-                        # 200317 workaround for maxscale issue with loading initial database info
-                        mariadb -vvv $(get_database_connection) -e "
-                            use ${SCHEMA};
-                            show tables;
-                            "
-                        [[ ${STREAMS} ]] || STREAMS=${SYSBENCH_TABLES}
-                        COMMAND="sysbench /data/cbench/driver/lua/${SYSBENCH_SCRIPT} $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER})"
-                        COMMAND="${COMMAND} --table-size=${SYSBENCH_TABLESIZE} --tables=${SYSBENCH_TABLES}"
-                        COMMAND="${COMMAND} --mysql-db=${SCHEMA} --threads=${STREAMS} ${SYSBENCH_OPTIONS}"
-                        [[ ${OPTION_BULKLOAD} ]] && COMMAND="${COMMAND} --bulk-load=true"
-                        [[ ${OPTION_ENGINE} ]] && COMMAND="${COMMAND} --mysql_storage_engine=${OPTION_ENGINE}"
-                        [[ ${OPTION_CHARSET} ]] && COMMAND="${COMMAND} --create_table_options=DEFAULT CHARSET=${OPTION_CHARSET}"
-                        [[ ${OPTION_NOAUTOINC} ]] && COMMAND="${COMMAND} --auto-inc=off"
-                        [[ ${OPTION_DIRECTEXEC} ]] && COMMAND="${COMMAND} --db-ps-mode=disable"
-                        [[ ${OPTION_NOSECONDARY} ]] && COMMAND="${COMMAND} --secondary=off --create_secondary=off"
-                        [[ ${SKIP_BINLOG} ]] && COMMAND="${COMMAND} --skip-binlog=on"
-                        COMMAND="${COMMAND} prepare"
-
-                        echo
-                        echo "    ===== Load Data =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S') ]"
-                        echo "        Driver Connection : ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER})"
-                        echo "        COMMAND = ${COMMAND}"
-
-                        time ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
-                            COMMAND="'${COMMAND}'"
-                            echo "        Driver: $(uname -n)"
-                            echo "        COMMAND = ${COMMAND}"
-                            export LUA_PATH="/data/cbench/driver/lua//?.lua;;"
-                            ${COMMAND}
-                        '
-                        ;;
-
-                    *) echo "Unsupported Benchmark for loading from data generator : BENCHMARK = ${BENCHMARK}"; echo -e "$USAGE"; exit 1;;
-                esac
-
-            }
-
-        elif [[ ${LOAD_OPTION} == 'clean' ]] ; then
-            echo "        Drop database ${SCHEMA}"
-            echo "            mariadb -vvv $(get_database_connection)"
-            mariadb -vvv $(get_database_connection) -e "drop database if exists ${SCHEMA}"
-
-        fi
-
-        if [[ ${DATABASE} == 'mariadb' ]] ; then
+        echo
+        echo "         $0 ${COMMAND_LINE}"
+        echo
+        echo "            TESTID                  = ${TESTID}"
+        echo
+        echo "            DATABASE                = ${DATABASE}"
+        echo "            BENCHMARK               = ${BENCHMARK}"
+        echo "            CLUSTER                 = ${CLUSTER}"
+        echo
+        echo "            SCHEMA                  = ${SCHEMA}"
+        echo "            DBSCALE                 = ${DBSCALE}"
+        echo "            LOAD_OPTION             = ${LOAD_OPTION}"
+        echo "            OPTION_SKIPCHECK        = ${OPTION_SKIPCHECK}"
+        echo
+        echo "            OPTION_ENGINE           = ${OPTION_ENGINE}"
+        echo
+        echo "            LOGDIRECTORY            = ${LOGDIRECTORY}"
+        if [[ ${BENCHMARK} == sysbench* ]] ; then
             echo
-            echo "    ===== Analyze Tables  =====       [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+            echo "            SYSBENCH_TABLES         = ${SYSBENCH_TABLES}"
+            echo "            SYSBENCH_SEED_METHOD    = ${SYSBENCH_SEED_METHOD}"
+        fi
+        echo
+        echo "            Database Connection     = mariadb $(get_database_connection)"
+        echo "            Database Version        = $(mariadb $(get_database_connection) -e 'select version()')"
+        echo
+        echo "            Properties File:"
+        showproperties
+
+        check_cluster;
+        gather_pretest_snapshot ${CLUSTER}
+        start_performance_monitor;
+
+        start_timer
+
+        case ${BENCHMARK} in
+
+            tproc-c)
+                # Only use 1 driver
+                echo "        Driver : ${HEADDRIVER}"
+                check_and_update_remote_drivers;
+                echo "        Drop and recreate database"
+                echo "            mariadb -vvv $(get_database_connection)"
+                [[ ${OPTION_SKIP_DROP} ]] || mariadb -vvv $(get_database_connection) -e "drop database if exists ${SCHEMA}"
+                mariadb -vvv $(get_database_connection) -e "create database if not exists ${SCHEMA}"
+                mariadb -vvv $(get_database_connection) -e "show databases"
+                # 200317 workaround for maxscale issue with loading initial database info
+                time mariadb -vvv $(get_database_connection) -e "
+                    use ${SCHEMA};
+                    show tables;
+                    "
+
+                DBHOST=$(get_database_internal_host ${CLUSTER})
+                DBPORT=$(get_database_port ${CLUSTER})
+                DBUSER=$(get_database_user ${CLUSTER})
+                DBPASS=$(get_database_password ${CLUSTER})
+                VUSER=$(ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) 'cat /proc/cpuinfo' | grep -c processor | awk '{ print int($1) }')
+                VUSER=$((${VUSER} * 2))
+                [[ ${OPTION_ENGINE} ]] || OPTION_ENGINE='innodb'
+
+                SCRIPT="/data/cbench/load-tprocc.tcl"
+
+                if [[ ${DATABASE} == 'mariadb' ]] ; then
+                    ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
+                        DBHOST="'${DBHOST}'"
+                        DBPORT="'${DBPORT}'"
+                        DBUSER="'${DBUSER}'"
+                        DBPASS="'${DBPASS}'"
+                        SCHEMA="'${SCHEMA}'"
+                        DBSCALE="'${DBSCALE}'"
+                        VUSER="'${VUSER}'"
+                        SCRIPT="'${SCRIPT}'"
+                        ENGINE="'${OPTION_ENGINE}'"
+                        PARTITION="'${PARTITION}'"
+                        [[ -f ${SCRIPT} ]] && rm -f ${SCRIPT}
+                        echo "dbset db maria"                            >> ${SCRIPT}
+                        echo "diset connection maria_host ${DBHOST}"     >> ${SCRIPT}
+                        echo "diset connection maria_port ${DBPORT}"     >> ${SCRIPT}
+                        echo "diset connection maria_socket null"        >> ${SCRIPT}
+                        echo "diset tpcc maria_dbase ${SCHEMA}"          >> ${SCRIPT}
+                        echo "diset tpcc maria_user ${DBUSER}"           >> ${SCRIPT}
+                        echo "diset tpcc maria_pass ${DBPASS}"           >> ${SCRIPT}
+                        echo "diset tpcc maria_storage_engine ${ENGINE}" >> ${SCRIPT}
+                        echo "diset tpcc maria_count_ware ${DBSCALE}"    >> ${SCRIPT}
+                        echo "diset tpcc maria_num_vu ${VUSER}"          >> ${SCRIPT}
+                        if [[ ${PARTITION} == TRUE ]] ; then
+                            echo "diset tpcc maria_partition true"       >> ${SCRIPT}
+                        fi
+                        echo "diset tpcc maria_raiseerror true"          >> ${SCRIPT}
+                        echo "print dict"                                >> ${SCRIPT}
+                        echo "buildschema"                               >> ${SCRIPT}
+                        echo
+                        echo "    ===== TCL script ${SCRIPT} created for MariaDB ====="
+                        echo
+                        cat ${SCRIPT}
+                        echo
+                    '
+                fi
+
+                COMMAND="./hammerdbcli auto ${SCRIPT}"
+
+                echo
+                echo "    ===== Load Data =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S') ]"
+                echo "        COMMAND = ${COMMAND}"
+                time ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
+                    COMMAND="'${COMMAND}'"
+                    SCRIPT="'${SCRIPT}'"
+                    echo "        Driver: $(uname -n)"
+                    echo "        COMMAND = ${COMMAND}"
+                    echo
+                    cd /data/cbench/HammerDB-5.0
+                    [[ -d tmp ]] && rm -rf tmp
+                    mkdir tmp
+                    TMP=$(pwd)/tmp ${COMMAND}
+                '
+                scp $(get_scp_copy_from_connection ${CLUSTER} ${HEADDRIVER} ${SCRIPT} ${LOGDIRECTORY}/. )
+                ;;
+
+            sysbench-tpcc)
+                # Only use 1 driver
+                echo "        Driver : ${HEADDRIVER}"
+                check_and_update_remote_drivers;
+                echo "        Drop and recreate database"
+                echo "            mariadb -vvv $(get_database_connection)"
+                [[ ${OPTION_SKIP_DROP} ]] || mariadb -vvv $(get_database_connection) -e "drop database if exists ${SCHEMA}"
+                mariadb -vvv $(get_database_connection) -e "create database if not exists ${SCHEMA}"
+                mariadb -vvv $(get_database_connection) -e "show databases"
+                # 200317 workaround for maxscale issue with loading initial database info
+                time mariadb -vvv $(get_database_connection) -e "
+                    use ${SCHEMA};
+                    show tables;
+                    "
+                [[ ${STREAMS} ]] || STREAMS=${SYSBENCH_TABLES}
+
+                COMMAND="sysbench /data/cbench/driver/lua/tpcc.lua $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER}) --scale=${DBSCALE} --use_fk=0 ${SYSBENCH_OPTIONS}"
+                [[ ${OPTION_ENGINE} ]] && COMMAND="${COMMAND} --mysql_storage_engine=${OPTION_ENGINE}"
+                [[ ${SYSBENCH_TABLES} ]] && COMMAND="${COMMAND} --tables=${SYSBENCH_TABLES} --threads=${SYSBENCH_TABLES}"
+                [[ ${OPTION_NOAUTOINC} ]] && COMMAND="${COMMAND} --auto-inc=off"
+                [[ ${OPTION_DIRECTEXEC} ]] && COMMAND="${COMMAND} --db-ps-mode=disable"
+                [[ ${OPTION_NOSECONDARY} ]] && COMMAND="${COMMAND} --secondary=off --create_secondary=off"
+                [[ ${SKIP_BINLOG} ]] && COMMAND="${COMMAND} --skip-binlog=on"
+                COMMAND="${COMMAND} --mysql-db=${SCHEMA}"
+                COMMAND="${COMMAND} prepare"
+                echo
+                echo "    ===== Load Data =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S') ]"
+                echo "        COMMAND = ${COMMAND}"
+                time ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
+                    COMMAND="'${COMMAND}'"
+                    echo "        Driver: $(uname -n)"
+                    echo "        COMMAND = ${COMMAND}"
+                    export LUA_PATH="/data/cbench/driver/lua//?.lua;;"
+                    ${COMMAND}
+                '
+                ;;
+
+            sysbench)
+                # Only use 1 driver
+                echo "        Driver : ${HEADDRIVER}"
+                check_and_update_remote_drivers;
+                echo "        Drop and recreate database"
+                echo "            mariadb -vvv $(get_database_connection)"
+                [[ ${OPTION_SKIP_DROP} ]] || mariadb -vvv $(get_database_connection) -e "drop database if exists ${SCHEMA}"
+                mariadb -vvv $(get_database_connection) -e "create database if not exists ${SCHEMA}"
+                mariadb -vvv $(get_database_connection) -e "show databases"
+                # 200317 workaround for maxscale issue with loading initial database info
+                mariadb -vvv $(get_database_connection) -e "
+                    use ${SCHEMA};
+                    show tables;
+                    "
+                [[ ${STREAMS} ]] || STREAMS=${SYSBENCH_TABLES}
+                COMMAND="sysbench /data/cbench/driver/lua/${SYSBENCH_SCRIPT} $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER})"
+                COMMAND="${COMMAND} --table-size=${SYSBENCH_TABLESIZE} --tables=${SYSBENCH_TABLES}"
+                COMMAND="${COMMAND} --mysql-db=${SCHEMA} --threads=${STREAMS} ${SYSBENCH_OPTIONS}"
+                [[ ${OPTION_BULKLOAD} ]] && COMMAND="${COMMAND} --bulk-load=true"
+                [[ ${OPTION_ENGINE} ]] && COMMAND="${COMMAND} --mysql_storage_engine=${OPTION_ENGINE}"
+                [[ ${OPTION_CHARSET} ]] && COMMAND="${COMMAND} --create_table_options=DEFAULT CHARSET=${OPTION_CHARSET}"
+                [[ ${OPTION_NOAUTOINC} ]] && COMMAND="${COMMAND} --auto-inc=off"
+                [[ ${OPTION_DIRECTEXEC} ]] && COMMAND="${COMMAND} --db-ps-mode=disable"
+                [[ ${OPTION_NOSECONDARY} ]] && COMMAND="${COMMAND} --secondary=off --create_secondary=off"
+                [[ ${SKIP_BINLOG} ]] && COMMAND="${COMMAND} --skip-binlog=on"
+                COMMAND="${COMMAND} prepare"
+
+                echo
+                echo "    ===== Load Data =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S') ]"
+                echo "        Driver Connection : ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER})"
+                echo "        COMMAND = ${COMMAND}"
+
+                time ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
+                    COMMAND="'${COMMAND}'"
+                    echo "        Driver: $(uname -n)"
+                    echo "        COMMAND = ${COMMAND}"
+                    export LUA_PATH="/data/cbench/driver/lua//?.lua;;"
+                    ${COMMAND}
+                '
+                ;;
+
+            *)  echo "Unsupported Benchmark for loading from data generator : BENCHMARK = ${BENCHMARK}";
+                echo -e "$USAGE";
+                exit 1;;
+        esac
+
+        LOADTIME=$(stop_timer)
+
+        echo
+        echo "    ===== Analyze Tables  =====       [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        if [[ ${DATABASE} == 'mariadb' ]] ; then
             time {
                 for TABLE in $(mariadb -sN $(get_database_connection) -e 'show tables' ${SCHEMA}) ; do
                     mariadb -vvv $(get_database_connection) -e "analyze table ${TABLE}" ${SCHEMA}
@@ -376,60 +365,68 @@ time {
             } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).analyze.tables.log 2>&1
         fi
 
-        LOADTIME=$(stop_timer)
+        echo
+        echo "    ===== Check Data  =====       [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        time {
+
+            if [[ ${DATABASE} == 'mariadb' ]] ; then
+                mariadb -vvv $(get_database_connection) -e "
+                    select version();
+                    show tables;
+                    " ${SCHEMA}
+                TABLES=( $(mariadb -sN $(get_database_connection) -e 'show tables' ${SCHEMA}) )
+                for TABLE in ${TABLES[@]:0:10} ; do
+                    mariadb -vvv $(get_database_connection) -e "
+                        show create table ${TABLE}\G
+                        explain select * from ${TABLE};
+                        " ${SCHEMA}
+                done
+            fi
+
+            case ${BENCHMARK} in
+                sysbench)
+                    mariadb -vvv $(get_database_connection) -e "
+                        select version();
+                        use ${SCHEMA};
+                        show create table sbtest1;
+                        explain select * from sbtest1;
+                        select count(*) from sbtest1;
+                        select count(*), min(id), max(id) from ${SCHEMA}.sbtest1;
+                        select * from sbtest1 limit 1\G
+                        "
+                    ;;
+            esac
+
+            if [[ ${DATABASE} == 'mariadb' ]] ; then
+                echo
+                echo "    DataSize (GB)"
+                printf "        DataSize: %10.3f\n" $(echo "SELECT SUM(data_length + index_length)/1024/1024/1024 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '${SCHEMA}'" | select_data)
+            fi
+
+        }
+
+        gather_posttest_snapshot ${CLUSTER}
+        stop_monitors;
+
+        [[ ${LOADTIME} ]] && {
+            echo
+            echo "        LOADTIME = ${LOADTIME} Seconds"
+        }
+
+    elif [[ ${LOAD_OPTION} == 'clean' ]] ; then
+        echo "    ===== LOAD_OPTION = ${LOAD_OPTION} ====="
+        echo
+        echo "        Drop database ${SCHEMA}"
+        echo "            mariadb -vvv $(get_database_connection)"
+        mariadb -vvv $(get_database_connection) -e "drop database if exists ${SCHEMA}"
+
+    else
+        echo "    ===== LOAD_OPTION = ${LOAD_OPTION} ====="
+        echo
+        echo "    no instrucions how to handle, ignoring it"
 
     fi
 
-    echo
-    echo "    ===== Check Data  =====       [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-    time {
-
-        if [[ ${DATABASE} == 'mariadb' ]] ; then
-            mariadb -vvv $(get_database_connection) -e "
-                select version();
-                show tables;
-                " ${SCHEMA}
-            TABLES=( $(mariadb -sN $(get_database_connection) -e 'show tables' ${SCHEMA}) )
-            for TABLE in ${TABLES[@]:0:10} ; do
-                mariadb -vvv $(get_database_connection) -e "
-                    show create table ${TABLE}\G
-                    explain select * from ${TABLE};
-                    " ${SCHEMA}
-            done
-        fi
-
-        case ${BENCHMARK} in
-            sysbench)
-                mariadb -vvv $(get_database_connection) -e "
-                    select version();
-                    use ${SCHEMA};
-                    show create table sbtest1;
-                    explain select * from sbtest1;
-                    select count(*) from sbtest1;
-                    select count(*), min(id), max(id) from ${SCHEMA}.sbtest1;
-                    select * from sbtest1 limit 1\G
-                    "
-                ;;
-        esac
-
-        if [[ ${DATABASE} == 'mariadb' ]] ; then
-            echo
-            echo "    DataSize (GB)"
-            printf "        DataSize: %10.3f\n" $(echo "SELECT SUM(data_length + index_length)/1024/1024/1024 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '${SCHEMA}'" | select_data)
-        fi
-
-    }
-
-    gather_posttest_snapshot ${CLUSTER}
-
-    stop_monitors;
-
-    [[ ${LOADTIME} ]] && {
-        echo
-        echo "        LOADTIME = ${LOADTIME} Seconds"
-    }
-    echo
-    echo "        LOGDIRECTORY            = ${LOGDIRECTORY}"
     echo
     echo "    ===== End $0 ( Elapsed Seconds = $(( $SECONDS - $STARTSECONDS )) ) =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     echo
