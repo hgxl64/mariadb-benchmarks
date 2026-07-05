@@ -36,7 +36,7 @@ while [[ $# > 0 ]] ; do
         -t)                   OPT_TARBALL="$1"; OPT_SOURCE="tarball"; shift;;
         --mariadb-tarball)    OPT_TARBALL="$1"; OPT_SOURCE="tarball"; shift;;
 
-        --debug)              DEBUG=1
+        --debug)              DEBUG=1;;
 
         -h|--help)            error -e "$USAGE";;
         *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
