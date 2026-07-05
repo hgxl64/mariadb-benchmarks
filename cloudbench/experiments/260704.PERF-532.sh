@@ -129,7 +129,7 @@ mkdir -p ${LOGDIRECTORY}
         COMMAND="${COMMAND} --driver-instance-type ${DRIVER_INSTANCE_TYPE}"
         COMMAND="${COMMAND} --threads-per-core ${OPTION_THREADS_PER_CORE}"
         echo "${COMMAND}"
-        ${DEBUG} || ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).allocate.nodes.${CLUSTER}.log 2>&1
+        [[ ${DEBUG} ]] || ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).allocate.nodes.${CLUSTER}.log 2>&1
     }
     ALLOCATE_SEC=$(stop_timer)
 
@@ -264,20 +264,20 @@ mkdir -p ${LOGDIRECTORY}
     echo
     echo "Execution Times (minutes)"
     echo "=================================="
-    echo "  Allocate Nodes      " $(perl -e "printf(\": %10.1f\n\", ${ALLOCATE_SEC}/60)")
-    echo "  Build Cluster       " $(perl -e "printf(\": %10.1f\n\", ${BUILD_SEC}/60)")
-    echo "  Load Sysbench       " $(perl -e "printf(\": %10.1f\n\", ${LOAD1_SEC}/60)")
-    echo "  Load TPC-C          " $(perl -e "printf(\": %10.1f\n\", ${LOAD2_SEC}/60)")
-    echo "  Load TPROC-C        " $(perl -e "printf(\": %10.1f\n\", ${LOAD3_SEC}/60)")
-    echo "  Load Total          " $(perl -e "printf(\": %10.1f\n\", ${LOAD_SEC}/60)")
-    echo "  Curves point-select " $(perl -e "printf(\": %10.1f\n\", ${CURVES1_SEC}/60)")
-    echo "  Curves read/write   " $(perl -e "printf(\": %10.1f\n\", ${CURVES2_SEC}/60)")
-    echo "  Curves TPC-C        " $(perl -e "printf(\": %10.1f\n\", ${CURVES3_SEC}/60)")
-    echo "  Curves TPROC-C      " $(perl -e "printf(\": %10.1f\n\", ${CURVES4_SEC}/60)")
-    echo "  Curves Total        " $(perl -e "printf(\": %10.1f\n\", ${CURVES_SEC}/60)")
-    echo "  Release Nodes       " $(perl -e "printf(\": %10.1f\n\", ${RELEASE_SEC}/60)")
+    perl -e "printf(\"  Allocate Nodes      : %10.1f\n\", ${ALLOCATE_SEC}/60)")
+    perl -e "printf(\"  Build Cluster       : %10.1f\n\", ${BUILD_SEC}/60)")
+    perl -e "printf(\"  Load Sysbench       : %10.1f\n\", ${LOAD1_SEC}/60)")
+    perl -e "printf(\"  Load TPC-C          : %10.1f\n\", ${LOAD2_SEC}/60)")
+    perl -e "printf(\"  Load TPROC-C        : %10.1f\n\", ${LOAD3_SEC}/60)")
+    perl -e "printf(\"  Load Total          : %10.1f\n\", ${LOAD_SEC}/60)")
+    perl -e "printf(\"  Curves point-select : %10.1f\n\", ${CURVES1_SEC}/60)")
+    perl -e "printf(\"  Curves read/write   : %10.1f\n\", ${CURVES2_SEC}/60)")
+    perl -e "printf(\"  Curves TPC-C        : %10.1f\n\", ${CURVES3_SEC}/60)")
+    perl -e "printf(\"  Curves TPROC-C      : %10.1f\n\", ${CURVES4_SEC}/60)")
+    perl -e "printf(\"  Curves Total        : %10.1f\n\", ${CURVES_SEC}/60)")
+    perl -e "printf(\"  Release Nodes       : %10.1f\n\", ${RELEASE_SEC}/60)")
     echo "=================================="
-    echo "TotalElapsed          " $(perl -e "printf(\": %10.1f\n\", ${TOTAL_SEC}/60)")
+    perl -e "printf(\"TotalElapsed          : %10.1f\n\", ${TOTAL_SEC}/60)")
     echo
 
 } | tee ${LOGDIRECTORY}/${TESTNAME}.log
