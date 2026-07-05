@@ -245,13 +245,13 @@ mkdir -p ${LOGDIRECTORY}
             /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
                 CREATE USER '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASSWORD}';
                 GRANT ALL ON *.* TO '${DB_USER}'@'%';
-                GRANT PROCESS, REPLICATION CLIENT TO '${DB_USER}'@'%';
-                CREATE USER '${DB_USER}'@'127.0.0.1' IDENTIFIED BY '${DB_PASSWORD}';
-                GRANT ALL ON *.* TO '${DB_USER}'@'127.0.0.1';
-                GRANT PROCESS, REPLICATION CLIENT TO '${DB_USER}'@'127.0.0.1';
+                GRANT PROCESS, REPLICATION CLIENT ON *.* TO '${DB_USER}'@'%';
+                CREATE USER '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
+                GRANT ALL ON *.* TO '${DB_USER}'@'localhost';
+                GRANT PROCESS, REPLICATION CLIENT ON *.* TO '${DB_USER}'@'localhost';
                 CREATE USER IF NOT EXISTS 'prometheus'@'localhost' IDENTIFIED VIA unix_socket WITH MAX_USER_CONNECTIONS 3;
                 GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'localhost';
-                flush privileges;\"
+                FLUSH PRIVILEGES;
             "
         for SYSTEM in $(get_property ${CLUSTER} galera.systems) ; do
             start_prometheus_mysqld_exporter
