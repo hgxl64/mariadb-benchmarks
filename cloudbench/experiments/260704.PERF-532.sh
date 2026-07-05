@@ -46,7 +46,7 @@ source ${CBENCH_HOME}/bin/cbench.sh
 source ${CBENCH_HOME}/config/gcp.conf
 
 # check architecture
-[[ ${ARCH} ]] || error "no architecture given!\n$USAGE"
+[[ ${ARCH} ]] || error -e "no architecture given!\n$USAGE"
 ARCH=$(echo ${ARCH} | perl -pe 'tr/A-Z/a-z/')
 
 case ${ARCH} in
