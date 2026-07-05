@@ -136,17 +136,11 @@ mkdir -p ${LOGDIRECTORY}
     exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).allocate.nodes.${CLUSTER}.log 2>&1
     ALLOCATE_SEC=$(stop_timer)
 
-    SYSTEMS=( $(get_property ${CLUSTER} systems) )
-    echo
-    echo "        SYSTEMS = ${SYSTEMS[*]}"
-
-    exec [[ ${SYSTEMS} ]] || error "ERROR Unable to allocate nodes."
-
     echo
     echo "=== Configure Cluster [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
     echo
     COMMAND="configure.cluster.sh --cluster ${CLUSTER} --cluster-type mariadb"
-    COMMAND="${COMMAND} --mariadb-system ${SYSTEMS[0]} --driver-system ${SYSTEMS[1]}"
+    COMMAND="${COMMAND} --mariadb-system ${CLUSTER}-server-1 --driver-system ${CLUSTER}-driver-1"
     echo "${COMMAND}"
     exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).configure.cluster.${CLUSTER}.log 2>&1
 
