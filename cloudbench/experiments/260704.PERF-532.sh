@@ -129,9 +129,6 @@ mkdir -p ${LOGDIRECTORY}
     echo
     start_timer
     COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER} --server-nodes 1 --driver-nodes 1"
-    COMMAND="${COMMAND} --server-instance-type ${SERVER_INSTANCE_TYPE}"
-    COMMAND="${COMMAND} --driver-instance-type ${DRIVER_INSTANCE_TYPE}"
-    COMMAND="${COMMAND} --threads-per-core ${OPTION_THREADS_PER_CORE}"
     echo "${COMMAND}"
     exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).allocate.nodes.${CLUSTER}.log 2>&1
     ALLOCATE_SEC=$(stop_timer)
