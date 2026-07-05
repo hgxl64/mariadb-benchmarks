@@ -111,7 +111,7 @@ mkdir -p ${LOGDIRECTORY}
     echo "LOGDIRECTORY           = ${LOGDIRECTORY}"
     echo
     echo "SERVER_INSTANCE_TYPE   = ${SERVER_INSTANCE_TYPE}"
-    echo "THREADS_PER_CORE       = ${THREADS_PER_CORE}"
+    echo "THREADS_PER_CORE       = ${OPTION_THREADS_PER_CORE}"
     echo "DRIVER_INSTANCE_TYPE   = ${DRIVER_INSTANCE_TYPE}"
     echo "DISK_TYPE              = ${DISK_TYPE}"
     echo "DISK_SIZE              = ${DISK_SIZE}"
