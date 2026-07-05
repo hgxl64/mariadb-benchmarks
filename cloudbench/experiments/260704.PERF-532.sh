@@ -264,20 +264,20 @@ mkdir -p ${LOGDIRECTORY}
     echo
     echo "Execution Times (minutes)"
     echo "=================================="
-    perl -e "printf(\"  Allocate Nodes      : %10.1f\n\", ${ALLOCATE_SEC}/60)")
-    perl -e "printf(\"  Build Cluster       : %10.1f\n\", ${BUILD_SEC}/60)")
-    perl -e "printf(\"  Load Sysbench       : %10.1f\n\", ${LOAD1_SEC}/60)")
-    perl -e "printf(\"  Load TPC-C          : %10.1f\n\", ${LOAD2_SEC}/60)")
-    perl -e "printf(\"  Load TPROC-C        : %10.1f\n\", ${LOAD3_SEC}/60)")
-    perl -e "printf(\"  Load Total          : %10.1f\n\", ${LOAD_SEC}/60)")
-    perl -e "printf(\"  Curves point-select : %10.1f\n\", ${CURVES1_SEC}/60)")
-    perl -e "printf(\"  Curves read/write   : %10.1f\n\", ${CURVES2_SEC}/60)")
-    perl -e "printf(\"  Curves TPC-C        : %10.1f\n\", ${CURVES3_SEC}/60)")
-    perl -e "printf(\"  Curves TPROC-C      : %10.1f\n\", ${CURVES4_SEC}/60)")
-    perl -e "printf(\"  Curves Total        : %10.1f\n\", ${CURVES_SEC}/60)")
-    perl -e "printf(\"  Release Nodes       : %10.1f\n\", ${RELEASE_SEC}/60)")
+    perl -e "printf \"  Allocate Nodes      : %10.1f\n\", ${ALLOCATE_SEC}/60"
+    perl -e "printf \"  Build Cluster       : %10.1f\n\", ${BUILD_SEC}/60"
+    perl -e "printf \"  Load Sysbench       : %10.1f\n\", ${LOAD1_SEC}/60"
+    perl -e "printf \"  Load TPC-C          : %10.1f\n\", ${LOAD2_SEC}/60"
+    perl -e "printf \"  Load TPROC-C        : %10.1f\n\", ${LOAD3_SEC}/60"
+    perl -e "printf \"  Load Total          : %10.1f\n\", ${LOAD_SEC}/60"
+    perl -e "printf \"  Curves point-select : %10.1f\n\", ${CURVES1_SEC}/60"
+    perl -e "printf \"  Curves read/write   : %10.1f\n\", ${CURVES2_SEC}/60"
+    perl -e "printf \"  Curves TPC-C        : %10.1f\n\", ${CURVES3_SEC}/60"
+    perl -e "printf \"  Curves TPROC-C      : %10.1f\n\", ${CURVES4_SEC}/60"
+    perl -e "printf \"  Curves Total        : %10.1f\n\", ${CURVES_SEC}/60"
+    perl -e "printf \"  Release Nodes       : %10.1f\n\", ${RELEASE_SEC}/60"
     echo "=================================="
-    perl -e "printf(\"TotalElapsed          : %10.1f\n\", ${TOTAL_SEC}/60)")
+    perl -e "printf \"TotalElapsed          : %10.1f\n\", ${TOTAL_SEC}/60"
     echo
 
 } | tee ${LOGDIRECTORY}/${TESTNAME}.log
