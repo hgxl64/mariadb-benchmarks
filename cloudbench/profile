@@ -4,7 +4,7 @@
 
 export CBENCH_HOME=$PWD
 export CBENCH_LOG_HOME=${CBENCH_HOME}/log
-export PATH=${CBENCH_HOME}/experiments:${CBENCH_HOME}/bin:${PATH}
+export PATH=${CBENCH_HOME}/experiments:${CBENCH_HOME}/bin:${CBENCH_HOME}/deprecated:${PATH}
 
 source ${CBENCH_HOME}/config/global.conf
 
