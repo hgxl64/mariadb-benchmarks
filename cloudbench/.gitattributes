@@ -1,3 +1,4 @@
 *.sh ident
 *.pl ident
 *.py ident
+*.lua ident
