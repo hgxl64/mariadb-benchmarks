@@ -222,7 +222,7 @@ mkdir -p ${LOGDIRECTORY}
     COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- --benchmark tproc-c"
     exec ${COMMAND}
     CURVES4_SEC=$(stop_timer)
-    exec "stop.grafana.sh --cluster ${CLUSTER}" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.sysbench-tpcc.log 2>&1
+    exec "stop.grafana.sh --cluster ${CLUSTER}" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.tproc-c.log 2>&1
 
     echo
     echo "=== Release Nodes [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
@@ -254,4 +254,4 @@ mkdir -p ${LOGDIRECTORY}
     perl -e "printf \"TotalElapsed          : %10.1f\n\", ${TOTAL_SEC}/60"
     echo
 
-} | tee ${LOGDIRECTORY}/${TESTNAME}.log
+} | tee ${LOGDIRECTORY}/${TEST_NAME}.log
