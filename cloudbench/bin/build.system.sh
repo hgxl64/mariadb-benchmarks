@@ -115,9 +115,11 @@ process_connection_info;
 
 # default config generator
 [[ ${OPTION_CONFIG} ]] || OPTION_CONFIG='performance'
-
-# default: no binlog enabled
+# default options
+[[ ${OPTION_THREAD_POOL} ]] || OPTION_THREAD_POOL=TRUE
 [[ ${OPTION_MASTER} ]] || OPTION_MASTER=FALSE
+[[ ${OPTION_GTID} ]] || OPTION_GTID=TRUE
+[[ ${OPTION_SSL} ]] || OPTION_SSL=FALSE
 
 # default MariaDB source, latest Enterprise branch
 [[ ${MARIADB_SOURCE} ]] || MARIADB_SOURCE="jenkins"
@@ -136,14 +138,8 @@ if [[ ! ${ARCH} ]] ; then
     [[ ${OPTION_ARM} = TRUE ]] && ARCH="aarch64"
 fi
 
-# default: no SSL
-[[ ${OPTION_SSL} ]] || OPTION_SSL=FALSE
-
-# default: replicate in GTID mode
-[[ ${OPTION_GTID} ]] || OPTION_GTID=TRUE
-
 # allocate a unique server_id
-SERVER_ID=$(echo $(get_database_backend_ips ${CLUSTER}) | tr . '\n' | awk '{s = s*256 + $1} END{print s}')
+SERVER_ID=$(echo $(get_database_backend_ips ${CLUSTER}) | tr . '\n' | awk '{s = s*256 + $1} END {print s}')
 
 # logging
 TEST_NAME=build.system
@@ -498,8 +494,14 @@ mkdir -p ${LOGDIRECTORY}
                 echo "${CONFIG_FILE}"
                 echo
 
-                #auto-size buffer pool = 80% of RAM
-                BUFFER_POOL_SIZE=$(ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) 'cat /proc/meminfo' | grep MemTotal | awk '{ print int($2/1024*0.8) }')
+                #auto-size buffer pool = min(80% x RAM, RAM - 5GB)
+                #we had repeated hangs on 16GB systems with the 80% rule
+                RAMSIZE=$(ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) 'cat /proc/meminfo' | grep MemTotal | awk '{ print $2 }')
+                (( BUFFER_POOL_SIZE  = RAMSIZE * 8 / 10240   )) #MB
+                (( BUFFER_POOL_SIZE1 = RAMSIZE / 1024 - 5120 )) #MB
+                (( BUFFER_POOL_SIZE1 < BUFFER_POOL_SIZE )) && BUFFER_POOL_SIZE=${BUFFER_POOL_SIZE1}
+                #safeguard: min buffer pool size = 192M
+                (( BUFFER_POOL_SIZE < 192 )) && BUFFER_POOL_SIZE=192
                 echo "BUFFER_POOL_SIZE = ${BUFFER_POOL_SIZE}M"
 
                 #auto-size replication slave threads = #cpu
