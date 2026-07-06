@@ -19,6 +19,9 @@
 -- Update-Non-Index OLTP benchmark
 -- ----------------------------------------------------------------------
 
+-- reworked for MariaDB by Axel XL Schwenke <axel@mariadb.com>
+-- $Id$
+
 require("oltp_common")
 
 function prepare_statements()

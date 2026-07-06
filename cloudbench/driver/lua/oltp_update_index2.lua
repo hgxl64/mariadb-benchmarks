@@ -19,6 +19,9 @@
 -- Update-Index OLTP benchmark
 -- ----------------------------------------------------------------------
 
+-- reworked for MariaDB by Axel XL Schwenke <axel@mariadb.com>
+-- $Id$
+
 require("oltp_common")
 
 function prepare_statements()
@@ -33,8 +36,8 @@ function event()
    if not sysbench.opt.skip_trx then
       begin()
    end
- 
-   for i = 1, sysbench.opt.point_selects do                                                                                             
+
+   for i = 1, sysbench.opt.point_selects do
       execute_index_updates(con)
    end
 

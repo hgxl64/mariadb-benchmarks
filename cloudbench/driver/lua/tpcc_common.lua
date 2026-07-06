@@ -18,6 +18,9 @@
 -- Common code for TPCC benchmarks.
 -- -----------------------------------------------------------------------------
 
+-- reworked for MariaDB by Axel XL Schwenke <axel@mariadb.com>
+-- $Id$
+
 ffi = require("ffi")
 
 ffi.cdef[[

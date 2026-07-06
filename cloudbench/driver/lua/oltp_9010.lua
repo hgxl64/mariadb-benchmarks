@@ -19,6 +19,9 @@
 -- Read/Write OLTP benchmark, 90:10 mix
 -- ----------------------------------------------------------------------
 
+-- reworked for MariaDB by Axel XL Schwenke <axel@mariadb.com>
+-- $Id$
+
 require("oltp_common")
 
 function prepare_statements()

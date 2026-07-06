@@ -20,6 +20,9 @@
 -- splittable workload
 -- ----------------------------------------------------------------------
 
+-- reworked for MariaDB by Axel XL Schwenke <axel@mariadb.com>
+-- $Id$
+
 require("oltp_common")
 
 sysbench.cmdline.options.write_percentage =
@@ -53,7 +56,7 @@ function prepare_statements()
 end
 
 function do_ro_workload()
-   local tnum = sysbench.rand.uniform(1, sysbench.opt.tables) 
+   local tnum = sysbench.rand.uniform(1, sysbench.opt.tables)
    local i, query
 
    for i = 1, sysbench.opt.point_selects do
@@ -64,7 +67,7 @@ function do_ro_workload()
    if sysbench.opt.range_selects then
       for i = 1, sysbench.opt.simple_ranges do
          local id = get_id()
-         query = string.format("SELECT LEFT(c, 16) FROM sbtest%d WHERE id BETWEEN %d AND %d", 
+         query = string.format("SELECT LEFT(c, 16) FROM sbtest%d WHERE id BETWEEN %d AND %d",
                                 tnum, id, id + sysbench.opt.range_size - 1)
          con:query(query)
       end

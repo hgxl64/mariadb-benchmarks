@@ -18,6 +18,9 @@
 -- Common code for OLTP benchmarks.
 -- -----------------------------------------------------------------------------
 
+-- reworked for MariaDB by Axel XL Schwenke <axel@mariadb.com>
+-- $Id$
+
 function init()
    assert(event ~= nil,
           "this script is meant to be included by other OLTP scripts and " ..

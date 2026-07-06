@@ -18,6 +18,9 @@
 -- TPCC-like workload
 -- ----------------------------------------------------------------------
 
+-- reworked for MariaDB by Axel XL Schwenke <axel@mariadb.com>
+-- $Id$
+
 require("tpcc_common")
 require("tpcc_run")
 require("tpcc_check")

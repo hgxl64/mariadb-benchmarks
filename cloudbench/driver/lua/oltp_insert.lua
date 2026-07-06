@@ -19,6 +19,9 @@
 -- Insert-Only OLTP benchmark
 -- ----------------------------------------------------------------------
 
+-- reworked for MariaDB by Axel XL Schwenke <axel@mariadb.com>
+-- $Id$
+
 require("oltp_common")
 
 sysbench.cmdline.commands.prepare = {

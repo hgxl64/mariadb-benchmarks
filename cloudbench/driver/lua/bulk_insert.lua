@@ -5,6 +5,9 @@
 -- executed by each thread is controlled by either --time or --events.
 -- -------------------------------------------------------------------------- --
 
+-- reworked for MariaDB by Axel XL Schwenke <axel@mariadb.com>
+-- $Id$
+
 cursize=0
 
 function thread_init()

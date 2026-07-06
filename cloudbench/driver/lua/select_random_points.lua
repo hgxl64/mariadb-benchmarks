@@ -6,6 +6,9 @@
 -- http://kb.askmonty.org/v/segmented-key-cache
 --
 
+-- reworked for MariaDB by Axel XL Schwenke <axel@mariadb.com>
+-- $Id$
+
 require("oltp_common")
 
 -- Add random_points to the list of standard OLTP options
