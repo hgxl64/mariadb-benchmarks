@@ -69,14 +69,14 @@ time {
                 SYSTEM=$(echo ${SYSTEM} | sed 's/^mariadb\.//')
                 #add to systems if not already there
                 if [[ ! " ${SYSTEMS[@]} " =~ " ${SYSTEM} " ]]; then
-                    SYSTEMS+=( ${SYSTEMS[*]} )
+                    SYSTEMS+=( ${SYSTEM} )
                 fi
             done
             echo "        SYSTEMS    = ${SYSTEMS[*]}"
             echo "        PROMETHEUS = ${PROMETHEUS_EXT_IP}"
 
             ssh ${PROMETHEUS_USER}@${PROMETHEUS_EXT_IP} -oStrictHostKeyChecking=no -i${PROMETHEUS_PEM} '
-            SYSTEMS=("'${SYSTEMS[*]}'")
+            SYSTEMS=( '${SYSTEMS[*]}' )
             for SYSTEM in ${SYSTEMS[*]} ; do
                 if [[ -f /etc/prometheus/targets/${SYSTEM}.json ]] ; then
                     sudo rm /etc/prometheus/targets/${SYSTEM}.json
