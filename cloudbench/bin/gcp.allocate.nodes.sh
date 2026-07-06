@@ -573,7 +573,7 @@ done
                 echo "df -h"
                 if [[ ${MKSWAP} == TRUE ]] ; then
                     echo "cd /data/cbench"
-                    echo "sudo dd if=/dev/zero of=swapfile bs=1m count=16384"
+                    echo "sudo dd if=/dev/zero of=swapfile bs=1M count=8192"
                     echo "sudo mkswap swapfile"
                     echo "sudo chmod 600 swapfile"
                     echo "sudo swapon swapfile"
