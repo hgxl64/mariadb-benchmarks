@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# (w) Axel XL Schwenke for MariaDB
+#
+# $Id$
 
 source ${CBENCH_HOME}/bin/cbench.sh
 source ${CBENCH_HOME}/config/gcp.conf
@@ -35,10 +39,10 @@ mkdir -p ${LOGDIRECTORY}
 
     echo "Version : $(get_database_version ${CLUSTER})"
 
-    sysbench.load.sh --cluster ${CLUSTER} --skipcheck --load
-    sysbench.curve.sh --cluster ${CLUSTER} --skipcheck --workload oltp_read_write --start_streams 4
+    load.data.sh --cluster ${CLUSTER} --skipcheck --benchmark sysbench --bulkload
+    performance.curve.sh --cluster ${CLUSTER} --skipcheck --benchmark sysbench \
+     --workload oltp_read_write --start_streams 4
 
     gcp.release.nodes.sh --cluster ${CLUSTER}
 
 } | tee ${LOGDIRECTORY}/${TESTNAME}.log
-

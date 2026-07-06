@@ -1,11 +1,15 @@
 #!/bin/bash
+#
+# (w) Axel XL Schwenke for MariaDB
+#
+# $Id$
 
 source ${CBENCH_HOME}/bin/cbench.sh
 source ${CBENCH_HOME}/config/gcp.conf
 
 #---- settings ----
 export OPTION_SKIPCHECK=TRUE
-export SYSBENCH_TABLESIZE=$((10*1000*1000)) #gives total 100M rows ~= 25GB
+export SYSBENCH_TABLESIZE=$((10*1000*1000)) #gives total 100M rows ~= 25 GB
 export ZONE_ID=us-central1-c
 export CLUSTER=galera-mm3
 #---- end settings ----
@@ -43,19 +47,24 @@ mkdir -p ${LOGDIRECTORY}
 
     echo "Version : $(get_database_version ${CLUSTER})"
 
-    sysbench.load.sh --cluster ${CLUSTER} --noautoinc --load
+    load.data.sh --cluster ${CLUSTER} --benchmark sysbench --noautoinc --load
 
-    sysbench.curves.sh --cluster ${CLUSTER} --workload 9010_splittable --repeats 3
-    sysbench.curves.sh --cluster ${CLUSTER} --workload 7525_splittable --repeats 3
-    sysbench.curves.sh --cluster ${CLUSTER} --workload 5050_splittable --repeats 3
+    performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- \
+     --benchmark sysbench --workload 9010_splittable
+    performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- \
+     --benchmark sysbench --workload 7525_splittable
+    performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- \
+     --benchmark sysbench --workload 5050_splittable
 
-    sysbench.curves.sh --cluster ${CLUSTER}.maxscale --workload 9010_splittable --repeats 3
-    sysbench.curves.sh --cluster ${CLUSTER}.maxscale --workload 7525_splittable --repeats 3
-    sysbench.curves.sh --cluster ${CLUSTER}.maxscale --workload 5050_splittable --repeats 3
+    performance.curves.sh --cluster ${CLUSTER}.maxscale --repeats 3 -- \
+     --benchmark sysbench --workload 9010_splittable
+    performance.curves.sh --cluster ${CLUSTER}.maxscale --repeats 3 -- \
+     --benchmark sysbench --workload 7525_splittable
+    performance.curves.sh --cluster ${CLUSTER}.maxscale --repeats 3 -- \
+     --benchmark sysbench --workload 5050_splittable
 
     check.cluster.sh --cluster ${CLUSTER}
 
     gcp.release.nodes.sh --cluster ${CLUSTER}
 
 } | tee ${LOGDIRECTORY}/${TEST_NAME}.log
-

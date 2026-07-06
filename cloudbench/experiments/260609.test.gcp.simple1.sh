@@ -1,11 +1,15 @@
 #!/bin/bash
+#
+# (w) Axel XL Schwenke for MariaDB
+#
+# $Id$
 
 source ${CBENCH_HOME}/bin/cbench.sh
 source ${CBENCH_HOME}/config/gcp.conf
 
 export CLUSTER='test'
 
-TEST_NAME="gcp.test.simple"
+TEST_NAME="gcp.test.simple1"
 [[ ${TESTID} ]] || TESTID=$(date +%y%m%d.%H%M%S).${TEST_NAME}
 if [[ ! ${LOGDIRECTORY} ]] ; then
     export LOGDIRECTORY=${CBENCH_LOG_HOME}/${CLUSTER}/${TESTID}
@@ -34,13 +38,11 @@ build.cluster.sh --cluster ${CLUSTER}
 echo "Version : $(get_database_version ${CLUSTER})"
 
 echo "sysbench"
-sysbench.load.sh --cluster ${CLUSTER} --skipcheck --load
-sysbench.curve.sh --cluster ${CLUSTER} --skipcheck --workload oltp_read_write --start_streams 1
+load.data.sh --cluster ${CLUSTER} --benchmark sysbench --skipcheck --load
+performance.curve.sh --cluster ${CLUSTER} --benchmark sysbench --workload oltp_read_write --start_streams 1
 
 echo "HammerDB"
-load.data.sh --cluster ${CLUSTER} --benchmark tproc-c --skipcheck --dbscale 16 --load
-hammerdb.run.sh --cluster ${CLUSTER} --skipcheck --dbscale 32 --streams 4
-hammerdb.run.sh --cluster ${CLUSTER} --skipcheck --dbscale 32 --streams 8
-hammerdb.run.sh --cluster ${CLUSTER} --skipcheck --dbscale 32 --streams 16
+load.data.sh --cluster ${CLUSTER} --benchmark tproc-c --skipcheck --dbscale 32 --load
+performance.curve.sh --cluster ${CLUSTER} --benchmark tproc-c --dbscale 32 --start_streams 4 --max_streams 16
 
 gcp.release.nodes.sh --cluster ${CLUSTER}

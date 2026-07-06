@@ -130,16 +130,6 @@ esac
     esac
 }
 
-[[ ${DISK_SIZE} ]] || {
-    case ${SERVER_INSTANCE_TYPE} in
-        n2-standard-4)  DISK_SIZE=500;;
-        n2-standard-8)  DISK_SIZE=500;;
-        n2-standard-16) DISK_SIZE=500;;
-        n2-standard-32) DISK_SIZE=500;;
-        *) echo "ERROR Unsupported Server Instance Type : SERVER_INSTANCE_TYPE = ${SERVER_INSTANCE_TYPE}"; echo -e "$0 ${COMMAND_LINE}"; exit 1;;
-    esac
-}
-
 [[ ${CLUSTER} ]] || CLUSTER=gcp${NUMOFSERVERS}.${SERVER_INSTANCE_TYPE}.${TOPOLOGY}
 
 [[ ${REPEATS} ]] || REPEATS=3
@@ -267,7 +257,7 @@ mkdir -p ${LOGDIRECTORY}
     echo
     echo "    ===== Load Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     start_minute_timer
-    COMMAND="sysbench.load.sh --cluster ${RUNTIME_CLUSTER} --load"
+    COMMAND="load.data.sh --cluster ${RUNTIME_CLUSTER} --benchmark sysbench --load"
     echo "    COMMAND = ${COMMAND}"
     time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).load.data.log 2>&1
     LOAD_MINUTES=$(stop_minute_timer)
@@ -277,7 +267,7 @@ mkdir -p ${LOGDIRECTORY}
     start_minute_timer
     for WORKLOAD in ${OPTION_WORKLOAD[*]} ; do
         echo "      === ${WORKLOAD} === [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-        COMMAND="sysbench.curves.sh --cluster ${RUNTIME_CLUSTER} --workload ${WORKLOAD} --repeats ${REPEATS}"
+        COMMAND="performance.curves.sh --cluster ${RUNTIME_CLUSTER}  --repeats ${REPEATS} -- --benchmark sysbench --workload ${WORKLOAD}"
         [[ ${OPTION_SSL} == TRUE ]] && COMMAND="${COMMAND} --ssl"
         echo "    COMMAND = ${COMMAND}"
         time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).performance.curve.log 2>&1
@@ -312,4 +302,3 @@ mkdir -p ${LOGDIRECTORY}
     echo
 
 } 2>&1 | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${TEST_NAME}.log
-
