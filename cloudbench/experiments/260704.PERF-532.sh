@@ -5,22 +5,24 @@
 # $Id$
 
 USAGE="
-$0 - Run Sysbench/HammerDB benchmarks to evaluate the usefulness of
-  hyper-threading on different architechtures
+$0 - Run Sysbench/HammerDB benchmarks
+to evaluate the usefulness of hyper-threading on different architechtures
 
-Usage: $0 -a|--architecture ... -h|--hyperthreading ... [options]
+Usage: $0 --architecture ... [options]
 
 Options:
-    --architecture | -a     GCP architecture, i.e. N2, N2D, ... (mandatory)
-    --hyperthreading | -h   on or off, default: on
+    --architecture          GCP architecture, i.e. N2, N2D, ... (mandatory)
+    --hyperthreading        on or off, default: on
 
     --mariadb-source        default: jenkins
     --mariadb-branch        default: 12.3-enterprise
     --mariadb-commit        default: latest
-    --mariadb-tarball | -t  (no default)
+    --mariadb-tarball       (no default)
 "
 
 COMMAND_LINE="$@"
+
+unset DEBUG
 
 while [[ $# > 0 ]] ; do
     key="$1"; shift;
@@ -97,15 +99,18 @@ else
     export OPTION_THREADS_PER_CORE=2
 fi
 
+
 exec() {
-    if [[ ! ${DEBUG} ]] ; then
+    if [[ ${DEBUG} ]] ; then
+        echo $*
+    else
         $*
     fi
 }
 
 export CLUSTER='perf-532'
 
-TEST_NAME="PERF-532"
+TEST_NAME="PERF-532-${ARCH}-tpc=${OPTION_THREADS_PER_CORE}"
 [[ ${TESTID} ]] || TESTID=$(date +%y%m%d.%H%M%S).${TEST_NAME}
 export LOGDIRECTORY=${CBENCH_LOG_HOME}/${TESTID}
 mkdir -p ${LOGDIRECTORY}
@@ -129,8 +134,7 @@ mkdir -p ${LOGDIRECTORY}
     echo
     start_timer
     COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER} --server-nodes 1 --driver-nodes 1"
-    echo "${COMMAND}"
-    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).allocate.nodes.${CLUSTER}.log 2>&1
+    exec ${COMMAND}
     ALLOCATE_SEC=$(stop_timer)
 
     echo
@@ -138,8 +142,7 @@ mkdir -p ${LOGDIRECTORY}
     echo
     COMMAND="configure.cluster.sh --cluster ${CLUSTER} --cluster-type mariadb"
     COMMAND="${COMMAND} --mariadb-system ${CLUSTER}-server-1 --driver-system ${CLUSTER}-driver-1"
-    echo "${COMMAND}"
-    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).configure.cluster.${CLUSTER}.log 2>&1
+    exec ${COMMAND}
 
     echo
     echo "=== Build Cluster [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
@@ -150,8 +153,7 @@ mkdir -p ${LOGDIRECTORY}
     [[ ${OPT_BRANCH} ]]  && COMMAND="${COMMAND} --mariadb-branch ${OPT_BRANCH}"
     [[ ${OPT_COMMIT} ]]  && COMMAND="${COMMAND} --mariadb-commit ${OPT_COMMIT}"
     [[ ${OPT_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${OPT_TARBALL}"
-    echo "${COMMAND}"
-    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.cluster.${CLUSTER}.log 2>&1
+    exec ${COMMAND}
     BUILD_SEC=$(stop_timer)
 
     export OPTION_SKIPCHECK=TRUE
@@ -162,8 +164,7 @@ mkdir -p ${LOGDIRECTORY}
     start_grafana
     start_timer
     COMMAND="load.data.sh --cluster ${CLUSTER} --benchmark sysbench --bulkload"
-    echo "${COMMAND}"
-    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).load.data.sysbench.log 2>&1
+    exec ${COMMAND}
     LOAD1_SEC=$(stop_timer)
 
     echo
@@ -171,9 +172,8 @@ mkdir -p ${LOGDIRECTORY}
     echo
     start_timer
     COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- --benchmark sysbench --workload oltp_point_select"
-    echo "${COMMAND}"
     export DURATION=120
-    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).sysbench.point-select.curves.log 2>&1
+    exec ${COMMAND}
     unset DURATION
     CURVES1_SEC=$(stop_timer)
 
@@ -182,8 +182,7 @@ mkdir -p ${LOGDIRECTORY}
     echo
     start_timer
     COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- --benchmark sysbench --workload oltp_read_write"
-    echo "${COMMAND}"
-    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).sysbench.read-write.curves.log 2>&1
+    exec ${COMMAND}
     CURVES2_SEC=$(stop_timer)
     exec "stop.grafana.sh --cluster ${CLUSTER}" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.sysbench.log 2>&1
     exec "load.data.sh --cluster ${CLUSTER} --benchmark sysbench --clean" &> /dev/null
@@ -194,8 +193,7 @@ mkdir -p ${LOGDIRECTORY}
     start_grafana
     start_timer
     COMMAND="load.data.sh --cluster ${CLUSTER} --benchmark sysbench-tpcc --load"
-    echo "${COMMAND}"
-    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).load.data.sysbench-tpcc.log 2>&1
+    exec ${COMMAND}
     LOAD2_SEC=$(stop_timer)
 
     echo
@@ -203,8 +201,7 @@ mkdir -p ${LOGDIRECTORY}
     echo
     start_timer
     COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- --benchmark sysbench-tpcc"
-    echo "${COMMAND}"
-    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).sysbench-tpcc.curves.log 2>&1
+    exec ${COMMAND}
     CURVES3_SEC=$(stop_timer)
     exec "stop.grafana.sh --cluster ${CLUSTER}" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.sysbench-tpcc.log 2>&1
     exec "load.data.sh --cluster ${CLUSTER} --benchmark sysbench-tpcc --clean" &> /dev/null
@@ -215,8 +212,7 @@ mkdir -p ${LOGDIRECTORY}
     start_grafana
     start_timer
     COMMAND="load.data.sh --cluster ${CLUSTER} --benchmark tproc-c --load"
-    echo "${COMMAND}"
-    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).load.data.hammerdb-tprocc.log 2>&1
+    exec ${COMMAND}
     LOAD3_SEC=$(stop_timer)
 
     echo
@@ -224,8 +220,7 @@ mkdir -p ${LOGDIRECTORY}
     echo
     start_timer
     COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats 3 -- --benchmark tproc-c"
-    echo "${COMMAND}"
-    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).hammerdb-tprocc.curves.log 2>&1
+    exec ${COMMAND}
     CURVES4_SEC=$(stop_timer)
     exec "stop.grafana.sh --cluster ${CLUSTER}" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.sysbench-tpcc.log 2>&1
 
@@ -234,8 +229,7 @@ mkdir -p ${LOGDIRECTORY}
     echo
     start_timer
     COMMAND="gcp.release.nodes.sh --cluster ${CLUSTER}"
-    echo "${COMMAND}"
-    exec ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).release.nodes.${CLUSTER}.log 2>&1
+    exec ${COMMAND}
     RELEASE_SEC=$(stop_timer)
 
     (( LOAD_SEC = LOAD1_SEC + LOAD2_SEC + LOAD3_SEC ))
