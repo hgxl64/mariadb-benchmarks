@@ -252,7 +252,7 @@ done
                 # instance and zone
                 COMMAND="gcloud compute instances create ${INSTANCE} --zone ${ZONE_ID}"
                 # boot image - our driver image
-                COMMAND="${COMMAND} --source-machine-image=${DRIVER_IMAGE}"
+                COMMAND="${COMMAND} --image-family=${DRIVER_IMAGE_FAMILY} --image-project=${DRIVER_IMAGE_PROJECT}"
                 # instance type
                 COMMAND="${COMMAND} --machine-type=${DRIVER_INSTANCE_TYPE} --min-cpu-platform=Automatic"
                 # default SSH key
