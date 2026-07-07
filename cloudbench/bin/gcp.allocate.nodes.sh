@@ -574,8 +574,8 @@ done
                 if [[ ${MKSWAP} == TRUE ]] ; then
                     echo "cd /data/cbench"
                     echo "sudo dd if=/dev/zero of=swapfile bs=1M count=8192"
-                    echo "sudo mkswap swapfile"
                     echo "sudo chmod 600 swapfile"
+                    echo "sudo mkswap swapfile"
                     echo "sudo swapon swapfile"
                 fi
             } | ssh -T -o "StrictHostKeyChecking no" -i ${SSH_PEM_FILE} ${SSH_USER}@${NODE} &
