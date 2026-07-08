@@ -74,9 +74,7 @@ case ${ARCH} in
         export DISK_TYPE="hyperdisk-balanced"
         export DISK_DEVICE="/dev/nvme0n2"
         export DISK_SIZE="500"
-        # the driver cannot be N4 since the driver image is PD-SSD
-        # also N4 is faster than N2, so we use same nominal size
-        export DRIVER_INSTANCE_TYPE=n2-highcpu-16
+        export DRIVER_INSTANCE_TYPE=n4-highcpu-8
         ;;
 
     n4d)
@@ -84,7 +82,7 @@ case ${ARCH} in
         export DISK_TYPE="hyperdisk-balanced"
         export DISK_DEVICE="/dev/nvme0n2"
         export DISK_SIZE="500"
-        export DRIVER_INSTANCE_TYPE=n2-highcpu-16
+        export DRIVER_INSTANCE_TYPE=n4d-highcpu-8
         ;;
 
     *)
