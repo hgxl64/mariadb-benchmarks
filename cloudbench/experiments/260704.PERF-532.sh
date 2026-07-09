@@ -31,12 +31,14 @@ while [[ $# > 0 ]] ; do
         --architecture)       ARCH="$1"; shift;;
         -h)                   HT="$1"; shift;;
         --hyperthreading)     HT="$1"; shift;;
+        --collocate)          OPT_COLLOCATE=TRUE;;
 
         --mariadb-source)     OPT_SOURCE="$1"; shift;;
         --mariadb-branch)     OPT_BRANCH="$1"; shift;;
         --mariadb-commit)     OPT_COMMIT="$1"; shift;;
         -t)                   OPT_TARBALL="$1"; OPT_SOURCE="tarball"; shift;;
         --mariadb-tarball)    OPT_TARBALL="$1"; OPT_SOURCE="tarball"; shift;;
+
 
         --debug)              DEBUG=1;;
 
@@ -68,21 +70,39 @@ case ${ARCH} in
         ;;
 
     n4)
-        # N4 servers don't support PD-SSD disks, only hyperdisks
-        # the disk must be bigger since the IOPS are proportional to size
         export SERVER_INSTANCE_TYPE=n4-highcpu-16
+        export DRIVER_INSTANCE_TYPE=n4-highcpu-8
+        # N4 servers don't support PD-SSD disks, only hyperdisks
         export DISK_TYPE="hyperdisk-balanced"
         export DISK_DEVICE="/dev/nvme0n2"
-        export DISK_SIZE="500"
-        export DRIVER_INSTANCE_TYPE=n4-highcpu-8
+        export DISK_IOPS="10000"
         ;;
 
     n4d)
         export SERVER_INSTANCE_TYPE=n4d-highcpu-16
+        export DRIVER_INSTANCE_TYPE=n4d-highcpu-8
+        # N4D servers don't support PD-SSD disks, only hyperdisks
         export DISK_TYPE="hyperdisk-balanced"
         export DISK_DEVICE="/dev/nvme0n2"
-        export DISK_SIZE="500"
-        export DRIVER_INSTANCE_TYPE=n4d-highcpu-8
+        export DISK_IOPS="10000"
+        ;;
+
+    c4)
+        export SERVER_INSTANCE_TYPE=c4-highcpu-16
+        export DRIVER_INSTANCE_TYPE=c4-highcpu-8
+        # C4 servers don't support PD-SSD disks, only hyperdisks
+        export DISK_TYPE="hyperdisk-balanced"
+        export DISK_DEVICE="/dev/nvme0n2"
+        export DISK_IOPS="10000"
+        ;;
+
+    c4d)
+        export SERVER_INSTANCE_TYPE=c4d-highcpu-16
+        export DRIVER_INSTANCE_TYPE=c4d-highcpu-8
+        # C4d servers don't support PD-SSD disks, only hyperdisks
+        export DISK_TYPE="hyperdisk-balanced"
+        export DISK_DEVICE="/dev/nvme0n2"
+        export DISK_IOPS="10000"
         ;;
 
     *)
@@ -132,8 +152,14 @@ mkdir -p ${LOGDIRECTORY}
     echo
     start_timer
     COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER} --server-nodes 1 --driver-nodes 1"
+    [[ ${OPT_COLLOCATE} == TRUE ]] && COMMAND="${COMMAND} --collocate"
     exec ${COMMAND}
     ALLOCATE_SEC=$(stop_timer)
+
+    SYSTEMS=( $(get_property ${CLUSTER} systems) )
+    echo
+    echo "allocated: ${SYSTEMS[*]}"
+    [[ ${SYSTEMS} ]] || error "ERROR Unable to allocate nodes"
 
     echo
     echo "=== Configure Cluster [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
