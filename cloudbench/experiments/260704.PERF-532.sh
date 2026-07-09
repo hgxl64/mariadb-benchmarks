@@ -94,7 +94,7 @@ case ${ARCH} in
         export DRIVER_INSTANCE_TYPE=c4-highcpu-8
         # C4 servers don't support PD-SSD disks, only hyperdisks
         export DISK_TYPE="hyperdisk-balanced"
-        export DISK_DEVICE="/dev/nvme0n2"
+        export DISK_DEVICE="/dev/nvme1n1"
         export DISK_SIZE="240"
         export DISK_EXTRA="provisioned-iops=10000,provisioned-throughput=500"
         ;;
@@ -104,7 +104,7 @@ case ${ARCH} in
         export DRIVER_INSTANCE_TYPE=c4d-highcpu-8
         # C4d servers don't support PD-SSD disks, only hyperdisks
         export DISK_TYPE="hyperdisk-balanced"
-        export DISK_DEVICE="/dev/nvme0n2"
+        export DISK_DEVICE="/dev/nvme1n1"
         export DISK_SIZE="240"
         export DISK_EXTRA="provisioned-iops=10000,provisioned-throughput=500"
         ;;
