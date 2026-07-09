@@ -37,6 +37,8 @@ USAGE="
         --disk-type         GCP disk type
         --disk-size         Size of persistent disk
 
+        --collocate
+
         -h | --help         Show usage message and exit
 
     Notes:
@@ -67,6 +69,8 @@ while [[ $# > 0 ]] ; do
         --persistentdisk)           PERSISTENTDISK=TRUE;;
         --disk-type)                DISK_TYPE="$1"; shift;;
         --disk-size)                DISK_SIZE="$1"; shift;;
+
+        --collocate)                OPTION_COLLOCATE=TRUE;;
 
         --disablewritebarrier)      DISABLE_WRITE_BARRIER='-o nobarrier';;
         --lazyinit)                 LAZY_INIT="$1"; shift;;
@@ -100,9 +104,26 @@ done
 # default create swapfile
 [[ ${MKSWAP} ]] || MKSWAP=TRUE
 
-
 # replace forbidden characters in cluster name
 SANITIZED_CLUSTER=$(echo ${CLUSTER} | perl -pe 'tr/A-Z\._/a-z\-\-/')
+
+# determine collocation policy
+if [[ ${OPTION_COLLOCATE} == TRUE ]] ; then
+    # find our region and the collocation policy
+    REGION=$(gcloud compute zones list | grep ${ZONE_ID} | awk '{ print $2 }')
+    [[ ${REGION} ]] || error "cannot determine the cloud region for zone '${ZONE_ID}'"
+    POLICY=$(gcloud compute resource-policies list | grep '${REGION}-collocated' | awk '{print $1}')
+    if [[ ! ${POLICY} ]] ; then
+        # try to create the policy for our region
+        COMMAND="gcloud compute resource-policies create group-placement ${REGION}-collocated"
+        COMMAND="${COMMAND} --collocation=collocated --region=${REGION}"
+        echo "create group placement policy:"
+        echo ${COMMAND}
+        $COMMAND
+        POLICY=$(gcloud compute resource-policies list | grep '${REGION}-collocated' | awk '{print $1}')
+    fi
+fi
+
 
 # logging
 TEST_NAME=gcp.allocate.nodes
@@ -157,6 +178,7 @@ done
             PERSISTENTDISK          = ${PERSISTENTDISK}
             DISK_TYPE               = ${DISK_TYPE}
             DISK_SIZE               = ${DISK_SIZE}
+            COLLOCATION POLICY      = $([[ $OPTION_COLLOCATE ]] && echo ${POLICY} || echo 'not requested')
 
             NUMOFLOCALDISKS         = ${NUMOFLOCALDISKS}
             DISKINTERFACE           = ${DISKINTERFACE}
@@ -199,10 +221,11 @@ done
                 [[ ${OPTION_THREADS_PER_CORE} ]] && {
                     COMMAND="${COMMAND} --threads-per-core=${OPTION_THREADS_PER_CORE}"
                 }
-                # persistent disk
+                # server storage
                 [[ ${PERSISTENTDISK} ]] && {
                     COMMAND="${COMMAND} --create-disk name=${INSTANCE}-disk,device-name=cbench-disk"
                     COMMAND="${COMMAND},type=${DISK_TYPE},size=${DISK_SIZE}GB,auto-delete=yes"
+                    [[ ${DISK_IOPS} ]] && COMMAND="${COMMAND},provisioned-iops=${DISK_IOPS}"
                 }
                 # local disk(s)
                 for (( IDX = 0 ; IDX < ${NUMOFLOCALDISKS} ; IDX++ ))
@@ -211,6 +234,10 @@ done
                 done
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
+                # placement policy
+                if [[ ${OPTION_COLLOCATE} == TRUE && ${POLICY} ]] ; then
+                    COMMAND="${COMMAND} --resource-policies=${POLICY}"
+                fi
 
                 echo "${COMMAND}"
                 if [[ ${OPTION_BACKGROUND} == TRUE ]] ; then
@@ -235,6 +262,10 @@ done
                 COMMAND="${COMMAND} --machine-type=${MAXSCALE_INSTANCE_TYPE} --min-cpu-platform=Automatic"
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
+                # placement policy
+                if [[ ${OPTION_COLLOCATE} == TRUE && ${POLICY} ]] ; then
+                    COMMAND="${COMMAND} --resource-policies=${POLICY}"
+                fi
 
                 echo "${COMMAND}"
                 if [[ ${OPTION_BACKGROUND} == TRUE ]] ; then
@@ -257,6 +288,10 @@ done
                 COMMAND="${COMMAND} --machine-type=${DRIVER_INSTANCE_TYPE} --min-cpu-platform=Automatic"
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
+                # placement policy
+                if [[ ${OPTION_COLLOCATE} == TRUE && ${POLICY} ]] ; then
+                    COMMAND="${COMMAND} --resource-policies=${POLICY}"
+                fi
 
                 echo "${COMMAND}"
                 if [[ ${OPTION_BACKGROUND} == TRUE ]] ; then
