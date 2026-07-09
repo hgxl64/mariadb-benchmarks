@@ -178,7 +178,8 @@ done
             PERSISTENTDISK          = ${PERSISTENTDISK}
             DISK_TYPE               = ${DISK_TYPE}
             DISK_SIZE               = ${DISK_SIZE}
-            COLLOCATION POLICY      = $([[ $OPTION_COLLOCATE ]] && echo ${POLICY} || echo 'not requested')
+            OPTION_COLLOCATE        = ${OPTION_COLLOCATE}
+            PLACEMENT POLICY        = ${POLICY}
 
             NUMOFLOCALDISKS         = ${NUMOFLOCALDISKS}
             DISKINTERFACE           = ${DISKINTERFACE}
@@ -224,8 +225,8 @@ done
                 # server storage
                 [[ ${PERSISTENTDISK} ]] && {
                     COMMAND="${COMMAND} --create-disk name=${INSTANCE}-disk,device-name=cbench-disk"
-                    COMMAND="${COMMAND},type=${DISK_TYPE},size=${DISK_SIZE}GB,auto-delete=yes"
-                    [[ ${DISK_IOPS} ]] && COMMAND="${COMMAND},provisioned-iops=${DISK_IOPS}"
+                    COMMAND="${COMMAND},type=${DISK_TYPE},size=${DISK_SIZE},auto-delete=yes"
+                    [[ ${DISK_EXTRA} ]] && COMMAND="${COMMAND},${DISK_EXTRA}"
                 }
                 # local disk(s)
                 for (( IDX = 0 ; IDX < ${NUMOFLOCALDISKS} ; IDX++ ))
@@ -235,7 +236,7 @@ done
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
                 # placement policy
-                if [[ ${OPTION_COLLOCATE} == TRUE && ${POLICY} ]] ; then
+                if [[ ${OPTION_COLLOCATE} == TRUE && -n ${POLICY} ]] ; then
                     COMMAND="${COMMAND} --resource-policies=${POLICY}"
                 fi
 
@@ -263,7 +264,7 @@ done
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
                 # placement policy
-                if [[ ${OPTION_COLLOCATE} == TRUE && ${POLICY} ]] ; then
+                if [[ ${OPTION_COLLOCATE} == TRUE && -n ${POLICY} ]] ; then
                     COMMAND="${COMMAND} --resource-policies=${POLICY}"
                 fi
 
@@ -289,7 +290,7 @@ done
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
                 # placement policy
-                if [[ ${OPTION_COLLOCATE} == TRUE && ${POLICY} ]] ; then
+                if [[ ${OPTION_COLLOCATE} == TRUE && -n ${POLICY} ]] ; then
                     COMMAND="${COMMAND} --resource-policies=${POLICY}"
                 fi
 

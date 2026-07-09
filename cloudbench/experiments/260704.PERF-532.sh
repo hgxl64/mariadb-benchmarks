@@ -75,7 +75,8 @@ case ${ARCH} in
         # N4 servers don't support PD-SSD disks, only hyperdisks
         export DISK_TYPE="hyperdisk-balanced"
         export DISK_DEVICE="/dev/nvme0n2"
-        export DISK_IOPS="10000"
+        export DISK_SIZE="240"
+        export DISK_EXTRA="provisioned-iops=10000,provisioned-throughput=500"
         ;;
 
     n4d)
@@ -84,7 +85,8 @@ case ${ARCH} in
         # N4D servers don't support PD-SSD disks, only hyperdisks
         export DISK_TYPE="hyperdisk-balanced"
         export DISK_DEVICE="/dev/nvme0n2"
-        export DISK_IOPS="10000"
+        export DISK_SIZE="240"
+        export DISK_EXTRA="provisioned-iops=10000,provisioned-throughput=500"
         ;;
 
     c4)
@@ -93,7 +95,8 @@ case ${ARCH} in
         # C4 servers don't support PD-SSD disks, only hyperdisks
         export DISK_TYPE="hyperdisk-balanced"
         export DISK_DEVICE="/dev/nvme0n2"
-        export DISK_IOPS="10000"
+        export DISK_SIZE="240"
+        export DISK_EXTRA="provisioned-iops=10000,provisioned-throughput=500"
         ;;
 
     c4d)
@@ -102,7 +105,8 @@ case ${ARCH} in
         # C4d servers don't support PD-SSD disks, only hyperdisks
         export DISK_TYPE="hyperdisk-balanced"
         export DISK_DEVICE="/dev/nvme0n2"
-        export DISK_IOPS="10000"
+        export DISK_SIZE="240"
+        export DISK_EXTRA="provisioned-iops=10000,provisioned-throughput=500"
         ;;
 
     *)
@@ -159,7 +163,7 @@ mkdir -p ${LOGDIRECTORY}
     SYSTEMS=( $(get_property ${CLUSTER} systems) )
     echo
     echo "allocated: ${SYSTEMS[*]}"
-    [[ ${SYSTEMS} ]] || error "ERROR Unable to allocate nodes"
+    [[ ${#SYSTEMS[*]} != 2 ]] && error "ERROR Unable to allocate nodes"
 
     echo
     echo "=== Configure Cluster [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
