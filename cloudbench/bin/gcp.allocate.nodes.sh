@@ -107,20 +107,22 @@ done
 # replace forbidden characters in cluster name
 SANITIZED_CLUSTER=$(echo ${CLUSTER} | perl -pe 'tr/A-Z\._/a-z\-\-/')
 
+gcloud config set project ${GCP_PROJECT}
+
 # determine collocation policy
 if [[ ${OPTION_COLLOCATE} == TRUE ]] ; then
     # find our region and the collocation policy
     REGION=$(gcloud compute zones list | grep ${ZONE_ID} | awk '{ print $2 }')
     [[ ${REGION} ]] || error "cannot determine the cloud region for zone '${ZONE_ID}'"
-    POLICY=$(gcloud compute resource-policies list | grep '${REGION}-collocated' | awk '{print $1}')
-    if [[ ! ${POLICY} ]] ; then
+    PLACEMENT_POLICY=$(gcloud compute resource-policies list | fgrep "${REGION}-collocated" | awk '{print $1}')
+    if [[ ! ${PLACEMENT_POLICY} ]] ; then
         # try to create the policy for our region
-        COMMAND="gcloud compute resource-policies create group-placement ${REGION}-collocated"
+        PLACEMENT_POLICY="${REGION}-collocated"
+        COMMAND="gcloud compute resource-policies create group-placement ${PLACEMENT_POLICY}"
         COMMAND="${COMMAND} --collocation=collocated --region=${REGION}"
         echo "create group placement policy:"
         echo ${COMMAND}
         $COMMAND
-        POLICY=$(gcloud compute resource-policies list | grep '${REGION}-collocated' | awk '{print $1}')
     fi
 fi
 
@@ -179,7 +181,7 @@ done
             DISK_TYPE               = ${DISK_TYPE}
             DISK_SIZE               = ${DISK_SIZE}
             OPTION_COLLOCATE        = ${OPTION_COLLOCATE}
-            PLACEMENT POLICY        = ${POLICY}
+            PLACEMENT_POLICY        = ${PLACEMENT_POLICY}
 
             NUMOFLOCALDISKS         = ${NUMOFLOCALDISKS}
             DISKINTERFACE           = ${DISKINTERFACE}
@@ -236,8 +238,8 @@ done
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
                 # placement policy
-                if [[ ${OPTION_COLLOCATE} == TRUE && -n ${POLICY} ]] ; then
-                    COMMAND="${COMMAND} --resource-policies=${POLICY}"
+                if [[ ${OPTION_COLLOCATE} == TRUE && -n ${PLACEMENT_POLICY} ]] ; then
+                    COMMAND="${COMMAND} --resource-policies=${PLACEMENT_POLICY}"
                 fi
 
                 echo "${COMMAND}"
@@ -264,8 +266,8 @@ done
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
                 # placement policy
-                if [[ ${OPTION_COLLOCATE} == TRUE && -n ${POLICY} ]] ; then
-                    COMMAND="${COMMAND} --resource-policies=${POLICY}"
+                if [[ ${OPTION_COLLOCATE} == TRUE && -n ${PLACEMENT_POLICY} ]] ; then
+                    COMMAND="${COMMAND} --resource-policies=${PLACEMENT_POLICY}"
                 fi
 
                 echo "${COMMAND}"
@@ -290,8 +292,8 @@ done
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
                 # placement policy
-                if [[ ${OPTION_COLLOCATE} == TRUE && -n ${POLICY} ]] ; then
-                    COMMAND="${COMMAND} --resource-policies=${POLICY}"
+                if [[ ${OPTION_COLLOCATE} == TRUE && -n ${PLACEMENT_POLICY} ]] ; then
+                    COMMAND="${COMMAND} --resource-policies=${PLACEMENT_POLICY}"
                 fi
 
                 echo "${COMMAND}"
