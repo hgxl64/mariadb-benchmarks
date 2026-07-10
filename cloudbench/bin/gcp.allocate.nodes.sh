@@ -107,22 +107,20 @@ done
 # replace forbidden characters in cluster name
 SANITIZED_CLUSTER=$(echo ${CLUSTER} | perl -pe 'tr/A-Z\._/a-z\-\-/')
 
-gcloud config set project ${GCP_PROJECT}
-
 # determine collocation policy
 if [[ ${OPTION_COLLOCATE} == TRUE ]] ; then
     # find our region and the collocation policy
     REGION=$(gcloud compute zones list | grep ${ZONE_ID} | awk '{ print $2 }')
     [[ ${REGION} ]] || error "cannot determine the cloud region for zone '${ZONE_ID}'"
-    PLACEMENT_POLICY=$(gcloud compute resource-policies list | fgrep "${REGION}-collocated" | awk '{print $1}')
+    PLACEMENT_POLICY=$(gcloud compute resource-policies list | fgrep "${CLUSTER}-collocated" | awk '{print $1}')
     if [[ ! ${PLACEMENT_POLICY} ]] ; then
         # try to create the policy for our region
-        PLACEMENT_POLICY="${REGION}-collocated"
-        COMMAND="gcloud compute resource-policies create group-placement ${PLACEMENT_POLICY}"
+        COMMAND="gcloud compute resource-policies create group-placement ${CLUSTER}-collocated"
         COMMAND="${COMMAND} --collocation=collocated --region=${REGION}"
         echo "create group placement policy:"
         echo ${COMMAND}
         $COMMAND
+        PLACEMENT_POLICY=$(gcloud compute resource-policies list | fgrep "${CLUSTER}-collocated" | awk '{print $1}')
     fi
 fi
 
