@@ -10,7 +10,7 @@ use strict;
 use DBI;
 use Getopt::Long;
 use Time::HiRes;
-use Text::Table::Tiny;
+use Text::TabularDisplay;
 
 
 #defaults
@@ -130,9 +130,10 @@ sub dump_table
 
     if ($sth->execute())
     {
-        my $columns= $sth->{'NAME'};
-        my $rows= $sth->fetchall_arrayref;
-        print generate_table(rows => $rows, header => $columns), "\n";
+        my $t= Text::TabularDisplay->new;
+        $t->columns(@{$sth->{'NAME'}});
+        $t->populate($sth->selectall_arrayref);
+        print $t->render, "\n";
         $sth->finish();
     }
 }
