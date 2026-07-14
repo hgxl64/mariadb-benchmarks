@@ -174,7 +174,7 @@ mkdir -p ${LOGDIRECTORY}
                     echo "wsrep_slave_threads = ${SLAVE_THREADS}"
                     echo "wsrep_sst_method = rsync_wan"
                     echo "innodb_autoinc_lock_mode = 2"
-                } > ${CONFIG_FILE}"
+                } > ${CONFIG_FILE}
                 '
 
             if [[ ${OPTION_DEFERRED_FLUSH} == TRUE ]] ; then
