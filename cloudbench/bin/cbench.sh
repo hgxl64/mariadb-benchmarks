@@ -1488,6 +1488,43 @@ stop_monitors() {
 }
 
 
+start_raft_monitors () {
+    local SYSTEM=$1
+    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+
+    [[ ${MONITOR_INTERVAL} ]] || MONITOR_INTERVAL=10
+    [[ ${RAFT_MONITOR_PID_FILE} ]] || RAFT_MONITOR_PID_FILE=$(mktemp)
+
+    for NODE in $(get_property ${SYSTEM} raft.systems) ; do
+        local COMMAND="mariadb_raft_monitor.pl --interval=${MONITOR_INTERVAL}"
+        COMMAND="${COMMAND} $(get_mariadb_collector_connection ${NODE})"
+        LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).mariadb_raft_monitor.${NODE}.log
+        print_subheader "Starting Raft Monitor for Node : ${NODE}"
+        ${COMMAND} > ${MONITORLOG} &
+        local MONITOR_PID=$!
+        print_subheader "Raft Monitor Started - Pid : ${MONITOR_PID}"
+        echo ${MONITOR_PID} >> ${MONITOR_REPORT_PID_FILE}
+    done
+}
+
+
+stop_raft_monitors () {
+    [[ ${RAFT_MONITOR_PID_FILE} ]] || return 0
+    [[ $(cat ${RAFT_MONITOR_PID_FILE}) ]] && {
+        print_header "Stopping Raft Monitors"
+        local MONITOR_PIDS=$(cat ${RAFT_MONITOR_PID_FILE} | tr '\n' ' ')
+        print_subheader "Monitor PIDs: ${MONITOR_PIDS}"
+        sleep ${MONITOR_INTERVAL}
+        print_subheader "Sending SIGINT to Monitor PIDs"
+        kill -INT ${MONITOR_PIDS}
+        print_subheader "Waiting for processes to exit"
+        wait ${MONITOR_PIDS}
+    }
+    [[ -f ${RAFT_MONITOR_PID_FILE} ]] && rm -f ${RAFT_MONITOR_PID_FILE}
+    unset RAFT_MONITOR_PID_FILE
+}
+
+
 start_prometheus_mysqld_exporter() {
     echo
     echo "    ===== Start Prometheus MySQL  Exporter =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"

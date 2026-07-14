@@ -161,7 +161,8 @@ time {
         echo "    ===== Gather Before Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time gather_before_data
 
-        start_performance_monitor ${CLUSTER};
+        start_performance_monitor ${CLUSTER}
+        start_raft_monitors ${CLUSTER}
         [[ ${OPTION_GRAFANA} == TRUE ]] && start_grafana
 
 
@@ -368,6 +369,7 @@ time {
         echo
         echo "        ===== Stop Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time stop_monitors
+        stop_raft_monitors
 
         [[ ${OPTION_GRAFANA} == TRUE ]] && stop_grafana  2>&1 | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.log
 
