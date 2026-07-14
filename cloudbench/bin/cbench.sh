@@ -1488,7 +1488,7 @@ stop_monitors() {
 }
 
 
-start_raft_monitors () {
+start_raft_monitors() {
     local SYSTEM=$1
     [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
@@ -1503,12 +1503,12 @@ start_raft_monitors () {
         ${COMMAND} > ${LOG} &
         local MONITOR_PID=$!
         print_subheader "Raft Monitor Started - Pid : ${MONITOR_PID}"
-        echo ${MONITOR_PID} >> ${MONITOR_REPORT_PID_FILE}
+        echo ${MONITOR_PID} >> ${RAFT_MONITOR_PID_FILE}
     done
 }
 
 
-stop_raft_monitors () {
+stop_raft_monitors() {
     [[ ${RAFT_MONITOR_PID_FILE} ]] || return 0
     [[ $(cat ${RAFT_MONITOR_PID_FILE}) ]] && {
         print_header "Stopping Raft Monitors"
