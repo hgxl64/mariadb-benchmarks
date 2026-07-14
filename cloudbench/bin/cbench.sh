@@ -1496,11 +1496,11 @@ start_raft_monitors () {
     [[ ${RAFT_MONITOR_PID_FILE} ]] || RAFT_MONITOR_PID_FILE=$(mktemp)
 
     for NODE in $(get_property ${SYSTEM} raft.systems) ; do
+        local LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).mariadb_raft_monitor.${NODE}.log
         local COMMAND="mariadb_raft_monitor.pl --interval=${MONITOR_INTERVAL}"
         COMMAND="${COMMAND} $(get_mariadb_collector_connection ${NODE})"
-        LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).mariadb_raft_monitor.${NODE}.log
         print_subheader "Starting Raft Monitor for Node : ${NODE}"
-        ${COMMAND} > ${MONITORLOG} &
+        ${COMMAND} > ${LOG} &
         local MONITOR_PID=$!
         print_subheader "Raft Monitor Started - Pid : ${MONITOR_PID}"
         echo ${MONITOR_PID} >> ${MONITOR_REPORT_PID_FILE}
