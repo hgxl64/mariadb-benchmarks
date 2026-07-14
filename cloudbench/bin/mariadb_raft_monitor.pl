@@ -125,14 +125,14 @@ sub dump_table
     my $dbh= shift;
     my $table= shift;
 
-    print "table: $table\n";
+    print "= $table =\n";
     my $sth= $dbh->prepare("SELECT * FROM INFORMATION_SCHEMA.$table");
 
     if ($sth->execute())
     {
         my $t= Text::TabularDisplay->new;
         $t->columns(@{$sth->{'NAME'}});
-        $t->populate($sth->selectall_arrayref);
+        $t->populate($sth->fetchall_arrayref);
         print $t->render, "\n";
         $sth->finish();
     }
