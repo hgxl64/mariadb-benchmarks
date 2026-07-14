@@ -242,7 +242,7 @@ mkdir -p ${LOGDIRECTORY}
         echo "    ===== Database Security =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         # this needs to be done on leader node only
         ssh $(get_ssh_connection ${SYSTEM} ${GALERA_EXTERNAL_IPS[0]}) "
-            /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
+            /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e \"
                 CREATE USER '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASSWORD}';
                 GRANT ALL ON *.* TO '${DB_USER}'@'%';
                 GRANT PROCESS, REPLICATION CLIENT ON *.* TO '${DB_USER}'@'%';
@@ -252,6 +252,7 @@ mkdir -p ${LOGDIRECTORY}
                 CREATE USER IF NOT EXISTS 'prometheus'@'localhost' IDENTIFIED VIA unix_socket WITH MAX_USER_CONNECTIONS 3;
                 GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'localhost';
                 FLUSH PRIVILEGES;
+                \"
             "
         for SYSTEM in $(get_property ${CLUSTER} galera.systems) ; do
             start_prometheus_mysqld_exporter
