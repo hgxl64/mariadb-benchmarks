@@ -40,6 +40,8 @@ while [[ $# > 0 ]] ; do
         --set)                  OPS_PIPELINE+=("set");;
         --show)                 OPS_PIPELINE+=("show");;
 
+        --number-pings)         NUM_PINGS="$1"; shift;;
+
         -h|--help) echo -e "$USAGE"; exit 1 ;;
         *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1 ;;
     esac
@@ -113,6 +115,8 @@ mkdir -p ${LOGDIRECTORY}
                     #and driver systems
                     DRIVER_SYSTEMS=( $(get_property ${CLUSTER} driver.systems) )
 
+                    [[ ${NUM_PINGS} ]] || NUM_PINGS=40
+
                     echo "    SERVER_SYSTEMS    = ${SERVER_SYSTEMS[*]}"
                     echo "    MAXSCALE_SYSTEMS  = ${MAXSCALE_SYSTEMS[*]}"
                     echo "    DRIVER_SYSTEMS    = ${DRIVER_SYSTEMS[*]}"
@@ -126,7 +130,7 @@ mkdir -p ${LOGDIRECTORY}
                         for ORIGIN in ${SERVER_SYSTEMS[*]} ; do
                             for TARGET in ${SERVER_SYSTEMS[*]} ; do
                                 TARGET_IP=$(get_property ${TARGET} system.internal.ip)
-                                ssh $(get_ssh_connection ${ORIGIN}) "ping -i 0.5 -c 20 ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
+                                ssh $(get_ssh_connection ${ORIGIN}) "ping -i 0.2 -c ${NUM_PINGS} ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
                                 PIDLIST="${PIDLIST} $!"
                             done
                         done
@@ -134,7 +138,7 @@ mkdir -p ${LOGDIRECTORY}
                         for ORIGIN in ${MAXSCALE_SYSTEMS[*]} ; do
                             for TARGET in ${SERVER_SYSTEMS[*]} ; do
                                 TARGET_IP=$(get_property ${TARGET} system.internal.ip)
-                                ssh $(get_ssh_connection ${ORIGIN}) "ping -i 0.5 -c 20 ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
+                                ssh $(get_ssh_connection ${ORIGIN}) "ping -i 0.2 -c ${NUM_PINGS} ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
                                 PIDLIST="${PIDLIST} $!"
                             done
                         done
@@ -142,7 +146,7 @@ mkdir -p ${LOGDIRECTORY}
                         for ORIGIN in ${DRIVER_SYSTEMS[*]} ; do
                             for TARGET in ${SERVER_SYSTEMS[*]} ${MAXSCALE_SYSTEMS[*]} ; do
                                 TARGET_IP=$(get_property ${TARGET} system.internal.ip)
-                                ssh $(get_ssh_connection ${ORIGIN}) "ping -i 0.5 -c 20 ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
+                                ssh $(get_ssh_connection ${ORIGIN}) "ping -i 0.2 -c ${NUM_PINGS} ${TARGET_IP}" > ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log &
                                 PIDLIST="${PIDLIST} $!"
                             done
                         done
@@ -184,19 +188,6 @@ mkdir -p ${LOGDIRECTORY}
                     }
 
                     [[ ${DRIVER_SYSTEMS[*]} ]] && {
-                        echo
-                        echo "----- average rtt between driver nodes and servers in ms:"
-                        echo
-                        {
-                            echo "to-> ${SERVER_SYSTEMS[*]}"
-                            for ORIGIN in ${DRIVER_SYSTEMS[*]} ; do
-                                echo -n "${ORIGIN}"
-                                for TARGET in ${SERVER_SYSTEMS[*]} ; do
-                                    echo -n " $(tail -1 ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log | cut -d= -f2 | cut -d/ -f2)"
-                                done
-                                echo
-                            done
-                        } | column -t
                         [[ ${MAXSCALE_SYSTEMS[*]} ]] && {
                             echo
                             echo "----- average rtt between driver nodes and maxscales in ms:"
@@ -212,6 +203,19 @@ mkdir -p ${LOGDIRECTORY}
                                 done
                             } | column -t
                         }
+                        echo
+                        echo "----- average rtt between driver nodes and servers in ms:"
+                        echo
+                        {
+                            echo "to-> ${SERVER_SYSTEMS[*]}"
+                            for ORIGIN in ${DRIVER_SYSTEMS[*]} ; do
+                                echo -n "${ORIGIN}"
+                                for TARGET in ${SERVER_SYSTEMS[*]} ; do
+                                    echo -n " $(tail -1 ${LOGDIRECTORY}/ping.${ORIGIN}.to.${TARGET}.log | cut -d= -f2 | cut -d/ -f2)"
+                                done
+                                echo
+                            done
+                        } | column -t
                     }
 
                     ;;
