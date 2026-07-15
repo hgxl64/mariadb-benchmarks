@@ -35,21 +35,24 @@ while [[ $# > 0 ]] ; do
         --mariadb-source)               MARIADB_SOURCE="$1"; shift;;
         --mariadb-branch)               MARIADB_BRANCH="$1"; shift;;
         --mariadb-commit)               MARIADB_COMMIT="$1"; shift;;
-        --mariadb-tarball)              MARIADB_TARBALL="$1"; shift;;
+        --mariadb-tarball)              MARIADB_SOURCE="tarball";
+                                        MARIADB_TARBALL="$1"; shift;;
 
         # galera installation
         --galera)                       OPTION_GALERA=TRUE;;
         --galera-source)                GALERA_SOURCE="$1"; shift;;
         --galera-branch)                GALERA_BRANCH="$1"; shift;;
         --galera-commit)                GALERA_COMMIT="$1"; shift;;
-        --galera-tarball)               GALERA_TARBALL="$1"; shift;;
+        --galera-tarball)               GALERA_SOURCE="tarball";
+                                        GALERA_TARBALL="$1"; shift;;
 
         # galera installation
         --raft)                         OPTION_RAFT=TRUE;;
         --raft-source)                  RAFT_SOURCE="$1"; shift;;
         --raft-branch)                  RAFT_BRANCH="$1"; shift;;
         --raft-commit)                  RAFT_COMMIT="$1"; shift;;
-        --raft-tarball)                 RAFT_TARBALL="$1"; shift;;
+        --raft-tarball)                 RAFT_SOURCE="tarball";
+                                        RAFT_TARBALL="$1"; shift;;
 
         --aws|--gcp|--cloud)            OPTION_CLOUD="--cloud";;
         --arm)                          OPTION_ARM=TRUE;;

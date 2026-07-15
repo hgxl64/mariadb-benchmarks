@@ -31,7 +31,8 @@ while [[ $# > 0 ]] ; do
         --cluster)          CLUSTER="$1"; shift;;
         --maxscale-source)  MAXSCALE_SOURCE="$1"; shift;;
         --maxscale-version) MAXSCALE_VERSION="$1"; shift;;
-        --maxscale-tarball) MAXSCALE_TARBALL="$1"; shift;;
+        --maxscale-tarball) MAXSCALE_SOURCE="tarball";
+                            MAXSCALE_TARBALL="$1"; shift;;
         --arm)              OPTION_MAXSCALE_ARM=TRUE;;
         --initdb)           OPTION_INITDB=TRUE;;
         --ssl)              OPTION_SSL=TRUE;;

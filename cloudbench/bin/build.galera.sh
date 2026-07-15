@@ -26,13 +26,15 @@ while [[ $# > 0 ]] ; do
         --mariadb-source)      MARIADB_SOURCE="$1"; shift;;
         --mariadb-branch)      MARIADB_BRANCH="$1"; shift;;
         --mariadb-commit)      MARIADB_COMMIT="$1"; shift;;
-        --mariadb-tarball)     MARIADB_TARBALL="$1"; shift;;
+        --mariadb-tarball)     MARIADB_SOURCE="tarball";
+                               MARIADB_TARBALL="$1"; shift;;
 
         # Galera Options
         --galera-source)       GALERA_SOURCE="$1"; shift;;
         --galera-branch)       GALERA_BRANCH="$1"; shift;;
         --galera-commit)       GALERA_COMMIT="$1"; shift;;
-        --galera-tarball)      GALERA_TARBALL="$1"; shift;;
+        --galera-tarball)      GALERA_SOURCE="tarball";
+                               GALERA_TARBALL="$1"; shift;;
 
         --thread-pool)         OPTION_THREAD_POOL=TRUE;;
         --thread-pool-size)    OPTION_THREAD_POOL_SIZE="$1"; shift;;
