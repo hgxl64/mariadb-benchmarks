@@ -424,7 +424,7 @@ mkdir -p ${LOGDIRECTORY}
 
             galera_masterslave|galera_mastermaster|raft_masterslave|raft_mastermaster)
 
-                if [[ ${CLUSTER_TYPE} == 'galera_*' ]] ; then
+                if [[ ${CLUSTER_TYPE} == galera_* ]] ; then
                     Type='Galera'
                     type='galera'
                 else
@@ -432,7 +432,7 @@ mkdir -p ${LOGDIRECTORY}
                     type='raft'
                 fi
 
-                if [[ ${CLUSTER_TYPE} == '*_masterslave' ]] ; then
+                if [[ ${CLUSTER_TYPE} == *_masterslave ]] ; then
                     SYSTEMS=( ${MASTER_SYSTEMS[0]} )
                 else
                     SYSTEMS=( ${MASTER_SYSTEMS[*]} )
