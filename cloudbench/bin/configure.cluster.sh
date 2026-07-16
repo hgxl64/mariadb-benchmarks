@@ -27,6 +27,7 @@ unset MASTER_SYSTEMS
 unset REPLICA_SYSTEMS
 unset MAXSCALE_SYSTEMS
 unset DRIVER_SYSTEMS
+unset NODEMASK
 
 while [[ $# > 0 ]] ; do
     key="$1"; shift;
@@ -38,14 +39,16 @@ while [[ $# > 0 ]] ; do
         --system-type)          CLUSTER_TYPE="$1"; shift;;
         --testid)               TESTID="$1"; shift;;
 
-        --mariadb-system)       MARIADB_SYSTEMS=( ${MARIADB_SYSTEMS[*]} "$1" ); shift;;
-        --primary-system)       MASTER_SYSTEMS=( ${MASTER_SYSTEMS[*]} "$1" ); shift;;
-        --master-system)        MASTER_SYSTEMS=( ${MASTER_SYSTEMS[*]} "$1" ); shift;;
-        --replica-system)       REPLICA_SYSTEMS=( ${REPLICA_SYSTEMS[*]} "$1" ); shift;;
-        --slave-system)         REPLICA_SYSTEMS=( ${REPLICA_SYSTEMS[*]} "$1" ); shift;;
-        --maxscale-system)      MAXSCALE_SYSTEMS=( ${MAXSCALE_SYSTEMS[*]} "$1" ); shift;;
-        --driver-system)        DRIVER_SYSTEMS=( ${DRIVER_SYSTEMS[*]} "$1" ); shift;;
-        --drivers)              DRIVER_SYSTEMS=( ${DRIVER_SYSTEMS[*]} $1 ); shift;;
+        --mariadb-system)       MARIADB_SYSTEMS+=( "$1" ); shift;;
+        --primary-system)       MASTER_SYSTEMS+=( "$1" ); shift;;
+        --master-system)        MASTER_SYSTEMS+=( "$1" ); shift;;
+        --replica-system)       REPLICA_SYSTEMS+=( "$1" ); shift;;
+        --slave-system)         REPLICA_SYSTEMS+=( "$1" ); shift;;
+        --maxscale-system)      MAXSCALE_SYSTEMS+=( "$1" ); shift;;
+        --driver-system)        DRIVER_SYSTEMS+=( "$1" ); shift;;
+        --drivers)              DRIVER_SYSTEMS+=( "$1" ); shift;;
+
+        --extra-nodemask)       NODEMASK+=( "$1" ); shift;;
 
         --ssl)                  OPTION_SSL=TRUE;;
 
@@ -276,257 +279,6 @@ mkdir -p ${LOGDIRECTORY}
         echo "    ===== Cluster property file : CLUSTER_TYPE = ${CLUSTER_TYPE}  =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         case ${CLUSTER_TYPE} in
 
-            mariadb_replication)
-
-                echo
-                echo "        MariaDB Replication Cluster = ${CLUSTER}"
-                {
-                    echo
-                    echo "cluster.name = ${CLUSTER}"
-                    echo "cluster.type = mariadb_replication"
-                    echo
-                    if [[ ${MAXSCALE_SYSTEMS} ]] ; then
-                        echo -n "maxscale.systems ="
-                        for SYSTEM in ${MAXSCALE_SYSTEMS[*]} ; do
-                            echo -n " maxscale.${SYSTEM}"
-                        done
-                        echo
-                    fi
-                    echo "master.systems = mariadb.${MASTER_SYSTEMS[0]}"
-                    echo -n "slave.systems ="
-                    for SYSTEM in ${REPLICA_SYSTEMS[*]} ; do
-                        echo -n " mariadb.${SYSTEM}"
-                    done
-                    echo
-
-                    echo
-                    echo "database = mariadb"
-                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} database.user) ]] && echo "database.user = $(get_property mariadb.${MASTER_SYSTEMS[0]} database.user)"
-                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} database.password) ]] && echo "database.password = $(get_property mariadb.${MASTER_SYSTEMS[0]} database.password)"
-                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} database.external.ips) ]] && echo "database.external.ips = $(get_property mariadb.${MASTER_SYSTEMS[0]} database.external.ips)"
-                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} database.internal.ips) ]] && echo "database.internal.ips = $(get_property mariadb.${MASTER_SYSTEMS[0]} database.internal.ips)"
-                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} database.backend.ips) ]] && echo "database.backend.ips = $(get_property mariadb.${MASTER_SYSTEMS[0]} database.backend.ips)"
-                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} database.port) ]] && echo "database.port = $(get_property mariadb.${MASTER_SYSTEMS[0]} database.port)"
-
-                    echo
-                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} cluster.nodes) ]] && echo "cluster.nodes = $(get_property mariadb.${MASTER_SYSTEMS[0]} cluster.nodes)"
-                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} cluster.node1) ]] && echo "cluster.node1 = $(get_property mariadb.${MASTER_SYSTEMS[0]} cluster.node1)"
-                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} nodes) ]] && echo "nodes = $(get_property mariadb.${MASTER_SYSTEMS[0]} nodes)"
-                    echo
-                    if [[ ${DRIVER_SYSTEMS} ]] ; then
-                        echo "driver.systems = ${DRIVER_SYSTEMS[*]}"
-                        echo "driver.nodes = ${#DRIVER_SYSTEMS[@]}"
-                        echo "driver.node1 = $(get_property ${DRIVER_SYSTEMS[0]} system.external.ip)"
-                        echo -n "drivers ="
-                        for DRIVER in ${DRIVER_SYSTEMS[*]} ; do
-                            echo -n " $(get_property ${DRIVER} system.external.ip)"
-                        done
-                        echo
-                    fi
-                    [[ $(get_property ${MASTER_SYSTEMS[0]} ssh.user) ]] && echo "ssh.user = $(get_property ${MASTER_SYSTEMS[0]} ssh.user)"
-                    [[ $(get_property ${MASTER_SYSTEMS[0]} ssh.pem) ]] && echo "ssh.pem = $(get_property ${MASTER_SYSTEMS[0]} ssh.pem)"
-
-                    for PROPERTY in server.cloud aws.region aws.zone aws.instance_type gcp.region gcp.zone gpc.driver.zone gcp.instance_type ; do
-                        [[ $(get_property ${MASTER_SYSTEMS[0]} ${PROPERTY}) ]] && echo "${PROPERTY} = $(get_property ${MASTER_SYSTEMS[0]} ${PROPERTY})"
-                    done
-                } > properties/${CLUSTER}.properties
-
-                echo
-                echo "        MariaDB Replication Cluster properties:"
-                cat properties/${CLUSTER}.properties
-                echo
-
-                ;;
-
-
-            galera_*)
-
-                if [[ ${CLUSTER_TYPE} == 'galera_masterslave' ]] ; then
-                    SYSTEMS=( ${MASTER_SYSTEMS[0]} )
-                elif [[ ${CLUSTER_TYPE} == 'galera_mastermaster' ]] ; then
-                    SYSTEMS=( ${MASTER_SYSTEMS[*]} )
-                else
-                    echo "Invalid Cluster Type: CLUSTER_TYPE = ${CLUSTER_TYPE}"; echo -e "$0 ${COMMAND_LINE}"; exit 1;
-                fi
-
-                echo
-                echo "        Galera Cluster = ${CLUSTER}"
-                {
-                    echo
-                    echo "cluster.name = ${CLUSTER}"
-                    echo "cluster.type = ${CLUSTER_TYPE}"
-                    echo
-                    if [[ ${MAXSCALE_SYSTEMS} ]] ; then
-                        echo -n "maxscale.systems ="
-                        for SYSTEM in ${MAXSCALE_SYSTEMS[*]} ; do
-                            echo -n " maxscale.${SYSTEM}"
-                        done
-                        echo
-                    fi
-                    echo -n "galera.systems ="
-                    for SYSTEM in ${MASTER_SYSTEMS[*]} ${REPLICA_SYSTEMS[*]} ; do
-                        echo -n " mariadb.${SYSTEM}"
-                    done
-                    echo
-
-                    echo
-                    echo "database = mariadb"
-                    echo "database.user = cbench"
-                    echo "database.password = ${OPTION_PASSWORD}"
-                    echo -n "database.external.ips ="
-                    for SYSTEM in ${SYSTEMS[*]} ; do
-                        echo -n " $(get_property ${SYSTEM} system.external.ip)"
-                    done
-                    echo
-
-                    if [[ $(get_property ${SYSTEMS[0]} system.internal.ip) ]] ; then
-                        echo -n "database.internal.ips ="
-                        for SYSTEM in ${SYSTEMS[*]} ; do
-                            echo -n " $(get_property ${SYSTEM} system.internal.ip)"
-                        done
-                        echo
-                    fi
-
-                    if [[ $(get_property ${SYSTEMS[0]} system.backend.ip) ]] ; then
-                        echo -n "database.backend.ips ="
-                        for SYSTEM in ${SYSTEMS[*]} ; do
-                            echo -n " $(get_property ${SYSTEM} system.backend.ip)"
-                        done
-                        echo
-                    fi
-                    echo "database.port = 3306"
-                    echo
-                    echo "cluster.nodes = ${#MASTER_SYSTEMS[@]}"
-                    echo "cluster.node1 = $(get_property ${SYSTEMS[0]} system.external.ip)"
-                    echo -n "nodes ="
-                    for SYSTEM in ${SYSTEMS[*]} ; do
-                        echo -n " $(get_property ${SYSTEM} system.external.ip)"
-                    done
-                    echo
-                    [[ $(get_property ${SYSTEMS[0]} ssh.user) ]] && echo "ssh.user = $(get_property ${SYSTEMS[0]} ssh.user)"
-                    [[ $(get_property ${SYSTEMS[0]} ssh.pem) ]] && echo "ssh.pem = $(get_property ${SYSTEMS[0]} ssh.pem)"
-                    echo
-                    if [[ ${DRIVER_SYSTEMS} ]] ; then
-                        echo "driver.systems = ${DRIVER_SYSTEMS[*]}"
-                        echo "driver.nodes = ${#DRIVER_SYSTEMS[@]}"
-                        echo "driver.node1 = $(get_property ${DRIVER_SYSTEMS[0]} system.external.ip)"
-                        echo -n "drivers ="
-                        for DRIVER in ${DRIVER_SYSTEMS[*]} ; do
-                            echo -n " $(get_property ${DRIVER} system.external.ip)"
-                        done
-                        echo
-                    else
-                        echo "driver.nodes = 0"
-                    fi
-                    echo
-                    echo
-
-                    for PROPERTY in server.cloud aws.region aws.zone aws.instance_type gcp.region gcp.zone gpc.driver.zone gcp.instance_type ; do
-                        [[ $(get_property ${SYSTEMS[0]} ${PROPERTY}) ]] && echo "${PROPERTY} = $(get_property ${SYSTEMS[0]} ${PROPERTY})"
-                    done
-                } > properties/${CLUSTER}.properties
-
-                echo
-                echo "        Galera Cluster properties:"
-                cat properties/${CLUSTER}.properties
-                echo
-                ;;
-
-
-            raft_*)
-
-                if [[ ${CLUSTER_TYPE} == 'raft_masterslave' ]] ; then
-                    SYSTEMS=( ${MASTER_SYSTEMS[0]} )
-                elif [[ ${CLUSTER_TYPE} == 'raft_mastermaster' ]] ; then
-                    SYSTEMS=( ${MASTER_SYSTEMS[*]} )
-                else
-                    echo "Invalid Cluster Type: CLUSTER_TYPE = ${CLUSTER_TYPE}"; echo -e "$0 ${COMMAND_LINE}"; exit 1;
-                fi
-
-                echo
-                echo "        Raft Cluster = ${CLUSTER}"
-                {
-                    echo
-                    echo "cluster.name = ${CLUSTER}"
-                    echo "cluster.type = ${CLUSTER_TYPE}"
-                    echo
-                    if [[ ${MAXSCALE_SYSTEMS} ]] ; then
-                        echo -n "maxscale.systems ="
-                        for SYSTEM in ${MAXSCALE_SYSTEMS[*]} ; do
-                            echo -n " maxscale.${SYSTEM}"
-                        done
-                        echo
-                    fi
-                    echo -n "raft.systems ="
-                    for SYSTEM in ${MASTER_SYSTEMS[*]} ${REPLICA_SYSTEMS[*]} ; do
-                        echo -n " mariadb.${SYSTEM}"
-                    done
-                    echo
-
-                    echo
-                    echo "database = mariadb"
-                    echo "database.user = cbench"
-                    echo "database.password = ${OPTION_PASSWORD}"
-                    echo -n "database.external.ips ="
-                    for SYSTEM in ${SYSTEMS[*]} ; do
-                        echo -n " $(get_property ${SYSTEM} system.external.ip)"
-                    done
-                    echo
-
-                    if [[ $(get_property ${SYSTEMS[0]} system.internal.ip) ]] ; then
-                        echo -n "database.internal.ips ="
-                        for SYSTEM in ${SYSTEMS[*]} ; do
-                            echo -n " $(get_property ${SYSTEM} system.internal.ip)"
-                        done
-                        echo
-                    fi
-
-                    if [[ $(get_property ${SYSTEMS[0]} system.backend.ip) ]] ; then
-                        echo -n "database.backend.ips ="
-                        for SYSTEM in ${SYSTEMS[*]} ; do
-                            echo -n " $(get_property ${SYSTEM} system.backend.ip)"
-                        done
-                        echo
-                    fi
-                    echo "database.port = 3306"
-                    echo
-                    echo "cluster.nodes = ${#MASTER_SYSTEMS[@]}"
-                    echo "cluster.node1 = $(get_property ${SYSTEMS[0]} system.external.ip)"
-                    echo -n "nodes ="
-                    for SYSTEM in ${SYSTEMS[*]} ; do
-                        echo -n " $(get_property ${SYSTEM} system.external.ip)"
-                    done
-                    echo
-                    [[ $(get_property ${SYSTEMS[0]} ssh.user) ]] && echo "ssh.user = $(get_property ${SYSTEMS[0]} ssh.user)"
-                    [[ $(get_property ${SYSTEMS[0]} ssh.pem) ]] && echo "ssh.pem = $(get_property ${SYSTEMS[0]} ssh.pem)"
-                    echo
-                    if [[ ${DRIVER_SYSTEMS} ]] ; then
-                        echo "driver.systems = ${DRIVER_SYSTEMS[*]}"
-                        echo "driver.nodes = ${#DRIVER_SYSTEMS[@]}"
-                        echo "driver.node1 = $(get_property ${DRIVER_SYSTEMS[0]} system.external.ip)"
-                        echo -n "drivers ="
-                        for DRIVER in ${DRIVER_SYSTEMS[*]} ; do
-                            echo -n " $(get_property ${DRIVER} system.external.ip)"
-                        done
-                        echo
-                    else
-                        echo "driver.nodes = 0"
-                    fi
-                    echo
-                    echo
-
-                    for PROPERTY in server.cloud aws.region aws.zone aws.instance_type gcp.region gcp.zone gpc.driver.zone gcp.instance_type ; do
-                        [[ $(get_property ${SYSTEMS[0]} ${PROPERTY}) ]] && echo "${PROPERTY} = $(get_property ${SYSTEMS[0]} ${PROPERTY})"
-                    done
-                } > properties/${CLUSTER}.properties
-
-                echo
-                echo "        Raft Cluster properties:"
-                cat properties/${CLUSTER}.properties
-                echo
-                ;;
-
-
             mariadb)
 
                 echo
@@ -605,6 +357,131 @@ mkdir -p ${LOGDIRECTORY}
                 echo "        MariaDB System properties:"
                 cat properties/${CLUSTER}.properties
                 echo
+                ;;
+
+
+            mariadb_replication)
+
+                echo
+                echo "        MariaDB Replication Cluster = ${CLUSTER}"
+                {
+                    echo
+                    echo "cluster.name = ${CLUSTER}"
+                    echo "cluster.type = mariadb_replication"
+                    echo
+                    if [[ ${MAXSCALE_SYSTEMS} ]] ; then
+                        echo -n "maxscale.systems ="
+                        for SYSTEM in ${MAXSCALE_SYSTEMS[*]} ; do
+                            echo -n " maxscale.${SYSTEM}"
+                        done
+                        echo
+                    fi
+                    echo "master.systems = mariadb.${MASTER_SYSTEMS[0]}"
+                    echo -n "slave.systems ="
+                    for SYSTEM in ${REPLICA_SYSTEMS[*]} ; do
+                        echo -n " mariadb.${SYSTEM}"
+                    done
+                    echo
+
+                    echo
+                    echo "database = mariadb"
+                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} database.user) ]] && echo "database.user = $(get_property mariadb.${MASTER_SYSTEMS[0]} database.user)"
+                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} database.password) ]] && echo "database.password = $(get_property mariadb.${MASTER_SYSTEMS[0]} database.password)"
+                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} database.external.ips) ]] && echo "database.external.ips = $(get_property mariadb.${MASTER_SYSTEMS[0]} database.external.ips)"
+                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} database.internal.ips) ]] && echo "database.internal.ips = $(get_property mariadb.${MASTER_SYSTEMS[0]} database.internal.ips)"
+                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} database.backend.ips) ]] && echo "database.backend.ips = $(get_property mariadb.${MASTER_SYSTEMS[0]} database.backend.ips)"
+                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} database.port) ]] && echo "database.port = $(get_property mariadb.${MASTER_SYSTEMS[0]} database.port)"
+
+                    echo
+                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} cluster.nodes) ]] && echo "cluster.nodes = $(get_property mariadb.${MASTER_SYSTEMS[0]} cluster.nodes)"
+                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} cluster.node1) ]] && echo "cluster.node1 = $(get_property mariadb.${MASTER_SYSTEMS[0]} cluster.node1)"
+                    [[ $(get_property mariadb.${MASTER_SYSTEMS[0]} nodes) ]] && echo "nodes = $(get_property mariadb.${MASTER_SYSTEMS[0]} nodes)"
+                    echo
+                    if [[ ${DRIVER_SYSTEMS} ]] ; then
+                        echo "driver.systems = ${DRIVER_SYSTEMS[*]}"
+                        echo "driver.nodes = ${#DRIVER_SYSTEMS[@]}"
+                        echo "driver.node1 = $(get_property ${DRIVER_SYSTEMS[0]} system.external.ip)"
+                        echo -n "drivers ="
+                        for DRIVER in ${DRIVER_SYSTEMS[*]} ; do
+                            echo -n " $(get_property ${DRIVER} system.external.ip)"
+                        done
+                        echo
+                    fi
+                    [[ $(get_property ${MASTER_SYSTEMS[0]} ssh.user) ]] && echo "ssh.user = $(get_property ${MASTER_SYSTEMS[0]} ssh.user)"
+                    [[ $(get_property ${MASTER_SYSTEMS[0]} ssh.pem) ]] && echo "ssh.pem = $(get_property ${MASTER_SYSTEMS[0]} ssh.pem)"
+
+                    for PROPERTY in server.cloud aws.region aws.zone aws.instance_type gcp.region gcp.zone gpc.driver.zone gcp.instance_type ; do
+                        [[ $(get_property ${MASTER_SYSTEMS[0]} ${PROPERTY}) ]] && echo "${PROPERTY} = $(get_property ${MASTER_SYSTEMS[0]} ${PROPERTY})"
+                    done
+                } > properties/${CLUSTER}.properties
+
+                echo
+                echo "        MariaDB Replication Cluster properties:"
+                cat properties/${CLUSTER}.properties
+                echo
+                ;;
+
+
+            galera_masterslave|galera_mastermaster|raft_masterslave|raft_mastermaster)
+
+                if [[ ${CLUSTER_TYPE} == 'galera_*' ]] ; then
+                    Type='Galera'
+                    type='galera'
+                else
+                    Type='Raft'
+                    type='raft'
+                fi
+
+                if [[ ${CLUSTER_TYPE} == '*_masterslave' ]] ; then
+                    SYSTEMS=( ${MASTER_SYSTEMS[0]} )
+                else
+                    SYSTEMS=( ${MASTER_SYSTEMS[*]} )
+                fi
+
+                echo
+                echo "        ${Type} Cluster = ${CLUSTER}"
+
+                generate_galera_cluster > properties/${CLUSTER}.properties
+
+                echo
+                echo "        ${Type} Cluster properties:"
+                cat properties/${CLUSTER}.properties
+                echo
+
+                SYSTEMSBAK=( ${SYSTEMS[*]} )
+
+                for MASK in ${NODEMASK[*]} ; do
+
+                    unset SYSTEMS
+                    BINMASK=""
+                    BIT=1
+                    for ((IDX=0; IDX < ${#SYSTEMSBAK[@]}; IDX++)) ; do
+                        if (( MASK & BIT )) ; then
+                            BINMASK="${BINMASK}1"
+                            SYSTEMS+=( ${SYSTEMSBAK[${IDX}]} )
+                        else
+                            BINMASK="${BINMASK}0"
+                        fi
+                        (( BIT = 2*BIT ))
+                    done
+
+                    if [[ ${SYSTEMS} ]] ; then
+                        echo
+                        echo "        generating extra ${Type} Cluster = ${CLUSTER}.${BINMASK}"
+
+                        generate_galera_cluster > properties/${CLUSTER}.${BINMASK}.properties
+
+                        echo
+                        echo "        ${Type} Cluster properties:"
+                        cat properties/${CLUSTER}.${BINMASK}.properties
+                        echo
+                    else
+                        echo
+                        echo "        no SYSTEMS for node mask ${MASK} = ${BINMASK}"
+                        echo
+                    fi
+
+                done
 
                 ;;
 
