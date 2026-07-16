@@ -118,6 +118,6 @@ sub cleanup
 {
     print STDERR "\nclosing database connection\n";
     $dbh->disconnect();
-    die "Raft monitor completed\n"
+    die "wsrep monitor completed\n"
 }
 
