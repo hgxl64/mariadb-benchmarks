@@ -163,6 +163,7 @@ time {
 
         start_performance_monitor ${CLUSTER}
         start_raft_monitors ${CLUSTER}
+        start_wsrep_monitors ${CLUSTER}
         [[ ${OPTION_GRAFANA} == TRUE ]] && start_grafana
 
 
@@ -370,6 +371,7 @@ time {
         echo "        ===== Stop Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time stop_monitors
         stop_raft_monitors
+        stop_wsrep_monitors
 
         [[ ${OPTION_GRAFANA} == TRUE ]] && stop_grafana  2>&1 | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.log
 

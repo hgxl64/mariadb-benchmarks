@@ -1525,6 +1525,43 @@ stop_raft_monitors() {
 }
 
 
+start_wsrep_monitors() {
+    local SYSTEM=$1
+    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+
+    [[ ${MONITOR_INTERVAL} ]] || MONITOR_INTERVAL=10
+    [[ ${WSREP_MONITOR_PID_FILE} ]] || WSREP_MONITOR_PID_FILE=$(mktemp)
+
+    for NODE in $(get_property ${SYSTEM} raft.systems) $(get_property ${SYSTEM} galera.systems) ; do
+        local LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).mariadb_wsrep_monitor.${NODE}.log
+        local COMMAND="mariadb_wsrep_monitor.pl --interval=${MONITOR_INTERVAL}"
+        COMMAND="${COMMAND} $(get_mariadb_collector_connection ${NODE})"
+        print_subheader "Starting wsrep Monitor for Node : ${NODE}"
+        ${COMMAND} > ${LOG} &
+        local MONITOR_PID=$!
+        print_subheader "wsrep Monitor Started - Pid : ${MONITOR_PID}"
+        echo ${MONITOR_PID} >> ${WSREP_MONITOR_PID_FILE}
+    done
+}
+
+
+stop_wsrep_monitors() {
+    [[ ${WSREP_MONITOR_PID_FILE} ]] || return 0
+    [[ $(cat ${WSREP_MONITOR_PID_FILE}) ]] && {
+        print_header "Stopping wsrep Monitors"
+        local MONITOR_PIDS=$(cat ${WSREP_MONITOR_PID_FILE} | tr '\n' ' ')
+        print_subheader "Monitor PIDs: ${MONITOR_PIDS}"
+        sleep ${MONITOR_INTERVAL}
+        print_subheader "Sending SIGINT to Monitor PIDs"
+        kill -INT ${MONITOR_PIDS}
+        print_subheader "Waiting for processes to exit"
+        wait ${MONITOR_PIDS}
+    }
+    [[ -f ${WSREP_MONITOR_PID_FILE} ]] && rm -f ${WSREP_MONITOR_PID_FILE}
+    unset WSREP_MONITOR_PID_FILE
+}
+
+
 start_prometheus_mysqld_exporter() {
     echo
     echo "    ===== Start Prometheus MySQL  Exporter =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
