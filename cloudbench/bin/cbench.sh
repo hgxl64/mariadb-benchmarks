@@ -1511,7 +1511,7 @@ start_raft_monitors() {
 stop_raft_monitors() {
     [[ ${RAFT_MONITOR_PID_FILE} ]] || return 0
     [[ $(cat ${RAFT_MONITOR_PID_FILE}) ]] && {
-        #print_header "Stopping Raft Monitors"
+        print_header "Stopping Raft Monitors"
         local MONITOR_PIDS=$(cat ${RAFT_MONITOR_PID_FILE} | tr '\n' ' ')
         #print_subheader "Monitor PIDs: ${MONITOR_PIDS}"
         sleep ${MONITOR_INTERVAL}
@@ -1548,7 +1548,7 @@ start_wsrep_monitors() {
 stop_wsrep_monitors() {
     [[ ${WSREP_MONITOR_PID_FILE} ]] || return 0
     [[ $(cat ${WSREP_MONITOR_PID_FILE}) ]] && {
-        #print_header "Stopping wsrep Monitors"
+        print_header "Stopping wsrep Monitors"
         local MONITOR_PIDS=$(cat ${WSREP_MONITOR_PID_FILE} | tr '\n' ' ')
         #print_subheader "Monitor PIDs: ${MONITOR_PIDS}"
         sleep ${MONITOR_INTERVAL}
