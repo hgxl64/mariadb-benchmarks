@@ -70,7 +70,7 @@ while (1)
 {
     my $last_run= Time::HiRes::time();
 
-    print "\nInterval: ", $n, "\n\n";
+    print "\nInterval: ", $n, " (time = ", $last_run, ")\n\n";
     dump_table($dbh, "RAFT_RPC_SENT");
     dump_table($dbh, "RAFT_TIMERS");
     dump_table($dbh, "RAFT_LATENCY_STATS");

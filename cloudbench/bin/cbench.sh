@@ -1499,10 +1499,10 @@ start_raft_monitors() {
         local LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).mariadb_raft_monitor.${NODE}.log
         local COMMAND="mariadb_raft_monitor.pl --interval=${MONITOR_INTERVAL}"
         COMMAND="${COMMAND} $(get_mariadb_collector_connection ${NODE})"
-        print_subheader "Starting Raft Monitor for Node : ${NODE}"
+        #print_subheader "Starting Raft Monitor for Node : ${NODE}"
         ${COMMAND} > ${LOG} &
         local MONITOR_PID=$!
-        print_subheader "Raft Monitor Started - Pid : ${MONITOR_PID}"
+        #print_subheader "Raft Monitor Started - Pid : ${MONITOR_PID}"
         echo ${MONITOR_PID} >> ${RAFT_MONITOR_PID_FILE}
     done
 }
@@ -1511,13 +1511,13 @@ start_raft_monitors() {
 stop_raft_monitors() {
     [[ ${RAFT_MONITOR_PID_FILE} ]] || return 0
     [[ $(cat ${RAFT_MONITOR_PID_FILE}) ]] && {
-        print_header "Stopping Raft Monitors"
+        #print_header "Stopping Raft Monitors"
         local MONITOR_PIDS=$(cat ${RAFT_MONITOR_PID_FILE} | tr '\n' ' ')
-        print_subheader "Monitor PIDs: ${MONITOR_PIDS}"
+        #print_subheader "Monitor PIDs: ${MONITOR_PIDS}"
         sleep ${MONITOR_INTERVAL}
-        print_subheader "Sending SIGINT to Monitor PIDs"
+        #print_subheader "Sending SIGINT to Monitor PIDs"
         kill -INT ${MONITOR_PIDS}
-        print_subheader "Waiting for processes to exit"
+        #print_subheader "Waiting for processes to exit"
         wait ${MONITOR_PIDS}
     }
     [[ -f ${RAFT_MONITOR_PID_FILE} ]] && rm -f ${RAFT_MONITOR_PID_FILE}
@@ -1536,10 +1536,10 @@ start_wsrep_monitors() {
         local LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).mariadb_wsrep_monitor.${NODE}.log
         local COMMAND="mariadb_wsrep_monitor.pl --interval=${MONITOR_INTERVAL}"
         COMMAND="${COMMAND} $(get_mariadb_collector_connection ${NODE})"
-        print_subheader "Starting wsrep Monitor for Node : ${NODE}"
+        #print_subheader "Starting wsrep Monitor for Node : ${NODE}"
         ${COMMAND} > ${LOG} &
         local MONITOR_PID=$!
-        print_subheader "wsrep Monitor Started - Pid : ${MONITOR_PID}"
+        #print_subheader "wsrep Monitor Started - Pid : ${MONITOR_PID}"
         echo ${MONITOR_PID} >> ${WSREP_MONITOR_PID_FILE}
     done
 }
@@ -1548,13 +1548,13 @@ start_wsrep_monitors() {
 stop_wsrep_monitors() {
     [[ ${WSREP_MONITOR_PID_FILE} ]] || return 0
     [[ $(cat ${WSREP_MONITOR_PID_FILE}) ]] && {
-        print_header "Stopping wsrep Monitors"
+        #print_header "Stopping wsrep Monitors"
         local MONITOR_PIDS=$(cat ${WSREP_MONITOR_PID_FILE} | tr '\n' ' ')
-        print_subheader "Monitor PIDs: ${MONITOR_PIDS}"
+        #print_subheader "Monitor PIDs: ${MONITOR_PIDS}"
         sleep ${MONITOR_INTERVAL}
-        print_subheader "Sending SIGINT to Monitor PIDs"
+        #print_subheader "Sending SIGINT to Monitor PIDs"
         kill -INT ${MONITOR_PIDS}
-        print_subheader "Waiting for processes to exit"
+        #print_subheader "Waiting for processes to exit"
         wait ${MONITOR_PIDS}
     }
     [[ -f ${WSREP_MONITOR_PID_FILE} ]] && rm -f ${WSREP_MONITOR_PID_FILE}

@@ -69,7 +69,7 @@ while (1)
 {
     my $last_run= Time::HiRes::time();
 
-    print "\nInterval: ", $n, "\n\n";
+    print "\nInterval: ", $n, " (time = ", $last_run, ")\n\n";
 
     my $sth= $dbh->prepare("SHOW GLOBAL STATUS LIKE 'wsrep_%'");
 
