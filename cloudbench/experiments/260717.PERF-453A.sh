@@ -171,10 +171,10 @@ run_product() {
                     COMMAND="configure.latency.sh --cluster ${CLUSTER} --latency ${LAT}"
                     COMMAND="${COMMAND} --slow-node ${SLOW_NODES}"
                     exec ${COMMAND}
-                    COMMAND="cluster.latency.sh --show --set --check"
+                    COMMAND="cluster.latency.sh --cluster ${CLUSTER} --show --set --check"
                     exec ${COMMAND}
                     sleep $((SLEEPTIME - 9))
-                    COMMAND="cluster.latency.sh --reset"
+                    COMMAND="cluster.latency.sh --cluster ${CLUSTER} --reset"
                     exec ${COMMAND}
                     sleep ${SLEEPTIME}
                 done
