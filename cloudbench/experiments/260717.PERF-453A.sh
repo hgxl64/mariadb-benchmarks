@@ -101,7 +101,7 @@ run_product() {
     for ((IDX=1; IDX<=NUM_NODES; IDX++ )) ; do
         COMMAND="${COMMAND} --master-system ${CLUSTER}-server-${IDX}"
     done
-    for ((IDX=1; IDX<=DRIVER_NODES; IDX++ )) ; do
+    for ((IDX=1; IDX<=NUM_DRIVER; IDX++ )) ; do
         COMMAND="${COMMAND} --driver-system ${CLUSTER}-driver-${IDX}"
     done
     for ((IDX=1; IDX<=(NUM_NODES+1)/2; IDX++ )) ; do
