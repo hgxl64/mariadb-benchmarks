@@ -6,7 +6,7 @@
 
 source ${CBENCH_HOME}/bin/cbench.sh
 
-USAGE="usage: $0
+USAGE="usage: $0 [options]
 
     Set, reset or show network latency between the server nodes of a cluster.
     The latencies are stored in \${CLUSTER}.latency.properties
@@ -15,19 +15,30 @@ USAGE="usage: $0
     \${CLUSTER}.latency.properties
 
     Parameters:
-        --cluster
-        --check
-        --reset
-        --set
-        --show
-        [ -h|--help ]
+        --cluster  the cluster to operate of (mandatory)
+        --check    check latencies (using ping)
+        --reset    reset latencies to the minimum
+        --set      set latencies specified in \${CLUSTER}.latency.properties
+        --show     show latencies specified in \${CLUSTER}.latency.properties
+
+        --number-pings   how many pings to use for --check, default are 40
+                         pings in 200ms intervals
 
     Notes:
+
+    Multiple operations are possible and will be executed in the order on the
+    command line. I.e.
+
+    $0 --show --set --check
+
+    will show the configured latencies, then set them and finally check them.
+    When called with no command option the default is to run 'check'.
 "
 
 COMMAND_LINE="$@"
 
 unset OPS_PIPELINE
+
 while [[ $# > 0 ]] ; do
     key="$1"; shift;
     case ${key} in

@@ -6,7 +6,7 @@
 
 source ${CBENCH_HOME}/bin/cbench.sh
 
-USAGE="usage: $0
+USAGE="usage: $0 --latency ... [options]
 
     Configure network latency between the server nodes of a cluster.
     The latencies are stored in cluster.latency.properties
@@ -14,11 +14,19 @@ USAGE="usage: $0
     Cluster Types:  mariadb_replication, galera_masterslave, galera_mastermaster
 
     Parameters:
-        ...
 
-        [ -h|--help ]
+        --cluster    the cluster to configure (mandatory)
+        --latency    latency of slow nodes, i.e. --latency 25ms
+        --slow-node  node name of a slow node, can be repeated
 
     Notes:
+
+    The latency must be given in a format that is understood by the 'tc' utility.
+    The latency is configured once *to* a slow node and once *from* a slow node.
+    The resulting RTT is thus twice the latency + epsilon.
+
+    The slow nodes can be specified with '--slow-node node1 --slow node node2' or
+    with '--slow-node \"node1 node2\"'. All other nodes are considered to be fast.
 "
 
 COMMAND_LINE="$@"
@@ -33,8 +41,8 @@ while [[ $# > 0 ]] ; do
 
         --latency)              LATENCY="$1"; shift;;
 
-        --slow)                 SLOW_SYSTEMS=( ${SLOW_SYSTEMS[*]} "$1" ); shift;;
-        --slow-node)            SLOW_SYSTEMS=( ${SLOW_SYSTEMS[*]} "$1" ); shift;;
+        --slow)                 SLOW_SYSTEMS+=( "$1" ); shift;;
+        --slow-node)            SLOW_SYSTEMS+=( "$1" ); shift;;
 
         -h|--help) echo -e "$USAGE"; exit 1 ;;
         *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1 ;;
