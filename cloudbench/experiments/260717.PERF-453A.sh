@@ -187,6 +187,8 @@ run_product() {
 
     SYSBENCH_SEC[$PRODUCT]=$(stop_timer)
 
+    exec "stop.grafana.sh --cluster ${CLUSTER}" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.sysbench.log 2>&1
+
 }
 
 
