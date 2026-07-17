@@ -240,9 +240,9 @@ mkdir -p ${LOGDIRECTORY}
     exec ${COMMAND}
     RELEASE_SEC=$(stop_timer)
 
-    BUILDS_SEC=$(( ${BUILD_SEC["galera"]} + ${BUILD_SEC["raft"]} ))
-    LOADS_SEC=$(( ${LOAD_SEC["galera"]} + ${LOAD_SEC["raft"]} ))
-    SYSBENCHS_SEC=$(( ${SYSBENCH_SEC["galera"]} + ${SYSBENCH_SEC["raft"]} ))
+    BUILDS_SEC=$(( ${BUILD_SEC[galera]} + ${BUILD_SEC[raft]} ))
+    LOADS_SEC=$(( ${LOAD_SEC[galera]} + ${LOAD_SEC[raft]} ))
+    SYSBENCHS_SEC=$(( ${SYSBENCH_SEC[galera]} + ${SYSBENCH_SEC[raft]} ))
 
     ((TOTAL_SEC=ALLOCATE_SEC+BUILDS_SEC+LOADS_SEC+SYSBENCHS_SEC+RELEASE_SEC))
     echo
@@ -250,13 +250,13 @@ mkdir -p ${LOGDIRECTORY}
     echo "=================================="
     perl -e "printf \"  Allocate Nodes      : %10.1f\n\", ${ALLOCATE_SEC}/60"
     perl -e "printf \"  Galera:\n\""
-    perl -e "printf \"    Build Cluster     : %10.1f\n\", ${BUILD_SEC['galera']}/60"
-    perl -e "printf \"    Load Sysbench     : %10.1f\n\", ${LOAD_SEC['galera']}/60"
-    perl -e "printf \"    Run Sysbench      : %10.1f\n\", ${SYSBENCH_SEC['galera']}/60"
+    perl -e "printf \"    Build Cluster     : %10.1f\n\", ${BUILD_SEC[galera]}/60"
+    perl -e "printf \"    Load Sysbench     : %10.1f\n\", ${LOAD_SEC[galera]}/60"
+    perl -e "printf \"    Run Sysbench      : %10.1f\n\", ${SYSBENCH_SEC[galera]}/60"
     perl -e "printf \"  Raft:\n\""
-    perl -e "printf \"    Build Cluster     : %10.1f\n\", ${BUILD_SEC['raft']}/60"
-    perl -e "printf \"    Load Sysbench     : %10.1f\n\", ${LOAD_SEC['raft']}/60"
-    perl -e "printf \"    Run Sysbench      : %10.1f\n\", ${SYSBENCH_SEC['raft']}/60"
+    perl -e "printf \"    Build Cluster     : %10.1f\n\", ${BUILD_SEC[raft]}/60"
+    perl -e "printf \"    Load Sysbench     : %10.1f\n\", ${LOAD_SEC[raft]}/60"
+    perl -e "printf \"    Run Sysbench      : %10.1f\n\", ${SYSBENCH_SEC[raft]}/60"
     perl -e "printf \"  Release Nodes       : %10.1f\n\", ${RELEASE_SEC}/60"
     echo "=================================="
     perl -e "printf \"TotalElapsed          : %10.1f\n\", ${TOTAL_SEC}/60"
