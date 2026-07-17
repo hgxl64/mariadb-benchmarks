@@ -15,7 +15,7 @@ USAGE="usage: $0 [options]
     \${CLUSTER}.latency.properties
 
     Parameters:
-        --cluster  the cluster to operate of (mandatory)
+        --cluster  the cluster to operate on (mandatory)
         --check    check latencies (using ping)
         --reset    reset latencies to the minimum
         --set      set latencies specified in \${CLUSTER}.latency.properties
