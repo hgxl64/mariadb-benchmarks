@@ -20,6 +20,7 @@ Options:
 COMMAND_LINE="$@"
 
 unset DEBUG
+unset SOFIA
 
 while [[ $# > 0 ]] ; do
     key="$1"; shift;
@@ -31,6 +32,7 @@ while [[ $# > 0 ]] ; do
         --raft-tarball)       RAFT_TARBALL="$1"; shift;;
 
         --debug)              DEBUG=1;;
+        --sofia)              SOFIA=1;; # run in sofia pseudo-cloud
 
         -h|--help)            error -e "$USAGE";;
         *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
@@ -39,30 +41,38 @@ done
 
 
 source ${CBENCH_HOME}/bin/cbench.sh
-source ${CBENCH_HOME}/config/gcp.conf
+[[ ${SOFIA} ]] || [[ ${DEBUG} ]] || source ${CBENCH_HOME}/config/gcp.conf
 
 [[ ${CLUSTER} ]] || CLUSTER='perf-453A'
 
 SERVER_ARCH="n2-standard-16"
 [[ ${THREADS} ]] || THREADS=( 16 32 64 )
 
+[[ ${SOFIA} ]] && THREADS=( 24 48 )
+
 [[ ${DEBUG} ]] && {
     THREADS=( 16 )
 }
 
-[[ ${WORKLOADS} ]] || WORKLOADS=( 5050-splittable 2080-splittable readwrite )
+[[ ${WORKLOADS} ]] || WORKLOADS=( 5050_splittable 2080_splittable readwrite )
+[[ ${SOFIA} ]] && WORKLOADS=( 5050_splittable readwrite )
+
 [[ ${LATENCIES} ]] || LATENCIES=( 5ms 10ms 20ms 40ms )
+[[ ${SOFIA} ]] && LATENCIES=( 5ms 10ms )
+
 SLEEPTIME=60
+[[ ${SOFIA} ]] && SLEEPTIME=30
 
 [[ ${DEBUG} ]] && {
     WORKLOADS=( readwrite )
-    LATENCIES=( 10ms )
+    LATENCIES=( 5ms )
     SLEEPTIME=10
 }
 
 DURATION=$(( SLEEPTIME * (2 * ${#LATENCIES[*]} + 1) ))
 
 [[ ${NUM_NODES} ]] || NUM_NODES=3
+[[ ${SOFIA} ]] && NUM_NODES=3
 
 case ${NUM_NODES} in
     3) SLOW_NODES="${CLUSTER}-server-3"
@@ -91,8 +101,20 @@ exec() {
     fi
 }
 
+exec_no_output() {
+    echo $*
+    if [[ ! ${DEBUG} ]] ; then
+        $* &> /dev/null
+    fi
+}
+
 run_product() {
     local PRODUCT=$1
+
+    # test uses custom LOGDIRECTORY
+    local LOGDIRECTORY_BAK=${LOGDIRECTORY}
+    LOGDIRECTORY=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).$PRODUCT.benchmarks
+    mkdir ${LOGDIRECTORY}
 
     echo
     echo "=== Configure Cluster [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
@@ -130,6 +152,9 @@ run_product() {
     exec ${COMMAND}
     LOAD_SEC[$PRODUCT]=$(stop_timer)
 
+    # sysbench runs go to sparate logdir
+    local LOGDIRECTORY2=${LOGDIRECTORY}
+
     start_timer
     for (( IDX=1; IDX<=NUM_NODES; IDX++ )) ; do
 
@@ -144,11 +169,18 @@ run_product() {
             continue
         fi
 
+        # summary dir to collect data
+        local T=${LOGDIRECTORY2}/summary.${RUN_CLUSTER}
+        mkdir ${T}
+
         for WORKLOAD in ${WORKLOADS[*]} ; do
 
             echo
             echo "=== Run Sysbench Workload=${WORKLOAD} on Cluster=${RUN_CLUSTER} ==="
             echo
+
+            LOGDIRECTORY=${LOGDIRECTORY2}/$(date +%y%m%d.%H%M%S%3N).${RUN_CLUSTER}.${WORKLOAD}
+            mkdir ${LOGDIRECTORY}
 
             for BASETHD in ${THREADS[*]} ; do
                 (( THD = IDX * BASETHD ))
@@ -159,35 +191,44 @@ run_product() {
 
                 COMMAND="sysbench.run.sh --cluster ${RUN_CLUSTER} --workload ${WORKLOAD}"
                 COMMAND="${COMMAND} --duration ${DURATION} --reportinterval 5 --streams ${THD}"
-                [[ ${DEBUG} ]] || ${COMMAND} &> /dev/null &
+                exec_no_output ${COMMAND} &
                 BGPID=$!
 
                 echo
                 echo "  === Background Process PID=${BGPID} started ==="
                 echo
 
-                sleep $((SLEEPTIME - 2))
                 for LAT in ${LATENCIES[*]} ; do
+                    sleep $((SLEEPTIME - 1))
                     COMMAND="configure.latency.sh --cluster ${CLUSTER} --latency ${LAT}"
                     COMMAND="${COMMAND} --slow-node ${SLOW_NODES}"
-                    exec ${COMMAND}
+                    exec_no_output ${COMMAND}
                     COMMAND="cluster.latency.sh --cluster ${CLUSTER} --show --set --check"
-                    exec ${COMMAND}
+                    exec_no_output ${COMMAND}
                     sleep $((SLEEPTIME - 9))
                     COMMAND="cluster.latency.sh --cluster ${CLUSTER} --reset"
-                    exec ${COMMAND}
-                    sleep ${SLEEPTIME}
+                    exec_no_output ${COMMAND}
                 done
 
                 wait ${BGPID}
 
-            done
-        done
-    done
+                # find logdir for last test and copy results
+                local D=$(ls -1d *.sysbench.${WORKLOAD}.run | tail -1)
+                cp ${LOGDIRECTORY}/${D}/test.interval.data ${T}/${WORKLOAD}.${THD}.interval.data
+                cp ${LOGDIRECTORY}/${D}/throughput.interval.png ${T}/${WORKLOAD}.${THD}.interval.png
+
+            done # THREADS
+        done # WORKLOADS
+    done # CLUSTER
+
+    LOGDIRECTORY=${LOGDIRECTORY2}
 
     SYSBENCH_SEC[$PRODUCT]=$(stop_timer)
 
     exec "stop.grafana.sh --cluster ${CLUSTER}" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.sysbench.log 2>&1
+
+    #restore LOGDIRECTORY
+    LOGDIRECTORY=${LOGDIRECTORY_BAK}
 
 }
 
@@ -196,7 +237,7 @@ run_product() {
 #===== end functions ===================================================
 
 
-TEST_NAME="PERF-453-n=${NUM_NODES}"
+TEST_NAME="PERF-453A-n=${NUM_NODES}"
 [[ ${TESTID} ]] || TESTID=$(date +%y%m%d.%H%M%S).${TEST_NAME}
 export LOGDIRECTORY=${CBENCH_LOG_HOME}/${TESTID}
 mkdir -p ${LOGDIRECTORY}
@@ -221,10 +262,10 @@ mkdir -p ${LOGDIRECTORY}
     COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER} --collocate"
     COMMAND="${COMMAND} --server-instance-type ${SERVER_ARCH} --server-nodes ${NUM_NODES}"
     COMMAND="${COMMAND} --driver-instance-type ${DRIVER_ARCH} --driver-nodes ${DRIVER_NODES}"
-    exec ${COMMAND}
+    [[ ${SOFIA} ]] || exec ${COMMAND}
     ALLOCATE_SEC=$(stop_timer)
 
-    [[ ${DEBUG} ]] || {
+    [[ ${DEBUG} ]] || [[ ${SOFIA} ]] || {
         SYSTEMS=( $(get_property ${CLUSTER} systems) )
         echo
         echo "allocated: ${SYSTEMS[*]}"
@@ -239,7 +280,7 @@ mkdir -p ${LOGDIRECTORY}
     echo
     start_timer
     COMMAND="gcp.release.nodes.sh --cluster ${CLUSTER}"
-    exec ${COMMAND}
+    [[ ${SOFIA} ]] || exec ${COMMAND}
     RELEASE_SEC=$(stop_timer)
 
     BUILDS_SEC=$(( ${BUILD_SEC[galera]} + ${BUILD_SEC[raft]} ))
