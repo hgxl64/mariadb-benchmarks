@@ -203,9 +203,9 @@ run_product() {
                     COMMAND="configure.latency.sh --cluster ${CLUSTER} --latency ${LAT}"
                     COMMAND="${COMMAND} --slow-node ${SLOW_NODES}"
                     exec_no_output ${COMMAND}
-                    COMMAND="cluster.latency.sh --cluster ${CLUSTER} --show --set --check"
+                    COMMAND="cluster.latency.sh --cluster ${CLUSTER} --set"
                     exec_no_output ${COMMAND}
-                    sleep $((SLEEPTIME - 9))
+                    sleep $((SLEEPTIME - 1))
                     COMMAND="cluster.latency.sh --cluster ${CLUSTER} --reset"
                     exec_no_output ${COMMAND}
                 done
@@ -213,9 +213,9 @@ run_product() {
                 wait ${BGPID}
 
                 # find logdir for last test and copy results
-                local D=$(ls -1d *.sysbench.${WORKLOAD}.run | tail -1)
-                cp ${LOGDIRECTORY}/${D}/test.interval.data ${T}/${WORKLOAD}.${THD}.interval.data
-                cp ${LOGDIRECTORY}/${D}/throughput.interval.png ${T}/${WORKLOAD}.${THD}.interval.png
+                local D=$(ls -1d ${LOGDIRECTORY}/*.sysbench.${WORKLOAD}.run | tail -1)
+                cp ${D}/test.interval.data      ${T}/${WORKLOAD}.${THD}.interval.data
+                cp ${D}/throughput.interval.png ${T}/${WORKLOAD}.${THD}.interval.png
 
             done # THREADS
         done # WORKLOADS
