@@ -60,7 +60,7 @@ set output sprintf("timeseries_cluster.110.comparison.pdf")
 do for [workload in "5050_splittable 2080_splittable readwrite"] {
 
   set multiplot layout 3, 1 \
-    title sprintf("3-node cluster, load applied to leader + 1 other node, workload: %s", workload) font ',16'
+    title sprintf("3-node cluster, load applied to leader + 1 near node, workload: %s", workload) font ',16'
 
   do for [thd in "24 48 96"] {
 
