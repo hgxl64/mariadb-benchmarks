@@ -201,7 +201,9 @@ run_product() {
                 for LAT in ${LATENCIES[*]} ; do
                     sleep $((SLEEPTIME - 1))
                     COMMAND="configure.latency.sh --cluster ${CLUSTER} --latency ${LAT}"
-                    COMMAND="${COMMAND} --slow-node '${SLOW_NODES}'"
+                    for N in ${SLOW_NODES} ; do
+                        COMMAND="${COMMAND} --slow-node ${N}"
+                    done
                     exec_no_output ${COMMAND}
                     COMMAND="cluster.latency.sh --cluster ${CLUSTER} --show --set --check"
                     exec_no_output ${COMMAND} &
