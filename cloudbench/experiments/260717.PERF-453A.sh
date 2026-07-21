@@ -260,8 +260,8 @@ mkdir -p ${LOGDIRECTORY}
     echo
     start_timer
     COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER} --collocate"
-    COMMAND="${COMMAND} --server-instance-type ${SERVER_ARCH} --server-nodes ${NUM_NODES}"
-    COMMAND="${COMMAND} --driver-instance-type ${DRIVER_ARCH} --driver-nodes ${DRIVER_NODES}"
+    COMMAND="${COMMAND} --server-type ${SERVER_ARCH} --server-nodes ${NUM_NODES}"
+    COMMAND="${COMMAND} --driver-type ${DRIVER_ARCH} --driver-nodes ${DRIVER_NODES}"
     [[ ${SOFIA} ]] || exec ${COMMAND}
     ALLOCATE_SEC=$(stop_timer)
 
