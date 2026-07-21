@@ -43,7 +43,7 @@ done
 source ${CBENCH_HOME}/bin/cbench.sh
 [[ ${SOFIA} ]] || [[ ${DEBUG} ]] || source ${CBENCH_HOME}/config/gcp.conf
 
-[[ ${CLUSTER} ]] || CLUSTER='perf-453A'
+[[ ${CLUSTER} ]] || CLUSTER='perf-453'
 
 SERVER_ARCH="n2-standard-16"
 [[ ${THREADS} ]] || THREADS=( 16 32 64 )
