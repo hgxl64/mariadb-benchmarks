@@ -261,7 +261,7 @@ mkdir -p ${LOGDIRECTORY}
     start_timer
     COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER} --collocate"
     COMMAND="${COMMAND} --server-type ${SERVER_ARCH} --server-nodes ${NUM_NODES}"
-    COMMAND="${COMMAND} --driver-type ${DRIVER_ARCH} --driver-nodes ${DRIVER_NODES}"
+    COMMAND="${COMMAND} --driver-type ${DRIVER_ARCH} --driver-nodes ${NUM_DRIVER}"
     [[ ${SOFIA} ]] || exec ${COMMAND}
     ALLOCATE_SEC=$(stop_timer)
 
@@ -269,7 +269,7 @@ mkdir -p ${LOGDIRECTORY}
         SYSTEMS=( $(get_property ${CLUSTER} systems) )
         echo
         echo "allocated: ${SYSTEMS[*]}"
-        (( ${#SYSTEMS[*]} != NUM_NODES + DRIVER_NODES )) && error "ERROR Unable to allocate nodes"
+        (( ${#SYSTEMS[*]} != NUM_NODES + NUM_DRIVER )) && error "ERROR Unable to allocate nodes"
     }
 
     run_product "galera"
