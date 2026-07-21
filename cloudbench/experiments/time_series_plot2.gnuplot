@@ -65,13 +65,13 @@ do for [workload in "5050_splittable 2080_splittable readwrite"] {
   do for [thd in "24 48 96"] {
 
     set title sprintf("%s threads", thd)
-    plot sprintf("galera/summary.perf-453A.100/%s.%s.interval.data", workload, thd) \
+    plot sprintf("galera/summary.perf-453A.110/%s.%s.interval.data", workload, thd) \
            using ($0*5):3 with lines linestyle 1 title "Galera 1st",\
-         sprintf("galera2/summary.perf-453A.100/%s.%s.interval.data", workload, thd) \
+         sprintf("galera2/summary.perf-453A.110/%s.%s.interval.data", workload, thd) \
            using ($0*5):3 with lines linestyle 2 title "Galera 2nd",\
-         sprintf("raft/summary.perf-453A.100/%s.%s.interval.data", workload, thd) \
+         sprintf("raft/summary.perf-453A.110/%s.%s.interval.data", workload, thd) \
            using ($0*5):3 with lines linestyle 3 title "Raft 1st",\
-         sprintf("raft2/summary.perf-453A.100/%s.%s.interval.data", workload, thd) \
+         sprintf("raft2/summary.perf-453A.110/%s.%s.interval.data", workload, thd) \
            using ($0*5):3 with lines linestyle 4 title "Raft 2nd"
   }
 
@@ -90,13 +90,13 @@ do for [workload in "5050_splittable 2080_splittable readwrite"] {
   do for [thd in "36 72 144"] {
 
     set title sprintf("%s threads", thd)
-    plot sprintf("galera/summary.perf-453A.100/%s.%s.interval.data", workload, thd) \
+    plot sprintf("galera/summary.perf-453A/%s.%s.interval.data", workload, thd) \
            using ($0*5):3 with lines linestyle 1 title "Galera 1st",\
-         sprintf("galera2/summary.perf-453A.100/%s.%s.interval.data", workload, thd) \
+         sprintf("galera2/summary.perf-453A/%s.%s.interval.data", workload, thd) \
            using ($0*5):3 with lines linestyle 2 title "Galera 2nd",\
-         sprintf("raft/summary.perf-453A.100/%s.%s.interval.data", workload, thd) \
+         sprintf("raft/summary.perf-453A/%s.%s.interval.data", workload, thd) \
            using ($0*5):3 with lines linestyle 3 title "Raft 1st",\
-         sprintf("raft2/summary.perf-453A.100/%s.%s.interval.data", workload, thd) \
+         sprintf("raft2/summary.perf-453A/%s.%s.interval.data", workload, thd) \
            using ($0*5):3 with lines linestyle 4 title "Raft 2nd"
   }
 
