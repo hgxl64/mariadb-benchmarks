@@ -44,7 +44,7 @@ source ${CBENCH_HOME}/bin/cbench.sh
 [[ ${SOFIA} ]] || [[ ${DEBUG} ]] || source ${CBENCH_HOME}/config/gcp.conf
 
 [[ ${CLUSTER} ]] || CLUSTER='perf-453'
-[[ ${WORKLOADS} ]] || WORKLOADS=( oltp_read_write oltp_write_only oltp_update_index2 )
+[[ ${WORKLOADS} ]] || WORKLOADS=( oltp_read_write oltp_write_only oltp_update_index2 oltp_insert2 )
 [[ ${NUM_NODES} ]] || NUM_NODES=3
 [[ ${SOFIA} ]] && NUM_NODES=3
 
@@ -141,9 +141,9 @@ run_product() {
 
             # find logdir for this run and copy results
             local D=$(ls -1d ${LOGDIRECTORY}/*.performance.curves | tail -1)
-            cp ${D}/test.data ${T}/${RUN_CLUSTER}.${WORKLOAD}.test.data
+            cp ${D}/test.data ${T}/${RUN_CLUSTER}.${PRODUCT}.${WORKLOAD}.test.data
             local F=$(ls ${D}/*.performance.curves.png | tail -1)
-            cp ${F} ${T}/${RUN_CLUSTER}.${WORKLOAD}.curves.png
+            cp ${F} ${T}/${RUN_CLUSTER}.${PRODUCT}.${WORKLOAD}.curves.png
         done
     done
     SYSBENCH_SEC[$PRODUCT]=$(stop_timer)
