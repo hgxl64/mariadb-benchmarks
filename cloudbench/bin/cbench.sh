@@ -1562,6 +1562,45 @@ stop_wsrep_monitors() {
 }
 
 
+start_mariadb_status_monitors() {
+    local SYSTEM=$1
+    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+
+    [[ ${MONITOR_INTERVAL} ]] || MONITOR_INTERVAL=10
+    [[ ${STATUS_MONITOR_PID_FILE} ]] || STATUS_MONITOR_PID_FILE=$(mktemp)
+
+    for NODE in $(get_property ${SYSTEM} raft.systems) $(get_property ${SYSTEM} galera.systems \
+                $(get_property ${SYSTEM} master.systems) $(get_property ${SYSTEM} slave.systems) \
+                $(get_property ${SYSTEM} mariadb.systems) ) ; do
+        local LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).mariadb_status_monitor.${NODE}.log
+        local COMMAND="mariadb_status_monitor.pl --interval=${MONITOR_INTERVAL}"
+        COMMAND="${COMMAND} $(get_mariadb_collector_connection ${NODE})"
+        #print_subheader "Starting MariaDB STATUS Monitor for Node : ${NODE}"
+        ${COMMAND} > ${LOG} &
+        local MONITOR_PID=$!
+        #print_subheader "MariaDB STATUS Monitor Started - Pid : ${MONITOR_PID}"
+        echo ${MONITOR_PID} >> ${STATUS_MONITOR_PID_FILE}
+    done
+}
+
+
+stop_mariadb_status_monitors() {
+    [[ ${STATUS_MONITOR_PID_FILE} ]] || return 0
+    [[ $(cat ${STATUS_MONITOR_PID_FILE}) ]] && {
+        print_header "Stopping MariaDB STATUS Monitors"
+        local MONITOR_PIDS=$(cat ${STATUS_MONITOR_PID_FILE} | tr '\n' ' ')
+        #print_subheader "Monitor PIDs: ${MONITOR_PIDS}"
+        sleep ${MONITOR_INTERVAL}
+        #print_subheader "Sending SIGINT to Monitor PIDs"
+        kill -INT ${MONITOR_PIDS}
+        #print_subheader "Waiting for processes to exit"
+        wait ${MONITOR_PIDS}
+    }
+    [[ -f ${STATUS_MONITOR_PID_FILE} ]] && rm -f ${STATUS_MONITOR_PID_FILE}
+    unset STATUS_MONITOR_PID_FILE
+}
+
+
 start_prometheus_mysqld_exporter() {
     echo
     echo "    ===== Start Prometheus MySQL  Exporter =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
