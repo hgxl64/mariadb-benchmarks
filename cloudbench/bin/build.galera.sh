@@ -147,6 +147,7 @@ mkdir -p ${LOGDIRECTORY}
             echo "        HOST = ${HOST}"
             ssh $(get_ssh_connection ${SYSTEM} ${HOST}) '
                 CONFIG_FILE="'${CONFIG_FILE}'"
+                CLUSTER="'${CLUSTER}'"
                 GALERA_BACKEND_IPS=('${GALERA_BACKEND_IPS[*]}')
                 SLAVE_THREADS="'${OPTION_SLAVE_THREADS}'"
                 GCACHE_SIZE="'${GCACHE_SIZE}'"
@@ -164,6 +165,7 @@ mkdir -p ${LOGDIRECTORY}
                     echo "wsrep_provider = ${LIBGALERA}"
                     echo "wsrep_provider_options = \"gcache.size=${GCACHE_SIZE}; evs.user_send_window=${EVS_USER_SEND_WINDOW}; evs.send_window=${EVS_SEND_WINDOW}\""
                     echo "wsrep_cluster_address = gcomm://$(echo ${GALERA_BACKEND_IPS[*]} | sed "s/^ //g;s/ /,/g" )"
+                    echo "wsrep_cluster_name = ${CLUSTER}"
                     echo "wsrep_slave_threads = ${SLAVE_THREADS}"
                     echo "wsrep_sst_method = rsync_wan"
                     echo "innodb_autoinc_lock_mode = 2"
