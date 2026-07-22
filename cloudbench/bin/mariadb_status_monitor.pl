@@ -175,6 +175,6 @@ sub cleanup
 {
     print STDERR "\nclosing database connection\n";
     $dbh->disconnect();
-    die "wsrep monitor completed\n"
+    die "MariaDB status monitor completed\n"
 }
 
