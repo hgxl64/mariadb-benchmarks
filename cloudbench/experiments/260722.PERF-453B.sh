@@ -134,6 +134,8 @@ run_product() {
             echo
 
             COMMAND="performance.curves.sh --cluster ${RUN_CLUSTER} --repeats 3 --"
+            # Sofia is deterministic, one run is enough
+            [[ ${SOFIA} ]] && COMMAND="performance.curves.sh --cluster ${RUN_CLUSTER} --repeats 1 --"
             COMMAND="${COMMAND} --skipcheck --benchmark sysbench --workload ${WORKLOAD}"
             exec ${COMMAND}
 
