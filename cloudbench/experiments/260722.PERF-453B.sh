@@ -140,7 +140,7 @@ run_product() {
             exec ${COMMAND}
 
             # find logdir for this run and copy results
-            local D=$(ls -1d ${LOGDIRECTORY}/*.sysbench.${WORKLOAD}.curves | tail -1)
+            local D=$(ls -1d ${LOGDIRECTORY}/*.performance.curves | tail -1)
             cp ${D}/test.data ${T}/${RUN_CLUSTER}.${WORKLOAD}.test.data
             local F=$(ls ${D}/*.sysbench.${WORKLOAD}.performance.curves.png | tail -1)
             cp ${F} ${T}/${RUN_CLUSTER}.${WORKLOAD}.performance.curves.png
