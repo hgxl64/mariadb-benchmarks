@@ -116,6 +116,9 @@ case ${BENCHMARK} in
                 pointselect|oltp_point_select) TARGET_LATENCY=10;;
                 pointupdate|oltp_insert) TARGET_LATENCY=20;;
                 9010|90-10) TARGET_LATENCY=50;;
+                oltp_read_write) TARGET_LATENCY=50;;
+                oltp_write_only) TARGET_LATENCY=30;;
+                oltp_update_index2) TARGET_LATENCY=30;;
                 *) TARGET_LATENCY=70;;
             esac
         fi
