@@ -44,7 +44,7 @@ source ${CBENCH_HOME}/bin/cbench.sh
 [[ ${SOFIA} ]] || [[ ${DEBUG} ]] || source ${CBENCH_HOME}/config/gcp.conf
 
 [[ ${CLUSTER} ]] || CLUSTER='perf-453'
-[[ ${WORKLOADS} ]] || WORKLOADS=( oltp_read_write oltp_write_only oltp_update_index2 oltp_insert2 )
+[[ ${WORKLOADS} ]] || WORKLOADS=( oltp_read_write oltp_write_only oltp_update_index2 )
 [[ ${NUM_NODES} ]] || NUM_NODES=3
 [[ ${SOFIA} ]] && NUM_NODES=3
 
