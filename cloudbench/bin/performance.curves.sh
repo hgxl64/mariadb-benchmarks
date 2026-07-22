@@ -17,6 +17,7 @@ USAGE="usage: $0
     --repeats           how many repeats and
     --intertestdelay    the delay between
 
+    --warmup            run first curve in a sequence with warmup
     --grafana           snapshot Grafana for the time of execution
 
     --                  separator; additional parameter will be passed
@@ -33,6 +34,7 @@ while [[ $# > 0 ]] ; do
         --repeats)          OPTION_REPEATS="$1"; shift;;
         --intertestdelay)   OPTION_INTER_TEST_DELAY="$1"; shift;;
 
+        --warmup)           OPTION_WARMUP=TRUE;;
         --grafana)          OPTION_GRAFANA=TRUE;;
 
         -h|--help)          echo -e "$USAGE"; exit 1;;
@@ -77,8 +79,8 @@ mkdir -p ${LOGDIRECTORY}
 
     for (( IDX = 1 ; IDX <= ${OPTION_REPEATS} ; IDX++ )) ; do
 
-        # run first curve with warmup
-        if [[ ${IDX} == 1 ]] ; then
+        # run first curve with warmup (sysbench only)
+        if [[ ${OPTION_WARMUP} == TRUE && ${IDX} == 1 ]] ; then
             export WARMUP_TIME=60
         else
             export WARMUP_TIME=0
