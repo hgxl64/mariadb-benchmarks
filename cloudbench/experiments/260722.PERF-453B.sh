@@ -21,6 +21,8 @@ COMMAND_LINE="$@"
 
 unset DEBUG
 unset SOFIA
+unset OPTION_GALERA_ONLY
+unset OPTION_RAFT_ONLY
 
 while [[ $# > 0 ]] ; do
     key="$1"; shift;
@@ -33,12 +35,18 @@ while [[ $# > 0 ]] ; do
 
         --debug)              DEBUG=1;;
         --sofia)              SOFIA=1;; # run in sofia pseudo-cloud
+        --galera-only)        OPTION_GALERA_ONLY=TRUE;;
+        --raft-only)          OPTION_RAFT_ONLY=TRUE;;
 
         -h|--help)            error -e "$USAGE";;
         *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
     esac
 done
 
+
+[[ ${OPTION_GALERA_ONLY} == TRUE ]] && [[ ${OPTION_RAFT_ONLY} == TRUE ]] && {
+    error "Illegal combination of --galera-only and --raft-only, pick only one"
+}
 
 source ${CBENCH_HOME}/bin/cbench.sh
 [[ ${SOFIA} ]] || [[ ${DEBUG} ]] || source ${CBENCH_HOME}/config/gcp.conf
@@ -48,18 +56,13 @@ source ${CBENCH_HOME}/bin/cbench.sh
 [[ ${NUM_NODES} ]] || NUM_NODES=3
 [[ ${SOFIA} ]] && NUM_NODES=3
 
-SERVER_ARCH="n2-standard-16"
 case ${NUM_NODES} in
-    3) DRIVER_ARCH="n2-highcpu-16"
+    3|5|7)
+       SERVER_ARCH="n2-standard-16"
+       DRIVER_ARCH="n2-highcpu-8"
        NUM_DRIVER=1
        ;;
-    5) DRIVER_ARCH="n2-highcpu-16"
-       NUM_DRIVER=2
-       ;;
-    7) DRIVER_ARCH="n2-highcpu-16"
-       NUM_DRIVER=2
-       ;;
-    *) error "illegal value of NUM_NODES (${NUM_NODES})"
+    *) error "illegal value of --nodes ${NUM_NODES}"
 esac
 
 
@@ -195,8 +198,8 @@ mkdir -p ${LOGDIRECTORY}
         (( ${#SYSTEMS[*]} != NUM_NODES + NUM_DRIVER )) && error "ERROR Unable to allocate nodes"
     }
 
-    run_product "galera"
-    run_product "raft"
+    [[ ${OPTION_RAFT_ONLY} == TRUE ]] || run_product "galera"
+    [[ ${OPTION_GALERA_ONLY} == TRUE ]] || run_product "raft"
 
     echo
     echo "=== Release Nodes [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
