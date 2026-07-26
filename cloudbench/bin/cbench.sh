@@ -1664,6 +1664,7 @@ get_database_node_names() {
                   $(get_property ${CLUSTER} master.systems) \
                   $(get_property ${CLUSTER} slave.systems) \
                   $(get_property ${CLUSTER} galera.systems) \
+                  $(get_property ${CLUSTER} raft.systems) \
                   $(get_property ${CLUSTER} slave.systems) ; do
         SYSTEM=$(echo ${SYSTEM} | sed 's/^mariadb\.//')
         if [[ ! " ${NODES[*]} " =~ " ${SYSTEM} " ]] ; then
