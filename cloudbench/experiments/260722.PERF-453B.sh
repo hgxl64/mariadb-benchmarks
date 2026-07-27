@@ -238,7 +238,7 @@ mkdir -p ${LOGDIRECTORY}
     echo "=================================="
     perl -e "printf \"  Allocate Nodes      : %10.1f\n\", ${ALLOCATE_SEC}/60"
     perl -e "printf \"  Galera:\n\""
-    perl -e "printf \"    Build Cluster     : %10.1f\n\", ${BUILD_SEC['galera*]}/60"
+    perl -e "printf \"    Build Cluster     : %10.1f\n\", ${BUILD_SEC['galera']}/60"
     perl -e "printf \"    Load Sysbench     : %10.1f\n\", ${LOAD_SEC['galera']}/60"
     perl -e "printf \"    Run Sysbench      : %10.1f\n\", ${SYSBENCH_SEC['galera']}/60"
     perl -e "printf \"  Raft:\n\""
