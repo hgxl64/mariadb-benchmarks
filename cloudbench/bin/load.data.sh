@@ -184,7 +184,7 @@ time {
         check_cluster
         gather_pretest_snapshot ${CLUSTER}
         start_performance_monitor
-        #start_raft_monitors ${CLUSTER}
+        start_raft_monitors ${CLUSTER}
         #start_wsrep_monitors ${CLUSTER}
         start_mariadb_status_monitors ${CLUSTER}
 
@@ -421,7 +421,7 @@ time {
 
         gather_posttest_snapshot ${CLUSTER}
         stop_monitors
-        #stop_raft_monitors
+        stop_raft_monitors
         #stop_wsrep_monitors
         stop_mariadb_status_monitors
 
