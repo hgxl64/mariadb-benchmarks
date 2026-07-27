@@ -591,6 +591,28 @@ get_sysbench_connection() {
     echo
 }
 
+get_sysbench_connection_node1() {
+    # Format a sysbench connection string that optionally is executed from a remote driver
+    # Parms : $1 System , $2 Driver , $3 DriverID
+    # this uses only node1 to avoid distributed loading
+    local SYSTEM=$1
+    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+    local DRIVER=$2
+    local DRIVERID=$3
+    [[ ${DRIVERID} ]] || DRIVERID=1
+    local DATABASE=$(get_property ${SYSTEM} database)
+    local DBDRIVER=""
+    if [[ ${DATABASE} == 'cockroach' ||  ${DATABASE} == 'postgres' ]] ; then DBDRIVER='pgsql' ; else DBDRIVER='mysql' ; fi
+    echo -n "--db-driver=${DBDRIVER}"
+    # get the host from cluster.node1
+    echo -n " --${DBDRIVER}-host=$(get_property ${SYSTEM} cluster.node1)"
+    [[ $(get_database_user ${SYSTEM}) ]] && echo -n " --${DBDRIVER}-user=$(get_database_user ${SYSTEM})"
+    [[ $(get_database_password ${SYSTEM}) ]] && echo -n " --${DBDRIVER}-password=$(get_database_password ${SYSTEM})"
+    [[ $(get_database_internal_port ${SYSTEM}) ]] && echo -n " --${DBDRIVER}-port=$(get_database_internal_port ${SYSTEM})"
+    [[ $(get_database_ssl ${SYSTEM}) ]] && echo -n " --${DBDRIVER}-ssl=on"
+    echo
+}
+
 get_database_version() {
     local SYSTEM=$1
     [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}

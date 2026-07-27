@@ -290,7 +290,12 @@ time {
                     "
                 [[ ${STREAMS} ]] || STREAMS=${SYSBENCH_TABLES}
 
-                COMMAND="sysbench /data/cbench/driver/lua/tpcc.lua $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER}) --scale=${DBSCALE} --use_fk=0 ${SYSBENCH_OPTIONS}"
+                COMMAND="sysbench /data/cbench/driver/lua/tpcc.lua --scale=${DBSCALE} --use_fk=0 ${SYSBENCH_OPTIONS}"
+                if [[ ${OPTION_PARALLEL_LOAD} == TRUE ]] ; then
+                    COMMAND="${COMMAND} $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER})"
+                else
+                    COMMAND="${COMMAND} $(get_sysbench_connection_node1 ${CLUSTER} ${HEADDRIVER})"
+                fi
                 [[ ${OPTION_ENGINE} ]] && COMMAND="${COMMAND} --mysql_storage_engine=${OPTION_ENGINE}"
                 [[ ${SYSBENCH_TABLES} ]] && COMMAND="${COMMAND} --tables=${SYSBENCH_TABLES} --threads=${SYSBENCH_TABLES}"
                 [[ ${OPTION_NOAUTOINC} ]] && COMMAND="${COMMAND} --auto-inc=off"
@@ -326,7 +331,12 @@ time {
                     show tables;
                     "
                 [[ ${STREAMS} ]] || STREAMS=${SYSBENCH_TABLES}
-                COMMAND="sysbench /data/cbench/driver/lua/${SYSBENCH_SCRIPT} $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER})"
+                COMMAND="sysbench /data/cbench/driver/lua/${SYSBENCH_SCRIPT}"
+                if [[ ${OPTION_PARALLEL_LOAD} == TRUE ]] ; then
+                    COMMAND="${COMMAND} $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER})"
+                else
+                    COMMAND="${COMMAND} $(get_sysbench_connection_node1 ${CLUSTER} ${HEADDRIVER})"
+                fi
                 COMMAND="${COMMAND} --table-size=${SYSBENCH_TABLESIZE} --tables=${SYSBENCH_TABLES}"
                 COMMAND="${COMMAND} --mysql-db=${SCHEMA} --threads=${STREAMS} ${SYSBENCH_OPTIONS}"
                 [[ ${OPTION_BULKLOAD} ]] && COMMAND="${COMMAND} --bulk-load=true"
