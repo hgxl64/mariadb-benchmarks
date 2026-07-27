@@ -162,7 +162,7 @@ time {
         time gather_before_data
 
         start_performance_monitor ${CLUSTER}
-        #start_raft_monitors ${CLUSTER}
+        start_raft_monitors ${CLUSTER}
         #start_wsrep_monitors ${CLUSTER}
         start_mariadb_status_monitors ${CLUSTER}
         [[ ${OPTION_GRAFANA} == TRUE ]] && start_grafana
@@ -371,7 +371,7 @@ time {
         echo
         echo "        ===== Stop Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time stop_monitors
-        #stop_raft_monitors
+        stop_raft_monitors
         #stop_wsrep_monitors
         stop_mariadb_status_monitors
 
