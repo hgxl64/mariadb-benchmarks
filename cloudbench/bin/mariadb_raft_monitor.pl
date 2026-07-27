@@ -120,7 +120,7 @@ sub check_if_raft
 }
 
 
-sub show_raft_status
+sub dump_raft_status
 {
     my $dbh= shift;
     my $sth= $dbh->prepare("SELECT * FROM INFORMATION_SCHEMA.RAFT_STATUS");
