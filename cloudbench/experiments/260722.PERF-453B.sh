@@ -15,6 +15,13 @@ Options:
     --mariadb-tarball   tarball to be used for MariaDB installation
     --galera-tarball    tarball to be used for Galera installation
     --raft-tarball      tarball to be used for Raft installation
+
+    --debug
+    --sofia
+    --galera-only
+    --raft-only
+    --repeats
+
 "
 
 COMMAND_LINE="$@"
@@ -37,6 +44,7 @@ while [[ $# > 0 ]] ; do
         --sofia)              SOFIA=1;; # run in sofia pseudo-cloud
         --galera-only)        OPTION_GALERA_ONLY=TRUE;;
         --raft-only)          OPTION_RAFT_ONLY=TRUE;;
+        --repeats)            REPEATS="$1"; shift;;
 
         -h|--help)            error -e "$USAGE";;
         *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
@@ -52,7 +60,11 @@ source ${CBENCH_HOME}/bin/cbench.sh
 [[ ${SOFIA} ]] || [[ ${DEBUG} ]] || source ${CBENCH_HOME}/config/gcp.conf
 
 [[ ${CLUSTER} ]] || CLUSTER='perf-453'
+
 [[ ${WORKLOADS} ]] || WORKLOADS=( oltp_read_write oltp_write_only oltp_update_index2 )
+[[ ${REPEATS} ]] || REPEATS=3
+[[ ${SOFIA} ]] && REPEATS=1
+
 [[ ${NUM_NODES} ]] || NUM_NODES=3
 [[ ${SOFIA} ]] && NUM_NODES=3
 
@@ -136,9 +148,7 @@ run_product() {
             echo "=== Run Sysbench Workload=${WORKLOAD} on Cluster=${RUN_CLUSTER} ==="
             echo
 
-            COMMAND="performance.curves.sh --cluster ${RUN_CLUSTER} --repeats 3 --"
-            # Sofia is deterministic, one run is enough
-            [[ ${SOFIA} ]] && COMMAND="performance.curves.sh --cluster ${RUN_CLUSTER} --repeats 1 --"
+            COMMAND="performance.curves.sh --cluster ${RUN_CLUSTER} --repeats ${REPEATS} --"
             COMMAND="${COMMAND} --skipcheck --benchmark sysbench --workload ${WORKLOAD}"
             exec ${COMMAND}
 
@@ -181,6 +191,15 @@ mkdir -p ${LOGDIRECTORY}
     echo "RAFT_TARBALL           = ${RAFT_TARBALL}"
     echo
 
+    # initialize timer variables
+    declare -A BUILD_SEC LOAD_SEC SYSBENCH_SEC
+    BUILD_SEC['galera']=0;
+    BUILD_SEC['raft']=0;
+    LOAD_SEC['galera']=0;
+    LOAD_SEC['raft']=0;
+    SYSBENCH_SEC['galera']=0;
+    SYSBENCH_SEC['raft']=0;
+
     echo
     echo "=== Allocate Nodes [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
     echo
@@ -209,23 +228,23 @@ mkdir -p ${LOGDIRECTORY}
     [[ ${SOFIA} ]] || exec ${COMMAND}
     RELEASE_SEC=$(stop_timer)
 
-    BUILDS_SEC=$(( ${BUILD_SEC[galera]} + ${BUILD_SEC[raft]} ))
-    LOADS_SEC=$(( ${LOAD_SEC[galera]} + ${LOAD_SEC[raft]} ))
-    SYSBENCHS_SEC=$(( ${SYSBENCH_SEC[galera]} + ${SYSBENCH_SEC[raft]} ))
-
+    BUILDS_SEC=$(( ${BUILD_SEC['galera']} + ${BUILD_SEC['raft']} ))
+    LOADS_SEC=$(( ${LOAD_SEC['galera']} + ${LOAD_SEC['raft']} ))
+    SYSBENCHS_SEC=$(( ${SYSBENCH_SEC['galera']} + ${SYSBENCH_SEC['raft']} ))
     ((TOTAL_SEC=ALLOCATE_SEC+BUILDS_SEC+LOADS_SEC+SYSBENCHS_SEC+RELEASE_SEC))
+
     echo
     echo "Execution Times (minutes)"
     echo "=================================="
     perl -e "printf \"  Allocate Nodes      : %10.1f\n\", ${ALLOCATE_SEC}/60"
     perl -e "printf \"  Galera:\n\""
-    perl -e "printf \"    Build Cluster     : %10.1f\n\", ${BUILD_SEC[galera]}/60"
-    perl -e "printf \"    Load Sysbench     : %10.1f\n\", ${LOAD_SEC[galera]}/60"
-    perl -e "printf \"    Run Sysbench      : %10.1f\n\", ${SYSBENCH_SEC[galera]}/60"
+    perl -e "printf \"    Build Cluster     : %10.1f\n\", ${BUILD_SEC['galera*]}/60"
+    perl -e "printf \"    Load Sysbench     : %10.1f\n\", ${LOAD_SEC['galera']}/60"
+    perl -e "printf \"    Run Sysbench      : %10.1f\n\", ${SYSBENCH_SEC['galera']}/60"
     perl -e "printf \"  Raft:\n\""
-    perl -e "printf \"    Build Cluster     : %10.1f\n\", ${BUILD_SEC[raft]}/60"
-    perl -e "printf \"    Load Sysbench     : %10.1f\n\", ${LOAD_SEC[raft]}/60"
-    perl -e "printf \"    Run Sysbench      : %10.1f\n\", ${SYSBENCH_SEC[raft]}/60"
+    perl -e "printf \"    Build Cluster     : %10.1f\n\", ${BUILD_SEC['raft']}/60"
+    perl -e "printf \"    Load Sysbench     : %10.1f\n\", ${LOAD_SEC['raft']}/60"
+    perl -e "printf \"    Run Sysbench      : %10.1f\n\", ${SYSBENCH_SEC['raft']}/60"
     perl -e "printf \"  Release Nodes       : %10.1f\n\", ${RELEASE_SEC}/60"
     echo "=================================="
     perl -e "printf \"TotalElapsed          : %10.1f\n\", ${TOTAL_SEC}/60"
