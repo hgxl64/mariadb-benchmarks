@@ -144,12 +144,16 @@ mkdir -p ${LOGDIRECTORY}
     echo "    ===== Step 2:  Set up Raft Cluster =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     time {
         CONFIG_FILE="/data/cbench/install/etc/my.cnf.d/02_raft.cnf"
-        for HOST in ${RAFT_EXTERNAL_IPS[*]} ; do
+        for SYSTEM in ${RAFT_SYSTEMS[*]} ; do
+            local HOST=$(getproperty ${SYSTEM} nodes)
+            local NODENAME="$(echo ${CLUSTER} | head -c 12)-$(echo ${SYSTEM} | sed 's/.*-//')"
+
             echo
-            echo "        HOST = ${HOST}"
+            echo "        SYSTEM = ${SYSTEM}, HOST = ${HOST}, NODENAME = ${NODENAME}"
             ssh $(get_ssh_connection ${SYSTEM} ${HOST}) '
                 CONFIG_FILE="'${CONFIG_FILE}'"
                 CLUSTER="'${CLUSTER}'"
+                NODENAME="'${NODENAME}'"
                 RAFT_BACKEND_IPS=( '${RAFT_BACKEND_IPS[*]}' )
                 SLAVE_THREADS="'${OPTION_SLAVE_THREADS}'"
                 OPTION_RAFT_SSL="'${OPTION_RAFT_SSL}'"
@@ -168,6 +172,7 @@ mkdir -p ${LOGDIRECTORY}
                     else
                         echo "raft-have-ssl=off
                     fi
+                    echo "raft-node-id = ${NODENAME}"
                     echo
                     echo "wsrep_on = ON"
                     echo "wsrep_provider = raft"
