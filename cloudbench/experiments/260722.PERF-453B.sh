@@ -204,7 +204,7 @@ mkdir -p ${LOGDIRECTORY}
     echo "=== Allocate Nodes [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
     echo
     start_timer
-    COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER} --collocate"
+    COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER} --collocate --parallel"
     COMMAND="${COMMAND} --server-type ${SERVER_ARCH} --server-nodes ${NUM_NODES}"
     COMMAND="${COMMAND} --driver-type ${DRIVER_ARCH} --driver-nodes ${NUM_DRIVER}"
     [[ ${SOFIA} ]] || exec ${COMMAND}
