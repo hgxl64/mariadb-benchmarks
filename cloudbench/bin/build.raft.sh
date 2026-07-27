@@ -145,8 +145,8 @@ mkdir -p ${LOGDIRECTORY}
     time {
         CONFIG_FILE="/data/cbench/install/etc/my.cnf.d/02_raft.cnf"
         for SYSTEM in ${RAFT_SYSTEMS[*]} ; do
-            local HOST=$(getproperty ${SYSTEM} nodes)
-            local NODENAME="$(echo ${CLUSTER} | head -c 12)-$(echo ${SYSTEM} | sed 's/.*-//')"
+            HOST=$(getproperty ${SYSTEM} nodes)
+            NODENAME="$(echo ${CLUSTER} | head -c 12)-$(echo ${SYSTEM} | sed 's/.*-//')"
 
             echo
             echo "        SYSTEM = ${SYSTEM}, HOST = ${HOST}, NODENAME = ${NODENAME}"
