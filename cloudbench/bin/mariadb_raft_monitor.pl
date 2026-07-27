@@ -126,7 +126,7 @@ sub dump_raft_status
     my $sth= $dbh->prepare("SELECT * FROM INFORMATION_SCHEMA.RAFT_STATUS");
     if ($sth->execute())
     {
-        my @columns= $sth->{'NAME'};
+        my @columns= @{$sth->{'NAME'}};
         my @result= $sth->fetchrow_array;
         for (my $i= 0; exists $result[$i]; $i++) {
             print $columns[$i], " = ", $result[$i], "\n\n";
