@@ -54,7 +54,7 @@ my $n= 0;
 $SIG{INT}= \&cleanup;
 $SIG{TERM}= \&cleanup;
 
-print STDERR "MariaDB status monitor starting ...\n";
+print STDERR "Raft status monitor starting ...\n";
 
 #connect host
 my $dbh = DBI->connect("DBI:MariaDB:host=$DBHOST;port=$DBPORT", $DBUSER, $DBPASS) or die;
@@ -140,6 +140,6 @@ sub cleanup
 {
     print STDERR "\nclosing database connection\n";
     $dbh->disconnect();
-    die "MariaDB status monitor completed\n"
+    die "Raft status monitor completed\n"
 }
 
