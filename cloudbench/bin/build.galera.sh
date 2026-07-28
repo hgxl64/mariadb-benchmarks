@@ -142,7 +142,7 @@ mkdir -p ${LOGDIRECTORY}
     echo "    ===== Step 2:  Set up Galera Cluster =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     time {
         CONFIG_FILE="/data/cbench/install/etc/my.cnf.d/02_galera.cnf"
-        for SYSTEM in ${RAFT_SYSTEMS[*]} ; do
+        for SYSTEM in ${GALERA_SYSTEMS[*]} ; do
             HOST=$(getproperty ${SYSTEM} nodes)
             NODENAME="$(echo ${CLUSTER} | head -c 12)-$(echo ${SYSTEM} | sed 's/.*-//')"
 
