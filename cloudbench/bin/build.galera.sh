@@ -229,8 +229,8 @@ mkdir -p ${LOGDIRECTORY}
                 done
                 (( ${timeout} == 0 )) && echo "Error: Galera did not start for 180 sec"
             ' &
-            PIDS=( ${PIDS[*]} $! )
-            # delay a bit after starting donor node
+            PIDS+=( $! )
+            # delay subsequent node starts to avoid SST storm
             sleep 20
         done
         wait ${PIDS[*]}

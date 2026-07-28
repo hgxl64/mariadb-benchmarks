@@ -170,12 +170,12 @@ mkdir -p ${LOGDIRECTORY}
                     echo "raft-flow-control-drift-limit = ${RAFT_FLOW_CONTROL_DRIFT_LIMIT}"
                     echo "raft-flow-control-max-throttle-rate = ${RAFT_FLOW_CONTROL_MAX_THROTTLE_RATE}"
                     echo "raft-event-store-max-size = ${RAFT_EVENT_STORE_MAX_SIZE}"
+                    echo "raft-node-id = ${NODENAME}"
                     if [[ ${OPTION_RAFT_SSL} == TRUE ]] ; then
                         echo "raft-have-ssl = on
                     else
                         echo "raft-have-ssl = off
                     fi
-                    echo "raft-node-id = ${NODENAME}"
                     echo
                     echo "wsrep_on = ON"
                     echo "wsrep_provider = raft"
@@ -242,8 +242,8 @@ mkdir -p ${LOGDIRECTORY}
                 done
                 (( ${timeout} == 0 )) && echo "Error: Galera did not start for 180 sec"
             ' &
-            PIDS=( ${PIDS[*]} $! )
-            # delay a bit after starting donor node
+            PIDS+=( $! )
+            # delay subsequent node starts to avoid SST storm
             sleep 20
         done
         wait ${PIDS[*]}
