@@ -54,8 +54,8 @@ if [[ ! ${CLUSTER} ]] ; then echo "Required CLUSTER not specified." ; exit 1 ; f
 
 process_connection_info;
 
-if [[ ! ${GALERA_SYSTEMS} ]] ; then GALERA_SYSTEMS=( $(getproperty ${CLUSTER} galera.systems) ) ; fi
-if [[ ! ${GALERA_SYSTEMS} ]] ; then echo "Invalid config file.  Expected galera.systems" ; exit 1 ; fi
+[[ ${GALERA_SYSTEMS} ]] || GALERA_SYSTEMS=( $(getproperty ${CLUSTER} galera.systems) )
+[[ ${GALERA_SYSTEMS} ]] || error "Invalid config file. Expected galera.systems"
 
 unset GALERA_EXTERNAL_IPS
 unset GALERA_BACKEND_IPS
