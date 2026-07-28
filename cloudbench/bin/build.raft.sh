@@ -83,6 +83,7 @@ DB_PASSWORD=$(getproperty ${CLUSTER} database.password)
 [[ ${OPTION_RAFT_SSL} ]]  || OPTION_RAFT_SSL=FALSE             #comm is local, why SSL?
 [[ ${RAFT_FLOW_CONTROL_DRIFT_LIMIT} ]]       || RAFT_FLOW_CONTROL_DRIFT_LIMIT=1000
 [[ ${RAFT_FLOW_CONTROL_MAX_THROTTLE_RATE} ]] || RAFT_FLOW_CONTROL_MAX_THROTTLE_RATE=1000
+[[ ${RAFT_EVENT_STORE_MAX_SIZE} ]] || RAFT_EVENT_STORE_MAX_SIZE="16G"
 
 
 # logging
@@ -159,18 +160,20 @@ mkdir -p ${LOGDIRECTORY}
                 OPTION_RAFT_SSL="'${OPTION_RAFT_SSL}'"
                 RAFT_FLOW_CONTROL_DRIFT_LIMIT="'${RAFT_FLOW_CONTROL_DRIFT_LIMIT}'"
                 RAFT_FLOW_CONTROL_MAX_THROTTLE_RATE="'${RAFT_FLOW_CONTROL_MAX_THROTTLE_RATE}'"
+                RAFT_EVENT_STORE_MAX_SIZE="'${RAFT_EVENT_STORE_MAX_SIZE}'"
                 (( ${SLAVE_THREADS} == 0 )) && ((SLAVE_THREADS = $(grep -c processor /proc/cpuinfo) * 3))
                 {
                     echo
                     echo "[mariadb]"
                     echo
-                    echo "plugin-load-add=raft"
-                    echo "raft-flow-control-drift-limit=${RAFT_FLOW_CONTROL_DRIFT_LIMIT}"
-                    echo "raft-flow-control-max-throttle-rate=${RAFT_FLOW_CONTROL_MAX_THROTTLE_RATE}"
+                    echo "plugin-load-add = raft"
+                    echo "raft-flow-control-drift-limit = ${RAFT_FLOW_CONTROL_DRIFT_LIMIT}"
+                    echo "raft-flow-control-max-throttle-rate = ${RAFT_FLOW_CONTROL_MAX_THROTTLE_RATE}"
+                    echo "raft-event-store-max-size = ${RAFT_EVENT_STORE_MAX_SIZE}"
                     if [[ ${OPTION_RAFT_SSL} == TRUE ]] ; then
-                        echo "raft-have-ssl=on
+                        echo "raft-have-ssl = on
                     else
-                        echo "raft-have-ssl=off
+                        echo "raft-have-ssl = off
                     fi
                     echo "raft-node-id = ${NODENAME}"
                     echo

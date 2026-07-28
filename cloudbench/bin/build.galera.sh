@@ -81,7 +81,7 @@ DB_PASSWORD=$(getproperty ${CLUSTER} database.password)
 [[ ${OPTION_DEFERRED_FLUSH} ]] || OPTION_DEFERRED_FLUSH=TRUE
 [[ ${EVS_SEND_WINDOW} ]]       || EVS_SEND_WINDOW=256
 [[ ${EVS_USER_SEND_WINDOW} ]]  || (( EVS_USER_SEND_WINDOW = EVS_SEND_WINDOW / 2 ))
-[[ ${GCACHE_SIZE} ]]           || GCACHE_SIZE="1G"
+[[ ${GCACHE_SIZE} ]]           || GCACHE_SIZE="16G"
 
 # logging
 TEST_NAME=build.galera
