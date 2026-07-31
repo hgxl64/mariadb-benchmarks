@@ -83,11 +83,11 @@ time {
             [[ -d ${LOGDIRECTORY}/${SYSTEM} ]] || mkdir -p ${LOGDIRECTORY}/${SYSTEM}
 
             echo "            select @@version"
-            mariadb -sN $(get_database_connection ${SYSTEM}) -e "select @@version;" > ${LOGDIRECTORY}/${SYSTEM}/version.txt
+            mariadb -sN $(get_database_connection ${SYSTEM}) -e "select @@version" > ${LOGDIRECTORY}/${SYSTEM}/version.txt
             echo "            show global status"
-            mariadb -sN $(get_database_connection ${SYSTEM}) -e "show global status;" > ${LOGDIRECTORY}/${SYSTEM}/global.status.txt
+            mariadb -vvv $(get_database_connection ${SYSTEM}) -e "show global status" > ${LOGDIRECTORY}/${SYSTEM}/global.status.txt
             echo "            show global variables"
-            mariadb -sN $(get_database_connection ${SYSTEM}) -e "show global variables;" > ${LOGDIRECTORY}/${SYSTEM}/global.variables.txt
+            mariadb -vvv $(get_database_connection ${SYSTEM}) -e "show global variables" > ${LOGDIRECTORY}/${SYSTEM}/global.variables.txt
             echo "            show engine innodb status"
             mariadb -vvv $(get_database_connection ${SYSTEM}) -e "show engine innodb status\G" > ${LOGDIRECTORY}/${SYSTEM}/innodb.status.txt
 
@@ -97,14 +97,14 @@ time {
                 echo "            show slave status"
                 mariadb -vvv $(get_database_connection ${SYSTEM}) -e "show slave status\G" > ${LOGDIRECTORY}/${SYSTEM}/slave.status.txt
                 echo "            show slave hosts"
-                mariadb -vvv $(get_database_connection ${SYSTEM}) -e "show slave hosts;" > ${LOGDIRECTORY}/${SYSTEM}/slave.hosts.txt
+                mariadb -vvv $(get_database_connection ${SYSTEM}) -e "show slave hosts" > ${LOGDIRECTORY}/${SYSTEM}/slave.hosts.txt
             fi
 
             if [[ ${CLUSTERTYPE} == galera_* ]] ; then
                 echo "            show wsrep_membership"
-                mariadb -sN $(get_database_connection ${SYSTEM}) -e "show wsrep_membership;" > ${LOGDIRECTORY}/${SYSTEM}/wsrep_membership.txt
+                mariadb -sN $(get_database_connection ${SYSTEM}) -e "show wsrep_membership" > ${LOGDIRECTORY}/${SYSTEM}/wsrep_membership.txt
                 echo "            show wsrep_status"
-                mariadb -sN $(get_database_connection ${SYSTEM}) -e "show wsrep_status;" > ${LOGDIRECTORY}/${SYSTEM}/wsrep_status.txt
+                mariadb -sN $(get_database_connection ${SYSTEM}) -e "show wsrep_status" > ${LOGDIRECTORY}/${SYSTEM}/wsrep_status.txt
             fi
 
             if [[ ${CLUSTERTYPE} == raft_* ]] ; then
