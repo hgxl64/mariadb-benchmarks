@@ -149,9 +149,9 @@ time {
         echo "    ===== Gather Pretest Snapshot =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time gather_pretest_snapshot ${CLUSTER}
 
-        echo
-        echo "    ===== Ping Test =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-        time ping_test ${CLUSTER}
+        #echo
+        #echo "    ===== Ping Test =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        #time ping_test ${CLUSTER}
 
         echo
         echo "    ===== Capture env settings =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"

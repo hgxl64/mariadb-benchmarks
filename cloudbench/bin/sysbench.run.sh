@@ -190,8 +190,7 @@ time {
 
         if [[ ! ${OPTION_SKIPCHECK} ]] ; then
             echo
-            echo "    ===== Check Cluster/Drivers =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-            time check_and_update_remote_drivers
+            echo "    ===== Check Cluster =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
             time check_cluster
         fi
 
@@ -204,9 +203,9 @@ time {
         echo "    ===== Gather Pretest Snapshot =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time gather_pretest_snapshot ${CLUSTER}
 
-        echo
-        echo "    ===== Ping Test =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-        time ping_test ${CLUSTER}
+        #echo
+        #echo "    ===== Ping Test =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        #time ping_test ${CLUSTER}
 
         echo
         echo "    ===== Capture env settings =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
@@ -222,7 +221,7 @@ time {
             start_profiling ${CLUSTER}
         fi
 
-        start_performance_monitor ${CLUSTER}
+        #start_performance_monitor ${CLUSTER}
         start_raft_monitors ${CLUSTER}
         #start_wsrep_monitors ${CLUSTER}
         start_mariadb_status_monitors ${CLUSTER}
@@ -499,10 +498,11 @@ time {
         echo
         echo "    ===== Gather After Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         gather_after_data
+        gather_posttest_snapshot ${CLUSTER}
 
         echo
-        echo "        ===== Stop Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-        time stop_monitors
+        echo "        ===== Stop Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        #time stop_monitors
         stop_raft_monitors
         #stop_wsrep_monitors
         stop_mariadb_status_monitors

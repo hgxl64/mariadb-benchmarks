@@ -23,6 +23,17 @@ while [[ $# > 0 ]] ; do
     key="$1"; shift;
     case ${key} in
         --cluster)      CLUSTER="$1";       shift;;
+
+        # for which point in time we were called
+        --beforecurve)  BEFORE_CURVE=TRUE;;
+        --aftercurve)   AFTER_CURVE=TRUE;;
+        --beforetest)   BEFORE_TEST=TRUE;;
+        --aftertest)    AFTER_TEST=TRUE;;
+        --beforeload)   BEFORE_LOAD=TRUE;;
+        --afterload)    AFTER_LOAD=TRUE;;
+        --beforerun)    BEFORE_RUN=TRUE;;
+        --afterrun)     AFTER_RUN=TRUE;;
+
         -h|--help)      echo -e "$USAGE"; exit 1;;
         *)  echo "Invalid input switch: $key"; echo -e "COMMAND_LINE = ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
     esac
@@ -47,8 +58,7 @@ time {
     echo "    ===== Begin $0 =====  [ $(date -u  +"%Y-%m-%d %H:%M:%S.%3N") ]"
     STARTSECONDS=${SECONDS}
 
-    SYSTEMS=( ${CLUSTER} )
-    SYSTEMS=( ${SYSTEMS[*]} $(get_property ${CLUSTER} maxscale.systems) )
+    SYSTEMS=( $(get_property ${CLUSTER} maxscale.systems) )
 
     echo
     echo "        $0 $COMMAND_LINE"
@@ -60,42 +70,36 @@ time {
     for SYSTEM in ${SYSTEMS[*]} ; do
 
         echo "            SYSTEM     = ${SYSTEM}"
-        echo
 
         {
             if (( $(get_property ${SYSTEM} cluster.nodes) != 0  )) ; then
                 #We have ssh access to nodes
                 for NODE in $(get_property ${SYSTEM} nodes) ; do
-                    mkdir -p ${LOGDIRECTORY}/${SYSTEM}/${NODE}
+                    mkdir -p ${LOGDIRECTORY}/${SYSTEM}
                     echo "            NODE     = ${NODE}"
-                    echo
                     echo "            ssh Connection : $(get_ssh_connection ${SYSTEM} ${NODE})"
                     echo
-                    echo "        Config Files"
-                    mkdir -p ${LOGDIRECTORY}/${SYSTEM}/${NODE}/config
+
+                    echo "            Config Files"
                     CONFIG_FILES=(
                         /data/cbench/install/etc/maxscale.conf
                     )
                     for FILE in ${CONFIG_FILES[*]} ; do
                         CONTENT=$(ssh $(get_ssh_connection ${SYSTEM} ${NODE}) "[[ -e ${FILE} ]] && cat ${FILE}")
-                        [[ ${CONTENT} ]] && echo ${CONTENT} > ${LOGDIRECTORY}/${SYSTEM}/${NODE}/config/$(echo ${FILE} | rev | cut -d'/' -f 1 | rev)
+                        [[ ${CONTENT} ]] && echo ${CONTENT} > ${LOGDIRECTORY}/${SYSTEM}/$(echo ${FILE} | rev | cut -d'/' -f 1 | rev)
                     done
-                    echo
+
                     echo "            Log Files"
-                    mkdir -p ${LOGDIRECTORY}/${SYSTEM}/${NODE}/logs
                     LOG_FILES=(
                         /data/cbench/install/var/log/maxscale/maxscale.log
                     )
                     for FILE in ${LOG_FILES[*]} ; do
-                        CONTENT=$(ssh $(get_ssh_connection ${SYSTEM} ${NODE}) "[[ -e ${FILE} ]] && sudo tail -1000 ${FILE}")
-                        [[ ${CONTENT} ]] && echo ${CONTENT} > ${LOGDIRECTORY}/${SYSTEM}/${NODE}/logs/$(echo ${FILE} | rev | cut -d'/' -f 1 | rev)
+                        CONTENT=$(ssh $(get_ssh_connection ${SYSTEM} ${NODE}) "[[ -e ${FILE} ]] && tail -1000 ${FILE}")
+                        [[ ${CONTENT} ]] && echo ${CONTENT} > ${LOGDIRECTORY}/${SYSTEM}/$(echo ${FILE} | rev | cut -d'/' -f 1 | rev)
                     done
 
-                    echo
-                    echo "            Data Size"
-                    time {
-                        ssh $(get_ssh_connection ${SYSTEM} ${NODE}) 'sudo du -sh /data/cbench/install/var/*' > ${LOGDIRECTORY}/${SYSTEM}/${NODE}/du.txt
-                    }
+                    echo "            Data Sizes"
+                    ssh $(get_ssh_connection ${SYSTEM} ${NODE}) 'sudo du -sh /data/cbench/install/var/*' > ${LOGDIRECTORY}/${SYSTEM}/du.txt
                 done
             fi
 

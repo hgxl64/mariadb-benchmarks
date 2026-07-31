@@ -206,10 +206,9 @@ time {
         fi
 
         echo
-        echo "    ===== Gather Pretest Snapshot =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        echo "    ===== Gather Pre-Curve Snapshot =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time {
-            gather_pretest_snapshot ${CLUSTER}
-            ping_test ${CLUSTER}
+            gather_precurve_snapshot ${CLUSTER}
         }
 
         echo
@@ -220,9 +219,9 @@ time {
 
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).preprocessing.log 2>&1
 
-    echo
-    echo "    ===== Start Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-    time start_performance_monitor ${CLUSTER} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).start.performance.monitor 2>&1
+    #echo
+    #echo "    ===== Start Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    #time start_performance_monitor ${CLUSTER} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).start.performance.monitor 2>&1
 
     [[ ${OPTION_GRAFANA} == TRUE ]] && start_grafana
 
@@ -374,11 +373,11 @@ time {
     echo "    ===== Post Processing =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     time {
 
-        stop_monitors;
+        #stop_monitors;
 
         [[ ${OPTION_GRAFANA} == TRUE ]] && stop_grafana > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.log 2>&1
 
-        gather_posttest_snapshot ${CLUSTER};
+        gather_postcurve_snapshot ${CLUSTER};
 
         if [[ ${OPTION_CLEANUP} ]] ; then
             echo "    ===== Clean Up : Delete Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"

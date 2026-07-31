@@ -34,28 +34,21 @@ while [[ $# > 0 ]] ; do
     key="$1"; shift;
     case ${key} in
 
-        --benchmark)            BENCHMARK="$1"; shift;;
-
         # Connection Info
         --cluster)              CLUSTER="$1"; shift;;
         --system)               CLUSTER="$1"; shift;;
         --database)             DATABASE="$1"; shift;;
 
+        --benchmark)            BENCHMARK="$1"; shift;;
         --schema)               SCHEMA="$1"; shift;;
         --dbscale)              DBSCALE="$1"; shift;;
 
         --load)                 LOAD_OPTION='load';;
         --clean)                LOAD_OPTION='clean';;
-        --noload)               LOAD_OPTION='noload';;
-        --check)                LOAD_OPTION='noload';;
-
         --streams)              STREAMS="$1"; shift;;
         --totalstreams)         STREAMS="$1"; shift;;
-        --batchsize)            BATCHSIZE="$1"; shift;;
         --skipdrop)             OPTION_SKIP_DROP=TRUE;;
-        --ignore)               OPTION_IGNORE=TRUE;;
-        --loaddirect)           OPTION_LOADDIRECT=TRUE;;
-
+        --skipcheck)            OPTION_SKIPCHECK=TRUE;;
         --snapshot)             OPTION_SNAPSHOT=TRUE;;
 
         # HammerDB specific
@@ -64,12 +57,12 @@ while [[ $# > 0 ]] ; do
         --partition)            PARTITION=TRUE;;
 
         # Sysbench specific
+        --luascript)            SYSBENCH_SCRIPT="$1"; shift;;
         --tables)               SYSBENCH_TABLES="$1"; shift;;
         --sbtables)             SYSBENCH_TABLES="$1"; shift;;
         --tablesize)            SYSBENCH_TABLESIZE="$1";shift;;
         --table-size)           SYSBENCH_TABLESIZE="$1";shift;;
         --sbtablesize)          SYSBENCH_TABLESIZE="$1";shift;;
-        --seedmethod)           SYSBENCH_SEED_METHOD=TRUE;;
         --noautoinc)            OPTION_NOAUTOINC=TRUE;;
         --directexec)           OPTION_DIRECTEXEC=TRUE;;
         --nosecondary)          OPTION_NOSECONDARY=TRUE;;
@@ -79,21 +72,6 @@ while [[ $# > 0 ]] ; do
         --charset)              OPTION_CHARSET="$1"; shift;;
         --ssl)                  OPTION_SSL=TRUE;;
         --skipbinlog)           SKIP_BINLOG=TRUE;;
-        --luascript)            SYSBENCH_SCRIPT="$1"; shift;;
-
-        # 200616 Workaround for loading Galera Master/Master.  Do the load through a single node.
-        --single_host_load)     OPTION_SINGLE_HOST_LOAD=TRUE;;
-
-        --skipcheck)            OPTION_SKIPCHECK=TRUE;;
-        --snapshot)             OPTION_SNAPSHOT=TRUE;;
-        --cloud)                OPTION_CLOUD="--cloud";;
-        --gcp_import)           OPTION_GCP_IMPORT=TRUE;;
-        --aws_import)           OPTION_AWS=TRUE;;
-        --aws)                  OPTION_AWS=TRUE;;
-        --skipindex)            OPTION_SKIPINDEX=TRUE;;
-        --monitor)              OPTION_PERFMONITOR=TRUE;;
-
-        --character_set)        OPTION_CHARACTER_SET="$1";shift;;
 
         --testid)               TESTID="$1";        shift;;
 
@@ -102,30 +80,38 @@ while [[ $# > 0 ]] ; do
     esac
 done
 
-if [[ ! ${BENCHMARK} ]] ; then echo "Benchmark parameter required."; echo -e "$USAGE"; exit 1; fi
+[[ ${CLUSTER} ]]   || { echo "CLUSTER is required."; echo -e "$USAGE"; exit 1; }
+[[ ${BENCHMARK} ]] || { echo "Benchmark option required."; echo -e "$USAGE"; exit 1; }
 
 process_connection_info;
 
-[[ ${CLUSTER_TYPE} ]] || CLUSTER_TYPE=$(get_property ${CLUSTER} cluster.type)
-[[ ${OPTION_SNAPSHOT} ]] || OPTION_SNAPSHOT=FALSE
-[[ ${LOAD_OPTION} ]] || LOAD_OPTION=noload
+[[ ${LOAD_OPTION} ]] || LOAD_OPTION="load"
+#[[ ${OPTION_SNAPSHOT} ]] || OPTION_SNAPSHOT=FALSE
 
+# set benchmarks defaults:
+#   SCHEMA = benchmark
+#   DBSCALE = nominal data size in GB
+#
 case ${BENCHMARK} in
     tproc-c)
         [[ ${SCHEMA} ]] || SCHEMA='tprocc'
-        [[ ${DBSCALE} ]] || DBSCALE=100
+        [[ ${DBSCALE} ]] || DBSCALE=10
+        [[ ${WAREHOUSES} ]] || WAREHOUSES=$(( ${DBSCALE} * 10 ))
         ;;
     sysbench-tpcc)
         [[ ${SCHEMA} ]] || SCHEMA='sysbench_tpcc'
-        [[ ${DBSCALE} ]] || DBSCALE=10
+        # 10 instances of 10 warehouses each
         [[ ${SYSBENCH_TABLES} ]] || SYSBENCH_TABLES=10
+        [[ ${DBSCALE} ]] || DBSCALE=10
+        SYSBENCH_OPTIONS="${SYSBENCH_OPTIONS} --use_fk=0"
         ;;
     sysbench)
         [[ ${SCHEMA} ]] || SCHEMA='sysbench'
+        [[ ${SYSBENCH_SCRIPT} ]] || SYSBENCH_SCRIPT='oltp_read_write.lua'
+        # 10 tables with 4M rows (rowsize ~250 bytes)
         [[ ${DBSCALE} ]] || DBSCALE=10
         [[ ${SYSBENCH_TABLES} ]] || SYSBENCH_TABLES=${DBSCALE}
         [[ ${SYSBENCH_TABLESIZE} ]] || (( SYSBENCH_TABLESIZE = ${DBSCALE} * 4000000 / ${SYSBENCH_TABLES} ))
-        [[ ${SYSBENCH_SCRIPT} ]] || SYSBENCH_SCRIPT='oltp_read_write.lua'
         ;;
     *) echo "Unsupported Benchmark : BENCHMARK = ${BENCHMARK}"; echo -e "$USAGE"; exit 1;;
 esac
@@ -155,19 +141,16 @@ time {
         echo
         echo "         $0 ${COMMAND_LINE}"
         echo
-        echo "            TESTID                  = ${TESTID}"
-        echo
-        echo "            DATABASE                = ${DATABASE}"
-        echo "            BENCHMARK               = ${BENCHMARK}"
         echo "            CLUSTER                 = ${CLUSTER}"
-        echo
+        echo "            BENCHMARK               = ${BENCHMARK}"
+        echo "            DATABASE                = ${DATABASE}"
         echo "            SCHEMA                  = ${SCHEMA}"
         echo "            DBSCALE                 = ${DBSCALE}"
         echo "            LOAD_OPTION             = ${LOAD_OPTION}"
         echo "            OPTION_SKIPCHECK        = ${OPTION_SKIPCHECK}"
-        echo
         echo "            OPTION_ENGINE           = ${OPTION_ENGINE}"
         echo
+        echo "            TESTID                  = ${TESTID}"
         echo "            LOGDIRECTORY            = ${LOGDIRECTORY}"
         if [[ ${BENCHMARK} == sysbench* ]] ; then
             echo
@@ -181,13 +164,11 @@ time {
         echo "            Properties File:"
         showproperties
 
-        check_cluster
-        gather_pretest_snapshot ${CLUSTER}
-        start_performance_monitor
+        #check_cluster
+        gather_preload_snapshot ${CLUSTER}
+        #start_performance_monitor
         start_raft_monitors ${CLUSTER}
-        #start_wsrep_monitors ${CLUSTER}
         start_mariadb_status_monitors ${CLUSTER}
-
 
         start_timer
 
@@ -196,28 +177,24 @@ time {
             tproc-c)
                 # Only use 1 driver
                 echo "        Driver : ${HEADDRIVER}"
-                check_and_update_remote_drivers;
+                #check_and_update_remote_drivers;
                 echo "        Drop and recreate database"
                 echo "            mariadb -vvv $(get_database_connection)"
                 [[ ${OPTION_SKIP_DROP} ]] || mariadb -vvv $(get_database_connection) -e "drop database if exists ${SCHEMA}"
                 mariadb -vvv $(get_database_connection) -e "create database if not exists ${SCHEMA}"
                 mariadb -vvv $(get_database_connection) -e "show databases"
-                # 200317 workaround for maxscale issue with loading initial database info
-                time mariadb -vvv $(get_database_connection) -e "
-                    use ${SCHEMA};
-                    show tables;
-                    "
 
                 DBHOST=$(get_database_internal_host ${CLUSTER})
                 DBPORT=$(get_database_port ${CLUSTER})
                 DBUSER=$(get_database_user ${CLUSTER})
                 DBPASS=$(get_database_password ${CLUSTER})
-                VUSER=$(ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) 'cat /proc/cpuinfo' | grep -c processor | awk '{ print int($1) }')
-                VUSER=$((${VUSER} * 2))
                 [[ ${OPTION_ENGINE} ]] || OPTION_ENGINE='innodb'
 
-                SCRIPT="/data/cbench/load-tprocc.tcl"
+                # autosize vusers for load stage, TPROC-C is cpu-bound on the driver
+                VUSER=$(ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) 'cat /proc/cpuinfo' | grep -c processor | awk '{ print int($1 * 1.5) }')
 
+                # create Tcl script for load stage
+                SCRIPT="/data/cbench/load-tprocc.tcl"
                 if [[ ${DATABASE} == 'mariadb' ]] ; then
                     ssh $(get_ssh_connection ${CLUSTER} ${HEADDRIVER}) '
                         DBHOST="'${DBHOST}'"
@@ -225,7 +202,7 @@ time {
                         DBUSER="'${DBUSER}'"
                         DBPASS="'${DBPASS}'"
                         SCHEMA="'${SCHEMA}'"
-                        DBSCALE="'${DBSCALE}'"
+                        WAREHOUSES="'${WAREHOUSES}'"
                         VUSER="'${VUSER}'"
                         SCRIPT="'${SCRIPT}'"
                         ENGINE="'${OPTION_ENGINE}'"
@@ -239,7 +216,7 @@ time {
                         echo "diset tpcc maria_user ${DBUSER}"           >> ${SCRIPT}
                         echo "diset tpcc maria_pass ${DBPASS}"           >> ${SCRIPT}
                         echo "diset tpcc maria_storage_engine ${ENGINE}" >> ${SCRIPT}
-                        echo "diset tpcc maria_count_ware ${DBSCALE}"    >> ${SCRIPT}
+                        echo "diset tpcc maria_count_ware ${WAREHOUSES}" >> ${SCRIPT}
                         echo "diset tpcc maria_num_vu ${VUSER}"          >> ${SCRIPT}
                         if [[ ${PARTITION} == TRUE ]] ; then
                             echo "diset tpcc maria_partition true"       >> ${SCRIPT}
@@ -277,33 +254,28 @@ time {
             sysbench-tpcc)
                 # Only use 1 driver
                 echo "        Driver : ${HEADDRIVER}"
-                check_and_update_remote_drivers;
+                #check_and_update_remote_drivers
                 echo "        Drop and recreate database"
                 echo "            mariadb -vvv $(get_database_connection)"
                 [[ ${OPTION_SKIP_DROP} ]] || mariadb -vvv $(get_database_connection) -e "drop database if exists ${SCHEMA}"
                 mariadb -vvv $(get_database_connection) -e "create database if not exists ${SCHEMA}"
                 mariadb -vvv $(get_database_connection) -e "show databases"
-                # 200317 workaround for maxscale issue with loading initial database info
-                time mariadb -vvv $(get_database_connection) -e "
-                    use ${SCHEMA};
-                    show tables;
-                    "
-                [[ ${STREAMS} ]] || STREAMS=${SYSBENCH_TABLES}
 
-                COMMAND="sysbench /data/cbench/driver/lua/tpcc.lua --scale=${DBSCALE} --use_fk=0 ${SYSBENCH_OPTIONS}"
-                if [[ ${OPTION_PARALLEL_LOAD} == TRUE ]] ; then
-                    COMMAND="${COMMAND} $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER})"
-                else
-                    COMMAND="${COMMAND} $(get_sysbench_connection_node1 ${CLUSTER} ${HEADDRIVER})"
-                fi
+                COMMAND="sysbench /data/cbench/driver/lua/tpcc.lua --scale=${DBSCALE} --mysql-db=${SCHEMA} ${SYSBENCH_OPTIONS}"
                 [[ ${OPTION_ENGINE} ]] && COMMAND="${COMMAND} --mysql_storage_engine=${OPTION_ENGINE}"
                 [[ ${SYSBENCH_TABLES} ]] && COMMAND="${COMMAND} --tables=${SYSBENCH_TABLES} --threads=${SYSBENCH_TABLES}"
                 [[ ${OPTION_NOAUTOINC} ]] && COMMAND="${COMMAND} --auto-inc=off"
                 [[ ${OPTION_DIRECTEXEC} ]] && COMMAND="${COMMAND} --db-ps-mode=disable"
                 [[ ${OPTION_NOSECONDARY} ]] && COMMAND="${COMMAND} --secondary=off --create_secondary=off"
                 [[ ${SKIP_BINLOG} ]] && COMMAND="${COMMAND} --skip-binlog=on"
-                COMMAND="${COMMAND} --mysql-db=${SCHEMA}"
+                # this is for Galera/Raft, load only on leader node
+                if [[ ${OPTION_PARALLEL_LOAD} == TRUE ]] ; then
+                    COMMAND="${COMMAND} $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER})"
+                else
+                    COMMAND="${COMMAND} $(get_sysbench_connection_node1 ${CLUSTER} ${HEADDRIVER})"
+                fi
                 COMMAND="${COMMAND} prepare"
+
                 echo
                 echo "    ===== Load Data =====  [ $(date -u  +'%Y-%m-%d %H:%M:%S') ]"
                 echo "        COMMAND = ${COMMAND}"
@@ -319,24 +291,17 @@ time {
             sysbench)
                 # Only use 1 driver
                 echo "        Driver : ${HEADDRIVER}"
-                check_and_update_remote_drivers;
+                #check_and_update_remote_drivers;
                 echo "        Drop and recreate database"
                 echo "            mariadb -vvv $(get_database_connection)"
                 [[ ${OPTION_SKIP_DROP} ]] || mariadb -vvv $(get_database_connection) -e "drop database if exists ${SCHEMA}"
                 mariadb -vvv $(get_database_connection) -e "create database if not exists ${SCHEMA}"
                 mariadb -vvv $(get_database_connection) -e "show databases"
-                # 200317 workaround for maxscale issue with loading initial database info
-                mariadb -vvv $(get_database_connection) -e "
-                    use ${SCHEMA};
-                    show tables;
-                    "
+
+                # load each table in own thread
                 [[ ${STREAMS} ]] || STREAMS=${SYSBENCH_TABLES}
+
                 COMMAND="sysbench /data/cbench/driver/lua/${SYSBENCH_SCRIPT}"
-                if [[ ${OPTION_PARALLEL_LOAD} == TRUE ]] ; then
-                    COMMAND="${COMMAND} $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER})"
-                else
-                    COMMAND="${COMMAND} $(get_sysbench_connection_node1 ${CLUSTER} ${HEADDRIVER})"
-                fi
                 COMMAND="${COMMAND} --table-size=${SYSBENCH_TABLESIZE} --tables=${SYSBENCH_TABLES}"
                 COMMAND="${COMMAND} --mysql-db=${SCHEMA} --threads=${STREAMS} ${SYSBENCH_OPTIONS}"
                 [[ ${OPTION_BULKLOAD} ]] && COMMAND="${COMMAND} --bulk-load=true"
@@ -346,6 +311,12 @@ time {
                 [[ ${OPTION_DIRECTEXEC} ]] && COMMAND="${COMMAND} --db-ps-mode=disable"
                 [[ ${OPTION_NOSECONDARY} ]] && COMMAND="${COMMAND} --secondary=off --create_secondary=off"
                 [[ ${SKIP_BINLOG} ]] && COMMAND="${COMMAND} --skip-binlog=on"
+                # this is for Galera/Raft, load only on leader node
+                if [[ ${OPTION_PARALLEL_LOAD} == TRUE ]] ; then
+                    COMMAND="${COMMAND} $(get_sysbench_connection ${CLUSTER} ${HEADDRIVER})"
+                else
+                    COMMAND="${COMMAND} $(get_sysbench_connection_node1 ${CLUSTER} ${HEADDRIVER})"
+                fi
                 COMMAND="${COMMAND} prepare"
 
                 echo
@@ -371,6 +342,7 @@ time {
 
         echo
         echo "    ===== Analyze Tables  =====       [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+
         if [[ ${DATABASE} == 'mariadb' ]] ; then
             time {
                 for TABLE in $(mariadb -sN $(get_database_connection) -e 'show tables' ${SCHEMA}) ; do
@@ -381,48 +353,41 @@ time {
 
         echo
         echo "    ===== Check Data  =====       [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+
         time {
 
             if [[ ${DATABASE} == 'mariadb' ]] ; then
-                mariadb -vvv $(get_database_connection) -e "
-                    select version();
-                    show tables;
-                    " ${SCHEMA}
-                TABLES=( $(mariadb -sN $(get_database_connection) -e 'show tables' ${SCHEMA}) )
+                mariadb -vvv $(get_database_connection) ${SCHEMA} -e "SELECT VERSION(); SHOW TABLES;"
+
+                TABLES=( $(mariadb -sN $(get_database_connection) ${SCHEMA}) -e 'SHOW TABLES' )
                 for TABLE in ${TABLES[@]:0:10} ; do
-                    mariadb -vvv $(get_database_connection) -e "
-                        show create table ${TABLE}\G
-                        explain select * from ${TABLE};
-                        " ${SCHEMA}
-                done
-            fi
-
-            case ${BENCHMARK} in
-                sysbench)
-                    mariadb -vvv $(get_database_connection) -e "
-                        select version();
-                        use ${SCHEMA};
-                        show create table sbtest1;
-                        explain select * from sbtest1;
-                        select count(*) from sbtest1;
-                        select count(*), min(id), max(id) from ${SCHEMA}.sbtest1;
-                        select * from sbtest1 limit 1\G
+                    mariadb -vvv $(get_database_connection) ${SCHEMA} -e "
+                        SHOW CREATE TABLE ${TABLE}\G
+                        EXPLAIN SELECT * FROM ${TABLE};
                         "
-                    ;;
-            esac
+                done
 
-            if [[ ${DATABASE} == 'mariadb' ]] ; then
+                case ${BENCHMARK} in
+                    sysbench)
+                        mariadb -vvv $(get_database_connection) ${SCHEMA} -e "
+                            SELECT COUNT(*), MIN(id), MAX(id) FROM sbtest1;
+                            SELECT * FROM sbtest1 LIMIT 1\G
+                            "
+                        ;;
+                esac
+
                 echo
-                echo "    DataSize (GB)"
-                printf "        DataSize: %10.3f\n" $(echo "SELECT SUM(data_length + index_length)/1024/1024/1024 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '${SCHEMA}'" | select_data)
+                echo "    ===== Check Data Size =====       [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+                echo
+                printf "        DataSize: %10.3f GB\n" $(echo "SELECT SUM(data_length + index_length)/1024/1024/1024 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '${SCHEMA}'" | select_data)
+
             fi
 
         }
 
-        gather_posttest_snapshot ${CLUSTER}
-        stop_monitors
+        gather_postload_snapshot ${CLUSTER}
+        #stop_monitors
         stop_raft_monitors
-        #stop_wsrep_monitors
         stop_mariadb_status_monitors
 
         [[ ${LOADTIME} ]] && {

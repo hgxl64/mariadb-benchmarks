@@ -792,111 +792,167 @@ transpose_table() {
 }
 
 ping_test() {
-    if [[ ${OPTION_PINGTEST} ]]; then
-        time {
-            echo
-            echo "    ===== Ping Test =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-            echo
-            echo "    Ping test between drivers and server nodes"
-            local localSYSTEM=""
-            [[ $1 ]] && localSYSTEM=$1 || localSYSTEM=${CLUSTER}
-            local localDRIVERS=( $(get_property ${localSYSTEM} drivers) )
-            local localSERVERS=( $(get_property ${localSYSTEM} database.ips) )
-            if (( ${#localSERVERS[@]} == 0 )) ; then localDRIVERS=( $(get_property ${localSYSTEM} nodes) ) ; fi
-            for localDRIVER in ${localDRIVERS[*]} ; do
-                for localSERVER in ${localSERVERS[*]} ; do
-                    echo
-                    echo "        Driver ${localDRIVER} -> Server ${localSERVER}"
-                    ssh $(get_ssh_connection ${CLUSTER} ${localDRIVER}) "ping -c3 ${localSERVER}"
-                done
-            done
-        }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).ping.test.log 2>&1
-    fi
-}
-
-gather_pretest() {
-    if [[ ${OPTION_SNAPSHOT} == TRUE ]] ; then
-        time {
-            local localSYSTEM="";
-            if [[ $1 ]] ; then localSYSTEM=$1 ; else localSYSTEM=${CLUSTER} ; fi
-            echo
-            echo "    ===== Gather Pretest Snapshot ${localSYSTEM} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-            if  [[ $(get_property ${localSYSTEM} database) == 'mariadb' ]] ; then
-                local BACKGROUND_PIDS=""
-                if [[ $(get_property ${localSYSTEM} mariadb.systems) ]] ; then
-                    for SYSTEM in $(get_property ${localSYSTEM} mariadb.systems) ; do
-                        mariadb.snapshot.sh --cluster ${SYSTEM} &
-                        BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
-                    done
-                else
-                    mariadb.snapshot.sh --cluster ${localSYSTEM} &
-                    BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
-                fi
-                for SYSTEM in $(get_property ${localSYSTEM} master.systems) $(get_property ${localSYSTEM} slave.systems) ; do
-                    mariadb.snapshot.sh --cluster ${SYSTEM} &
-                    BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
-                done
-                for SYSTEM in $(get_property ${localSYSTEM} maxscale.systems) ; do
-                    maxscale.snapshot.sh --cluster ${SYSTEM} &
-                    BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
-                done
-                wait ${BACKGROUND_PIDS[*]}
-                system.snapshot.sh --cluster ${localSYSTEM}
-            fi
-        }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.pretest.snapshot.log 2>&1
-    fi
+    echo "FIXME: remove ping_test"
 }
 
 gather_pretest_snapshot() {
-    gather_pretest $@;
-}
+    SYSTEM=$1
+    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
-gather_posttest() {
-    if [[ ${OPTION_SNAPSHOT} == TRUE ]] ; then
-        time {
-            local localSYSTEM="";
-            if [[ $1 ]] ; then localSYSTEM=$1 ; else localSYSTEM=${CLUSTER} ; fi
-            echo
-            echo "    ===== Gather Posttest Snapshot ${localSYSTEM} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-            if [[ $(get_property ${localSYSTEM} database) == 'mariadb' ]] ; then
-                local BACKGROUND_PIDS=""
-                if [[ $(get_property ${localSYSTEM} mariadb.systems) ]] ; then
-                    for SYSTEM in $(get_property ${localSYSTEM} mariadb.systems) ; do
-                        echo
-                        echo "    ===== Gather MariaDB Snapshot ${SYSTEM} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-                        mariadb.snapshot.sh --cluster ${SYSTEM} &
-                        BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
-                    done
-                else
-                    echo
-                    echo "    ===== Gather MariaDB Snapshot ${localSYSTEM} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-                    mariadb.snapshot.sh --cluster ${localSYSTEM} &
-                    BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
-                fi
-                for SYSTEM in $(get_property ${localSYSTEM} master.systems) $(get_property ${localSYSTEM} slave.systems) ; do
-                    echo
-                    echo "    ===== Gather MariaDB Snapshot ${SYSTEM} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-                    mariadb.snapshot.sh --cluster ${SYSTEM} &
-                    BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
-                done
-                for SYSTEM in $(get_property ${localSYSTEM} maxscale.systems) ; do
-                    maxscale.snapshot.sh --cluster ${SYSTEM} &
-                    BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
-                done
-                wait ${BACKGROUND_PIDS[*]}
-                time system.snapshot.sh --cluster ${localSYSTEM}
-            elif [[ $(get_property ${localSYSTEM} database) == mysql ]] ; then
-                echo
-                echo "    ===== Gather Mysql Snapshot ${localSYSTEM} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-                time mysql.snapshot.sh --cluster ${localSYSTEM}
-                time system.snapshot.sh --cluster ${localSYSTEM}
-            fi
-        }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.posttest.snapshot.log 2>&1
-    fi
+    unset PIDS
+    time {
+        echo
+        echo "    ===== Gather Pre-Test Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+
+        mariadb.snapshot.sh --cluster ${SYSTEM} --pretest &
+        PIDS="${PIDS} $!"
+        maxscale.snapshot.sh --cluster ${SYSTEM} --pretest &
+        PIDS="${PIDS} $!"
+        system.snapshot.sh --cluster ${SYSTEM} --pretest &
+        PIDS="${PIDS} $!"
+        wait ${PIDS}
+
+    }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.pretest.snapshot.log 2>&1
 }
 
 gather_posttest_snapshot() {
-    gather_posttest $@;
+    SYSTEM=$1
+    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+
+    unset PIDS
+    time {
+        echo
+        echo "    ===== Gather Post-Test Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+
+        mariadb.snapshot.sh --cluster ${SYSTEM} --posttest &
+        PIDS="${PIDS} $!"
+        maxscale.snapshot.sh --cluster ${SYSTEM} --posttest &
+        PIDS="${PIDS} $!"
+        system.snapshot.sh --cluster ${SYSTEM} --posttest &
+        PIDS="${PIDS} $!"
+        wait ${PIDS}
+
+    }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.posttest.snapshot.log 2>&1
+}
+
+gather_preload_snapshot() {
+    SYSTEM=$1
+    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+
+    unset PIDS
+    time {
+        echo
+        echo "    ===== Gather Pre-Load Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+
+        mariadb.snapshot.sh --cluster ${SYSTEM} --preload &
+        PIDS="${PIDS} $!"
+        maxscale.snapshot.sh --cluster ${SYSTEM} --preload &
+        PIDS="${PIDS} $!"
+        system.snapshot.sh --cluster ${SYSTEM} --preload &
+        PIDS="${PIDS} $!"
+        wait ${PIDS}
+
+    }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.preload.snapshot.log 2>&1
+}
+
+gather_postload_snapshot() {
+    SYSTEM=$1
+    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+
+    unset PIDS
+    time {
+        echo
+        echo "    ===== Gather Post-Load Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+
+        mariadb.snapshot.sh --cluster ${SYSTEM} --postload &
+        PIDS="${PIDS} $!"
+        maxscale.snapshot.sh --cluster ${SYSTEM} --postload &
+        PIDS="${PIDS} $!"
+        system.snapshot.sh --cluster ${SYSTEM} --postload &
+        PIDS="${PIDS} $!"
+        wait ${PIDS}
+
+    }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.postload.snapshot.log 2>&1
+}
+
+gather_precurve_snapshot() {
+    SYSTEM=$1
+    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+
+    unset PIDS
+    time {
+        echo
+        echo "    ===== Gather Pre-Curve Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+
+        mariadb.snapshot.sh --cluster ${SYSTEM} --precurve &
+        PIDS="${PIDS} $!"
+        maxscale.snapshot.sh --cluster ${SYSTEM} --precurve &
+        PIDS="${PIDS} $!"
+        system.snapshot.sh --cluster ${SYSTEM} --precurve &
+        PIDS="${PIDS} $!"
+        wait ${PIDS}
+
+    }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.precurve.snapshot.log 2>&1
+}
+
+gather_postcurve_snapshot() {
+    SYSTEM=$1
+    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+
+    unset PIDS
+    time {
+        echo
+        echo "    ===== Gather Post-Curve Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+
+        mariadb.snapshot.sh --cluster ${SYSTEM} --postcurve &
+        PIDS="${PIDS} $!"
+        maxscale.snapshot.sh --cluster ${SYSTEM} --postcurve &
+        PIDS="${PIDS} $!"
+        system.snapshot.sh --cluster ${SYSTEM} --postcurve &
+        PIDS="${PIDS} $!"
+        wait ${PIDS}
+
+    }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.postcurve.snapshot.log 2>&1
+}
+
+gather_prerun_snapshot() {
+    SYSTEM=$1
+    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+
+    unset PIDS
+    time {
+        echo
+        echo "    ===== Gather Pre-Run Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+
+        mariadb.snapshot.sh --cluster ${SYSTEM} --prerun &
+        PIDS="${PIDS} $!"
+        maxscale.snapshot.sh --cluster ${SYSTEM} --prerun &
+        PIDS="${PIDS} $!"
+        system.snapshot.sh --cluster ${SYSTEM} --prerun &
+        PIDS="${PIDS} $!"
+        wait ${PIDS}
+
+    }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.prerun.snapshot.log 2>&1
+}
+
+gather_postrun_snapshot() {
+    SYSTEM=$1
+    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+
+    unset PIDS
+    time {
+        echo
+        echo "    ===== Gather Post-Run Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+
+        mariadb.snapshot.sh --cluster ${SYSTEM} --postrun &
+        PIDS="${PIDS} $!"
+        maxscale.snapshot.sh --cluster ${SYSTEM} --postrun &
+        PIDS="${PIDS} $!"
+        system.snapshot.sh --cluster ${SYSTEM} --postrun &
+        PIDS="${PIDS} $!"
+        wait ${PIDS}
+
+    }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.postrun.snapshot.log 2>&1
 }
 
 begin_pathlength() {
@@ -1730,6 +1786,7 @@ get_all_node_names() {
                   $(get_property ${CLUSTER} master.systems) \
                   $(get_property ${CLUSTER} slave.systems) \
                   $(get_property ${CLUSTER} galera.systems) \
+                  $(get_property ${CLUSTER} raft.systems) \
                   $(get_property ${CLUSTER} slave.systems) ; do
         SYSTEM=$(echo ${SYSTEM} | sed 's/^mariadb\.//')
         if [[ ! " ${NODES[*]} " =~ " ${SYSTEM} " ]] ; then
