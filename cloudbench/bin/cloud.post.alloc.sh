@@ -81,7 +81,7 @@ time {
                         esac
                     '
                 } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).install.packages.${NODE}.log 2>&1 &
-                BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
+                BACKGROUND_PIDS+=( $! )
             done
         done
         wait ${BACKGROUND_PIDS[*]}
