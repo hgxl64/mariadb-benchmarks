@@ -302,6 +302,8 @@ mkdir -p ${LOGDIRECTORY}
                             IDX=$((IDX+1))
                         done
 
+                        # FIXME: find a way to determine bandwith of network connection
+                        # as workaround we assume that 16gbit is more than what we have
                         echo "${ORIGIN}:"
                         ssh $(get_ssh_connection ${ORIGIN}) '
                             ORIGIN_IP="'${ORIGIN_IP}'"
