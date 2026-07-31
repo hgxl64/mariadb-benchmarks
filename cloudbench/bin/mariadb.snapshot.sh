@@ -100,11 +100,16 @@ time {
                 mariadb -vvv $(get_database_connection ${SYSTEM}) -e "show slave hosts;" > ${LOGDIRECTORY}/${SYSTEM}/slave.hosts.txt
             fi
 
-            if [[ ${CLUSTERTYPE} == galera_* || ${CLUSTERTYPE} == raft_* ]] ; then
+            if [[ ${CLUSTERTYPE} == galera_* ]] ; then
                 echo "            show wsrep_membership"
                 mariadb -sN $(get_database_connection ${SYSTEM}) -e "show wsrep_membership;" > ${LOGDIRECTORY}/${SYSTEM}/wsrep_membership.txt
                 echo "            show wsrep_status"
                 mariadb -sN $(get_database_connection ${SYSTEM}) -e "show wsrep_status;" > ${LOGDIRECTORY}/${SYSTEM}/wsrep_status.txt
+            fi
+
+            if [[ ${CLUSTERTYPE} == raft_* ]] ; then
+                echo "            show raft status"
+                mariadb -sE $(get_database_connection ${SYSTEM}) -e "SELECT * FROM INFORMATION_SCHEMA.RAFT_STATUS" > ${LOGDIRECTORY}/${SYSTEM}/raft_status.json
             fi
 
             if (( $(get_property ${SYSTEM} cluster.nodes) != 0  )) ; then
@@ -124,8 +129,9 @@ time {
                         /data/cbench/install/etc/prometheus.cnf
                     )
                     for FILE in ${CONFIG_FILES[*]} ; do
-                        CONTENT=$(ssh $(get_ssh_connection ${SYSTEM} ${NODE}) "[[ -e ${FILE} ]] && cat ${FILE}")
-                        [[ ${CONTENT} ]] && echo ${CONTENT} > ${LOGDIRECTORY}/${SYSTEM}/config/$(echo ${FILE} | rev | cut -d'/' -f 1 | rev)
+                        D=${LOGDIRECTORY}/${SYSTEM}/logs/$(echo ${FILE} | rev | cut -d'/' -f 1 | rev)
+                        ssh $(get_ssh_connection ${SYSTEM}) "[[ -e ${FILE} ]] && cat ${FILE}" > ${D}
+                        [[ -s ${D} ]] || rm -f ${D}
                     done
 
                     echo "            Log Files"
