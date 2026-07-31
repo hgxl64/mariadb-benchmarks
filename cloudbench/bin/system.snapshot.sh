@@ -91,27 +91,27 @@ time {
                 echo "    System = ${SYSTEM}"
                 echo
                 echo "        OS Conf"
-                mkdir -p ${LOGDIRECTORY}/${SYSTEM}/config
+                mkdir -p ${LOGDIRECTORY}/${SYSTEM}/conf
 
                 #only once
                 if [[ ${BEFORE_RUN} == TRUE || ${BEFORE_LOAD} == TRUE ]] ; then
-                    ssh $(get_ssh_connection ${SYSTEM}) 'sudo uname --all' > ${LOGDIRECTORY}/${SYSTEM}/config/uname.txt
-                    ssh $(get_ssh_connection ${SYSTEM}) 'ulimit -a' > ${LOGDIRECTORY}/${SYSTEM}/config/ulimit.txt
-                    ssh $(get_ssh_connection ${SYSTEM}) 'sudo cat /etc/security/limits.conf' > ${LOGDIRECTORY}/${SYSTEM}/config/limits.conf.txt
-                    ssh $(get_ssh_connection ${SYSTEM}) 'sudo lscpu' > ${LOGDIRECTORY}/${SYSTEM}/config/lscpu.txt
-                    ssh $(get_ssh_connection ${SYSTEM}) 'sudo dmesg' > ${LOGDIRECTORY}/${SYSTEM}/config/dmesg.txt
-                    ssh $(get_ssh_connection ${SYSTEM}) 'sudo ifconfig' > ${LOGDIRECTORY}/${SYSTEM}/config/ifconfig.txt
-                    ssh $(get_ssh_connection ${SYSTEM}) 'sudo lsblk' > ${LOGDIRECTORY}/${SYSTEM}/config/lsblk.txt
-                    ssh $(get_ssh_connection ${SYSTEM}) 'echo "Interrupt Configuration"; (( TRIM_COUNT = $(head -1 /proc/interrupts | wc -c) - 5 )); for INTERRUPT in $(tail -n +2 /proc/interrupts | cut -d: -f1 ); do for FILE in $(ls /proc/irq/${INTERRUPT}/smp_affinity) ; do printf "    %-26s | %s | %-16s %-20s\n" ${FILE} $(sudo cat ${FILE}) $(cat  /proc/interrupts | grep " ${INTERRUPT}:\|^${INTERRUPT}:" | cut -b ${TRIM_COUNT}- ); done; done 2>/dev/null' > ${LOGDIRECTORY}/${SYSTEM}/config/irq-config.txt
-                    ssh $(get_ssh_connection ${SYSTEM}) '[[ -d /dev/md ]] && sudo mdadm --detail /dev/md/*' > ${LOGDIRECTORY}/${SYSTEM}/config/mdadm.txt
-                    ssh $(get_ssh_connection ${SYSTEM}) 'sudo sysctl -a' > ${LOGDIRECTORY}/${SYSTEM}/config/sysctl.txt
-                    ssh $(get_ssh_connection ${SYSTEM}) 'sudo cat /etc/sysctl.conf' > ${LOGDIRECTORY}/${SYSTEM}/config/sysctl.conf
+                    ssh $(get_ssh_connection ${SYSTEM}) 'sudo uname --all' > ${LOGDIRECTORY}/${SYSTEM}/conf/uname.txt
+                    ssh $(get_ssh_connection ${SYSTEM}) 'ulimit -a' > ${LOGDIRECTORY}/${SYSTEM}/conf/ulimit.txt
+                    ssh $(get_ssh_connection ${SYSTEM}) 'sudo cat /etc/security/limits.conf' > ${LOGDIRECTORY}/${SYSTEM}/conf/limits.conf.txt
+                    ssh $(get_ssh_connection ${SYSTEM}) 'sudo lscpu' > ${LOGDIRECTORY}/${SYSTEM}/conf/lscpu.txt
+                    ssh $(get_ssh_connection ${SYSTEM}) 'sudo dmesg' > ${LOGDIRECTORY}/${SYSTEM}/conf/dmesg.txt
+                    ssh $(get_ssh_connection ${SYSTEM}) 'sudo ifconfig' > ${LOGDIRECTORY}/${SYSTEM}/conf/ifconfig.txt
+                    ssh $(get_ssh_connection ${SYSTEM}) 'sudo lsblk' > ${LOGDIRECTORY}/${SYSTEM}/conf/lsblk.txt
+                    ssh $(get_ssh_connection ${SYSTEM}) 'echo "Interrupt Configuration"; (( TRIM_COUNT = $(head -1 /proc/interrupts | wc -c) - 5 )); for INTERRUPT in $(tail -n +2 /proc/interrupts | cut -d: -f1 ); do for FILE in $(ls /proc/irq/${INTERRUPT}/smp_affinity) ; do printf "    %-26s | %s | %-16s %-20s\n" ${FILE} $(sudo cat ${FILE}) $(cat  /proc/interrupts | grep " ${INTERRUPT}:\|^${INTERRUPT}:" | cut -b ${TRIM_COUNT}- ); done; done 2>/dev/null' > ${LOGDIRECTORY}/${SYSTEM}/conf/irq-config.txt
+                    ssh $(get_ssh_connection ${SYSTEM}) '[[ -d /dev/md ]] && sudo mdadm --detail /dev/md/*' > ${LOGDIRECTORY}/${SYSTEM}/conf/mdadm.txt
+                    ssh $(get_ssh_connection ${SYSTEM}) 'sudo sysctl -a' > ${LOGDIRECTORY}/${SYSTEM}/conf/sysctl.txt
+                    ssh $(get_ssh_connection ${SYSTEM}) 'sudo cat /etc/sysctl.conf' > ${LOGDIRECTORY}/${SYSTEM}/conf/sysctl.conf
                 fi
 
                 #before / after each test
-                ssh $(get_ssh_connection ${SYSTEM}) 'df -h' > ${LOGDIRECTORY}/${SYSTEM}/config/df.txt
-                ssh $(get_ssh_connection ${SYSTEM}) 'ps -ef' > ${LOGDIRECTORY}/${SYSTEM}/config/ps.txt
-                ssh $(get_ssh_connection ${SYSTEM}) 'sudo netstat -suna' > ${LOGDIRECTORY}/${SYSTEM}/config/netstat-suna.txt
+                ssh $(get_ssh_connection ${SYSTEM}) 'df -h' > ${LOGDIRECTORY}/${SYSTEM}/conf/df.txt
+                ssh $(get_ssh_connection ${SYSTEM}) 'ps -ef' > ${LOGDIRECTORY}/${SYSTEM}/conf/ps.txt
+                ssh $(get_ssh_connection ${SYSTEM}) 'sudo netstat -suna' > ${LOGDIRECTORY}/${SYSTEM}/conf/netstat-suna.txt
 
 
                 echo

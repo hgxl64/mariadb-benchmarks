@@ -120,7 +120,7 @@ time {
                     echo "            ssh Connection : $(get_ssh_connection ${SYSTEM} ${NODE})"
 
                     echo "            Config Files"
-                    [[ -d ${LOGDIRECTORY}/${SYSTEM}/config ]] || mkdir -p ${LOGDIRECTORY}/${SYSTEM}/config
+                    [[ -d ${LOGDIRECTORY}/${SYSTEM}/conf ]] || mkdir -p ${LOGDIRECTORY}/${SYSTEM}/conf
                     CONFIG_FILES=(
                         /data/cbench/install/etc/my.cnf
                         /data/cbench/install/etc/my.cnf.d/01_server.cnf
@@ -129,7 +129,7 @@ time {
                         /data/cbench/install/etc/prometheus.cnf
                     )
                     for FILE in ${CONFIG_FILES[*]} ; do
-                        D=${LOGDIRECTORY}/${SYSTEM}/logs/$(echo ${FILE} | rev | cut -d'/' -f 1 | rev)
+                        D=${LOGDIRECTORY}/${SYSTEM}/conf/$(echo ${FILE} | rev | cut -d'/' -f 1 | rev)
                         ssh $(get_ssh_connection ${SYSTEM}) "[[ -e ${FILE} ]] && cat ${FILE}" > ${D}
                         [[ -s ${D} ]] || rm -f ${D}
                     done
