@@ -128,7 +128,6 @@ time {
                     stat
                     swaps
                     version
-                    wmstat
                     mdstat
                     mounts
                 )
@@ -142,7 +141,8 @@ time {
                 mkdir -p ${LOGDIRECTORY}/${SYSTEM}/logs
 
                 LOG_FILES=(
-                    /var/log/messages
+                    /var/log/syslog
+                    /var/log/kern.log
                 )
                 for FILE in ${LOG_FILES[*]} ; do
                     CONTENT=$(ssh $(get_ssh_connection ${SYSTEM}) "[[ -e ${FILE} ]] && sudo tail -1000 ${FILE}")
