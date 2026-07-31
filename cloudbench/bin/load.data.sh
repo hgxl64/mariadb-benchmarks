@@ -353,10 +353,11 @@ time {
 
         echo
         echo "    ===== Check Data  =====       [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        echo
 
-        time {
+        if [[ ${DATABASE} == 'mariadb' ]] ; then
 
-            if [[ ${DATABASE} == 'mariadb' ]] ; then
+            time {
                 mariadb -vvv $(get_database_connection) ${SCHEMA} -e 'SELECT VERSION(); SHOW TABLES;'
 
                 TABLES=( $(mariadb -sN $(get_database_connection) ${SCHEMA} -e 'SHOW TABLES') )
@@ -366,24 +367,26 @@ time {
 
                 case ${BENCHMARK} in
                     sysbench)
-                            TABLES=( $(mariadb -sN $(get_database_connection) ${SCHEMA} -e 'SHOW TABLES') )
-                            for TABLE in ${TABLES[*]} ; do
-                                mariadb -vvv $(get_database_connection) ${SCHEMA} -e "
-                                    EXPLAIN SELECT * FROM ${TABLE}\G
-                                    SELECT * FROM sbtest1 LIMIT 1\G
-                                    SELECT COUNT(*), MIN(id), MAX(id) FROM sbtest1;
-                                "
-                            done
+                        TABLES=( $(mariadb -sN $(get_database_connection) ${SCHEMA} -e 'SHOW TABLES') )
+                        for TABLE in ${TABLES[*]} ; do
+                            mariadb -vvv $(get_database_connection) ${SCHEMA} -e "
+                                EXPLAIN SELECT * FROM ${TABLE}\G
+                                SELECT * FROM ${TABLE} LIMIT 1\G
+                                SELECT COUNT(*), MIN(id), MAX(id) FROM ${TABLE};
+                            "
+                        done
+
                 esac
 
-                echo
-                echo "    ===== Check Data Size =====       [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-                echo
-                printf "        DataSize: %10.3f GB\n" $(echo "SELECT SUM(data_length + index_length)/1024/1024/1024 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '${SCHEMA}'" | select_data)
+            } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).check.data.log 2>&1
 
-            fi
+            echo
+            echo "    ===== Check Data Size =====       [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+            echo
+            printf "        DataSize: %10.3f GB\n" $(echo "SELECT SUM(data_length + index_length)/1024/1024/1024 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '${SCHEMA}'" | select_data)
 
-        }
+        fi
+
 
         gather_postload_snapshot ${CLUSTER}
         #stop_monitors
