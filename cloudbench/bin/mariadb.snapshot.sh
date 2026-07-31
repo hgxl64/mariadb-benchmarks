@@ -115,7 +115,7 @@ time {
                     echo "            ssh Connection : $(get_ssh_connection ${SYSTEM} ${NODE})"
 
                     echo "            Config Files"
-                    [[ -d ${LOGDIRECTORY}/${SYSTEM}/config]] || mkdir -p ${LOGDIRECTORY}/${SYSTEM}/config
+                    [[ -d ${LOGDIRECTORY}/${SYSTEM}/config ]] || mkdir -p ${LOGDIRECTORY}/${SYSTEM}/config
                     CONFIG_FILES=(
                         /data/cbench/install/etc/my.cnf
                         /data/cbench/install/etc/my.cnf.d/01_server.cnf
