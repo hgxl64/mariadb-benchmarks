@@ -101,10 +101,10 @@ time {
             fi
 
             if [[ ${CLUSTERTYPE} == galera_* ]] ; then
-                echo "            show wsrep_membership"
-                mariadb -sN $(get_database_connection ${SYSTEM}) -e "show wsrep_membership" > ${LOGDIRECTORY}/${SYSTEM}/wsrep_membership.txt
-                echo "            show wsrep_status"
-                mariadb -sN $(get_database_connection ${SYSTEM}) -e "show wsrep_status" > ${LOGDIRECTORY}/${SYSTEM}/wsrep_status.txt
+                #echo "            show wsrep_membership"
+                #mariadb -sN $(get_database_connection ${SYSTEM}) -e "show wsrep_membership" > ${LOGDIRECTORY}/${SYSTEM}/wsrep_membership.txt
+                #echo "            show wsrep_status"
+                #mariadb -sN $(get_database_connection ${SYSTEM}) -e "show wsrep_status" > ${LOGDIRECTORY}/${SYSTEM}/wsrep_status.txt
             fi
 
             if [[ ${CLUSTERTYPE} == raft_* ]] ; then
