@@ -145,8 +145,9 @@ time {
                     /var/log/kern.log
                 )
                 for FILE in ${LOG_FILES[*]} ; do
-                    CONTENT=$(ssh $(get_ssh_connection ${SYSTEM}) "[[ -e ${FILE} ]] && sudo tail -1000 ${FILE}")
-                    [[ ${CONTENT} ]] && echo ${CONTENT} > ${LOGDIRECTORY}/${SYSTEM}/logs/$(echo ${FILE} | rev | cut -d'/' -f 1 | rev)
+                    D=${LOGDIRECTORY}/${SYSTEM}/logs/$(echo ${FILE} | rev | cut -d'/' -f 1 | rev)
+                    $(ssh $(get_ssh_connection ${SYSTEM}) "[[ -e ${FILE} ]] && sudo tail -1000 ${FILE}") > ${D}
+                    [[ -s ${D} ]] || rm -f ${D}
                 done
 
                 ssh $(get_ssh_connection ${SYSTEM}) 'ls -1l /data/cbench/*' > ${LOGDIRECTORY}/${SYSTEM}/ls.txt
