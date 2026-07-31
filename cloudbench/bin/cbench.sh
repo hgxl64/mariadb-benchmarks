@@ -1575,7 +1575,7 @@ start_raft_monitors() {
     [[ ${RAFT_MONITOR_PID_FILE} ]] || RAFT_MONITOR_PID_FILE=$(mktemp)
 
     for NODE in $(get_property ${SYSTEM} raft.systems) ; do
-        local LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).mariadb_raft_monitor.${NODE}.log
+        local LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).raft_monitor.${NODE}.log
         local COMMAND="mariadb_raft_monitor.pl --interval=${MONITOR_INTERVAL}"
         COMMAND="${COMMAND} $(get_mariadb_collector_connection ${NODE})"
         #print_subheader "Starting Raft Monitor for Node : ${NODE}"
@@ -1612,7 +1612,7 @@ start_wsrep_monitors() {
     [[ ${WSREP_MONITOR_PID_FILE} ]] || WSREP_MONITOR_PID_FILE=$(mktemp)
 
     for NODE in $(get_property ${SYSTEM} raft.systems) $(get_property ${SYSTEM} galera.systems) ; do
-        local LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).mariadb_wsrep_monitor.${NODE}.log
+        local LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).wsrep_monitor.${NODE}.log
         local COMMAND="mariadb_wsrep_monitor.pl --interval=${MONITOR_INTERVAL}"
         COMMAND="${COMMAND} $(get_mariadb_collector_connection ${NODE})"
         #print_subheader "Starting wsrep Monitor for Node : ${NODE}"
@@ -1651,7 +1651,7 @@ start_mariadb_status_monitors() {
     for NODE in $(get_property ${SYSTEM} raft.systems) $(get_property ${SYSTEM} galera.systems \
                 $(get_property ${SYSTEM} master.systems) $(get_property ${SYSTEM} slave.systems) \
                 $(get_property ${SYSTEM} mariadb.systems) ) ; do
-        local LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).mariadb_status_monitor.${NODE}.log
+        local LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).status_monitor.${NODE}.log
         local COMMAND="mariadb_status_monitor.pl --interval=${MONITOR_INTERVAL}"
         COMMAND="${COMMAND} $(get_mariadb_collector_connection ${NODE})"
         #print_subheader "Starting MariaDB STATUS Monitor for Node : ${NODE}"
