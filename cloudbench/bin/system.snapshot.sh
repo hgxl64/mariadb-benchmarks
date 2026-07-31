@@ -28,14 +28,15 @@ while [[ $# > 0 ]] ; do
         --cluster)      CLUSTER="$1"; shift;;
 
         # for which point in time we were called
-        --beforecurve)  BEFORE_CURVE=TRUE; BEFORE=TRUE;;
-        --aftercurve)   AFTER_CURVE=TRUE;;
-        --beforetest)   BEFORE_TEST=TRUE;;
-        --aftertest)    AFTER_TEST=TRUE;;
-        --beforeload)   BEFORE_LOAD=TRUE;;
-        --afterload)    AFTER_LOAD=TRUE;;
-        --beforerun)    BEFORE_RUN=TRUE;;
-        --afterrun)     AFTER_RUN=TRUE;;
+        --precurve)     PRECURVE=TRUE;;
+        --postcurve)    POSTCURVE=TRUE;;
+        --pretest)      PRETEST=TRUE;;
+        --posttest)     POSTTEST=TRUE;;
+        --preload)      PRELOAD=TRUE;;
+        --postload)     POSTLOAD=TRUE;;
+        --prerun)       PRERUN=TRUE;;
+        --postrun)      POSTRUN=TRUE;;
+
 
         -h|--help)      echo -e "$USAGE"; exit 1;;
         *)  echo "Invalid input switch: $key"; echo -e "COMMAND_LINE = ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
@@ -94,7 +95,7 @@ time {
                 mkdir -p ${LOGDIRECTORY}/${SYSTEM}/conf
 
                 #only once
-                if [[ ${BEFORE_RUN} == TRUE || ${BEFORE_LOAD} == TRUE ]] ; then
+                if [[ ${PRERUN} == TRUE || ${PRELOAD} == TRUE ]] ; then
                     ssh $(get_ssh_connection ${SYSTEM}) 'sudo uname --all' > ${LOGDIRECTORY}/${SYSTEM}/conf/uname.txt
                     ssh $(get_ssh_connection ${SYSTEM}) 'ulimit -a' > ${LOGDIRECTORY}/${SYSTEM}/conf/ulimit.txt
                     ssh $(get_ssh_connection ${SYSTEM}) 'sudo cat /etc/security/limits.conf' > ${LOGDIRECTORY}/${SYSTEM}/conf/limits.conf.txt
