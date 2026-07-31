@@ -42,6 +42,9 @@ done
 
 if [[ ! ${CLUSTER} ]] ; then echo "Required CLUSTER paramater not provided" ; echo -e "$0 ${COMMAND_LINE}" ; exit 1 ; fi
 
+SYSTEMS=( $(get_property ${CLUSTER} maxscale.systems) )
+[[ ${SYSTEMS} ]] || exit 0
+
 process_connection_info;
 
 TEST_NAME=maxscale.snapshot
@@ -59,7 +62,6 @@ time {
     echo "    ===== Begin $0 =====  [ $(date -u  +"%Y-%m-%d %H:%M:%S.%3N") ]"
     STARTSECONDS=${SECONDS}
 
-    SYSTEMS=( $(get_property ${CLUSTER} maxscale.systems) )
 
     echo
     echo "        $0 $COMMAND_LINE"
