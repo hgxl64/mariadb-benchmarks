@@ -85,8 +85,9 @@ time {
                         /data/cbench/install/etc/maxscale.conf
                     )
                     for FILE in ${CONFIG_FILES[*]} ; do
-                        CONTENT=$(ssh $(get_ssh_connection ${SYSTEM} ${NODE}) "[[ -e ${FILE} ]] && cat ${FILE}")
-                        [[ ${CONTENT} ]] && echo ${CONTENT} > ${LOGDIRECTORY}/${SYSTEM}/$(echo ${FILE} | rev | cut -d'/' -f 1 | rev)
+                        D=${LOGDIRECTORY}/${SYSTEM}/logs/$(echo ${FILE} | rev | cut -d'/' -f 1 | rev)
+                        ssh $(get_ssh_connection ${SYSTEM}) "[[ -e ${FILE} ]] && cat ${FILE}" > ${D}
+                        [[ -s ${D} ]] || rm -f ${D}
                     done
 
                     echo "            Log Files"
