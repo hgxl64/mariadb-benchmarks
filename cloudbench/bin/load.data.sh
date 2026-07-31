@@ -360,14 +360,14 @@ time {
                 mariadb -vvv $(get_database_connection) ${SCHEMA} -e 'SELECT VERSION(); SHOW TABLES;'
 
                 TABLES=( $(mariadb -sN $(get_database_connection) ${SCHEMA}) -e 'SHOW TABLES' )
-                for TABLE in ${TABLES[*] ; do
+                for TABLE in ${TABLES[*]} ; do
                     mariadb -vvv $(get_database_connection) ${SCHEMA} -e "SHOW CREATE TABLE ${TABLE}\G"
                 done
 
                 case ${BENCHMARK} in
                     sysbench)
                             TABLES=( $(mariadb -sN $(get_database_connection) ${SCHEMA}) -e 'SHOW TABLES' )
-                            for TABLE in ${TABLES[*] ; do
+                            for TABLE in ${TABLES[*]} ; do
                                 mariadb -vvv $(get_database_connection) ${SCHEMA} -e "
                                     EXPLAIN SELECT * FROM ${TABLE}\G
                                     SELECT * FROM sbtest1 LIMIT 1\G
