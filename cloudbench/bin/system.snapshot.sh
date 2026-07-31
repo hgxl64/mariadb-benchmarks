@@ -103,7 +103,7 @@ time {
                     ssh $(get_ssh_connection ${SYSTEM}) 'sudo ifconfig' > ${LOGDIRECTORY}/${SYSTEM}/config/ifconfig.txt
                     ssh $(get_ssh_connection ${SYSTEM}) 'sudo lsblk' > ${LOGDIRECTORY}/${SYSTEM}/config/lsblk.txt
                     ssh $(get_ssh_connection ${SYSTEM}) 'echo "Interrupt Configuration"; (( TRIM_COUNT = $(head -1 /proc/interrupts | wc -c) - 5 )); for INTERRUPT in $(tail -n +2 /proc/interrupts | cut -d: -f1 ); do for FILE in $(ls /proc/irq/${INTERRUPT}/smp_affinity) ; do printf "    %-26s | %s | %-16s %-20s\n" ${FILE} $(sudo cat ${FILE}) $(cat  /proc/interrupts | grep " ${INTERRUPT}:\|^${INTERRUPT}:" | cut -b ${TRIM_COUNT}- ); done; done 2>/dev/null' > ${LOGDIRECTORY}/${SYSTEM}/config/irq-config.txt
-                    ssh $(get_ssh_connection ${SYSTEM}) 'sudo mdadm -D /dev/md0' > ${LOGDIRECTORY}/${SYSTEM}/config/mdadm.txt
+                    ssh $(get_ssh_connection ${SYSTEM}) '[[ -d /dev/md ]] && sudo mdadm --detail /dev/md/*' > ${LOGDIRECTORY}/${SYSTEM}/config/mdadm.txt
                     ssh $(get_ssh_connection ${SYSTEM}) 'sudo sysctl -a' > ${LOGDIRECTORY}/${SYSTEM}/config/sysctl.txt
                     ssh $(get_ssh_connection ${SYSTEM}) 'sudo cat /etc/sysctl.conf' > ${LOGDIRECTORY}/${SYSTEM}/config/sysctl.conf
                 fi
@@ -146,7 +146,7 @@ time {
                 )
                 for FILE in ${LOG_FILES[*]} ; do
                     D=${LOGDIRECTORY}/${SYSTEM}/logs/$(echo ${FILE} | rev | cut -d'/' -f 1 | rev)
-                    $(ssh $(get_ssh_connection ${SYSTEM}) "[[ -e ${FILE} ]] && sudo tail -1000 ${FILE}") > ${D}
+                    ssh $(get_ssh_connection ${SYSTEM}) "[[ -e ${FILE} ]] && sudo tail -1000 ${FILE}" > ${D}
                     [[ -s ${D} ]] || rm -f ${D}
                 done
 
