@@ -359,7 +359,7 @@ time {
             if [[ ${DATABASE} == 'mariadb' ]] ; then
                 mariadb -vvv $(get_database_connection) ${SCHEMA} -e 'SELECT VERSION(); SHOW TABLES;'
 
-                TABLES=( $(mariadb -sN $(get_database_connection) ${SCHEMA}) -e 'SHOW TABLES' )
+                TABLES=( $(mariadb -sN $(get_database_connection) ${SCHEMA} -e 'SHOW TABLES') )
                 for TABLE in ${TABLES[*]} ; do
                     mariadb -vvv $(get_database_connection) ${SCHEMA} -e "SHOW CREATE TABLE ${TABLE}\G"
                 done
