@@ -357,23 +357,23 @@ time {
         time {
 
             if [[ ${DATABASE} == 'mariadb' ]] ; then
-                mariadb -vvv $(get_database_connection) ${SCHEMA} -e "SELECT VERSION(); SHOW TABLES;"
+                mariadb -vvv $(get_database_connection) ${SCHEMA} -e 'SELECT VERSION(); SHOW TABLES;'
 
                 TABLES=( $(mariadb -sN $(get_database_connection) ${SCHEMA}) -e 'SHOW TABLES' )
-                for TABLE in ${TABLES[@]:0:10} ; do
-                    mariadb -vvv $(get_database_connection) ${SCHEMA} -e "
-                        SHOW CREATE TABLE ${TABLE}\G
-                        EXPLAIN SELECT * FROM ${TABLE};
-                        "
+                for TABLE in ${TABLES[*] ; do
+                    mariadb -vvv $(get_database_connection) ${SCHEMA} -e "SHOW CREATE TABLE ${TABLE}\G"
                 done
 
                 case ${BENCHMARK} in
                     sysbench)
-                        mariadb -vvv $(get_database_connection) ${SCHEMA} -e "
-                            SELECT COUNT(*), MIN(id), MAX(id) FROM sbtest1;
-                            SELECT * FROM sbtest1 LIMIT 1\G
-                            "
-                        ;;
+                            TABLES=( $(mariadb -sN $(get_database_connection) ${SCHEMA}) -e 'SHOW TABLES' )
+                            for TABLE in ${TABLES[*] ; do
+                                mariadb -vvv $(get_database_connection) ${SCHEMA} -e "
+                                    EXPLAIN SELECT * FROM ${TABLE}\G
+                                    SELECT * FROM sbtest1 LIMIT 1\G
+                                    SELECT COUNT(*), MIN(id), MAX(id) FROM sbtest1;
+                                "
+                            done
                 esac
 
                 echo
