@@ -25,14 +25,14 @@ while [[ $# > 0 ]] ; do
         --cluster)      CLUSTER="$1"; shift;;
 
         # for which point in time we were called
-        --precurve)     PRECURVE=TRUE;;
-        --postcurve)    POSTCURVE=TRUE;;
-        --pretest)      PRETEST=TRUE;;
-        --posttest)     POSTTEST=TRUE;;
-        --preload)      PRELOAD=TRUE;;
-        --postload)     POSTLOAD=TRUE;;
-        --prerun)       PRERUN=TRUE;;
-        --postrun)      POSTRUN=TRUE;;
+        --precurve)     PRECURVE=TRUE;  INVOCATION="precurve";;
+        --postcurve)    POSTCURVE=TRUE; INVOCATION="postcurve";;
+        --pretest)      PRETEST=TRUE;   INVOCATION="pretest";;
+        --posttest)     POSTTEST=TRUE;  INVOCATION="posttest";;
+        --preload)      PRELOAD=TRUE;   INVOCATION="preload";;
+        --postload)     POSTLOAD=TRUE;  INVOCATION="postload";;
+        --prerun)       PRERUN=TRUE;    INVOCATION="prerun";;
+        --postrun)      POSTRUN=TRUE;   INVOCATION="postrun";;
 
         -h|--help)      echo -e "$USAGE"; exit 1;;
         *)  echo "Invalid input switch: $key"; echo -e "COMMAND_LINE = ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
@@ -43,7 +43,7 @@ if [[ ! ${CLUSTER} ]] ; then echo "Required CLUSTER paramater not provided" ; ec
 
 process_connection_info;
 
-TEST_NAME=mariadb.snapshot
+TEST_NAME=${INVOCATION:-unknown}.mariadb.snapshot
 if [[ ! ${TESTID} ]] ; then TESTID=$(date +%y%m%d.%H%M%S).${CLUSTER}; fi
 if [[ ! ${LOGDIRECTORY} ]] ; then
     export LOGDIRECTORY=${CBENCH_LOG_HOME}/${CLUSTER}/${TESTID}.${TEST_NAME}
