@@ -36,6 +36,10 @@ done
 
 source ${CBENCH_HOME}/bin/cbench.sh
 
+# defaults
+[[ ${CLUSTER} ]] || CLUSTER='perf-542'
+[[ ${WORKLOADS} ]] || WORKLOADS=( oltp_read_write oltp_write_only oltp_update_index2 )
+
 # special handling of Sofia pseudo cloud
 if [[ ${SOFIA} ]] ; then
     REPEATS=1
@@ -50,10 +54,6 @@ else
     [[ ${DRIVER_TYPE} ]] || DRIVER_TYPE="n2-highcpu-8"
     [[ ${REPEATS} ]] || REPEATS=3
 fi
-
-# defaults
-[[ ${CLUSTER} ]] || CLUSTER='perf-542'
-[[ ${WORKLOADS} ]] || WORKLOADS=( oltp_read_write oltp_write_only oltp_update_index2 )
 
 
 #===== functions =======================================================
