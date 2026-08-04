@@ -42,11 +42,11 @@ source ${CBENCH_HOME}/bin/cbench.sh
 
 # special handling of Sofia pseudo cloud
 if [[ ${SOFIA} ]] ; then
-    REPEATS=1
     TEST_NAME="perf-542-sofia"
     cp properties/g1.properties properties/${CLUSTER}-server-1.properties
     cp properties/g2.properties properties/${CLUSTER}-server-2.properties
     cp properties/g4.properties properties/${CLUSTER}-driver-1.properties
+    [[ ${REPEATS} ]] || REPEATS=1
 else
     # if not run in Sofia, use GCP
     source ${CBENCH_HOME}/config/gcp.conf
