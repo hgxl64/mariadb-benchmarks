@@ -1415,7 +1415,7 @@ mariadb_replication_monitor () {
 
     print_subheader "MariaDB Replication Monitor Started - Pid : ${MONITOR_PID}"
     print_subheader "Starting MariaDB Replication Monitor Reporter"
-    ( while sleep $((MONITOR_INTERVAL*10)); do pquit ${PARENT_PID}; mariadb_replication_monitor.report.sh --monitorlog ${MONITORLOG} ; done ) &
+    ( while sleep $((MONITOR_INTERVAL*5)); do pquit ${PARENT_PID}; mariadb_replication_monitor.report.sh --monitorlog ${MONITORLOG} ; done ) &
     local REPORT_PID=$!
     echo ${REPORT_PID} >> ${MONITOR_REPORT_PID_FILE}
     print_subheader "Started MariaDB Replication Monitor Report Thread pid ${REPORT_PID} for monitor pid ${MONITOR_PID}"
