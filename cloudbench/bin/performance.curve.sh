@@ -31,12 +31,19 @@ while [[ $# > 0 ]] ; do
         # Performance Curve Controls
         --streams)              START_STREAMS="$1"; shift;;
         --start_streams)        START_STREAMS="$1"; shift;;
+        --start-streams)        START_STREAMS="$1"; shift;;
         --max_streams)          MAX_STREAMS="$1"; shift;;
+        --max-streams)          MAX_STREAMS="$1"; shift;;
         --target_latency)       TARGET_LATENCY="$1"; shift;;
+        --target-latency)       TARGET_LATENCY="$1"; shift;;
         --start_delay)          START_DELAY="$1"; shift;;
+        --start-delay)          START_DELAY="$1"; shift;;
         --intertest_delay)      INTER_TEST_DELAY="$1"; shift;;
+        --intertest-delay)      INTER_TEST_DELAY="$1"; shift;;
         --stop_delay)           STOP_DELAY="$1"; shift;;
+        --stop-delay)           STOP_DELAY="$1"; shift;;
         --slave_delay)          OPTION_SLAVE_DELAY=TRUE;;
+        --slave-delay)          OPTION_SLAVE_DELAY=TRUE;;
 
         # Benchmark/Workload Controls
         --schema)               SCHEMA="$1"; shift;;
@@ -72,6 +79,7 @@ while [[ $# > 0 ]] ; do
         --binlogging)           ENABLE_BINLOGGING=TRUE;;
 
         --force_innodb_checkpoint) OPTION_FORCE_INNODB_CHECKPOINT=TRUE;;
+        --force-innodb-checkpoint) OPTION_FORCE_INNODB_CHECKPOINT=TRUE;;
 
         --skipmonitor)          OPTION_PERFMONITOR=FALSE;;
         --skipsnapshot)         export OPTION_SNAPSHOT=FALSE;;
