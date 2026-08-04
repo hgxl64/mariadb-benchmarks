@@ -61,7 +61,6 @@ while [[ $# > 0 ]] ; do
         --performance-config)           OPTION_CONFIG='performance';;
 
         # options for config generator
-        --charset)                      OPTION_CHARSET="$1"; shift;;
         --disable_temp_pool)            OPTION_DISABLE_TEMP_POOL=TRUE;;
         --general_log_file)             OPTION_GENERAL_LOG_FILE="$1"; shift;;
         --innodb_adaptive_hash_index)   OPTION_INNODB_ADAPTIVE_HASH_INDEX="$1"; shift;;
@@ -74,18 +73,41 @@ while [[ $# > 0 ]] ; do
         --innodb_write_io_threads)      OPTION_INNODB_WRITE_IO_THREADS="$1"; shift;;
         --max_connections)              OPTION_MAX_CONNECTIONS="$1"; shift;;
         --performance_schema)           OPTION_PERFORMANCE_SCHEMA="$1"; shift;;
-        --port)                         OPTION_DBPORT="$1"; shift;;
         --slow_query_log)               OPTION_SLOW_QUERY_LOG=TRUE;;
         --table_open_cache)             OPTION_TABLE_OPEN_CACHE="$1"; shift;;
         --thread_pool)                  OPTION_THREAD_POOL=TRUE;;
         --thread_pool_size)             OPTION_THREAD_POOL_SIZE="$1"; shift;;
         --thread_pool_max_threads)      OPTION_THREAD_POOL_MAX_THREADS="$1"; shift;;
         --transaction_isolation)        OPTION_TRANSACTION_ISOLATION="$1"; shift;;
+        # alternative option names
+        --charset)                      OPTION_CHARSET="$1"; shift;;
+        --disable-temp-pool)            OPTION_DISABLE_TEMP_POOL=TRUE;;
+        --general-log-file)             OPTION_GENERAL_LOG_FILE="$1"; shift;;
+        --innodb-adaptive-hash-index)   OPTION_INNODB_ADAPTIVE_HASH_INDEX="$1"; shift;;
+        --innodb-buffer-pool-size)      OPTION_INNODB_BUFFER_POOL_SIZE="$1"; shift;;
+        --innodb-buffer-pool-instances) OPTION_INNODB_BUFFER_POOL_INSTANCES="$1"; shift;;
+        --innodb-flush-method)          OPTION_INNODB_FLUSH_METHOD="$1"; shift;;
+        --innodb-log-buffer-size)       OPTION_INNODB_LOG_BUFFER_SIZE="$1"; shift;;
+        --innodb-io-capacity)           OPTION_INNODB_IO_CAPACITY="$1"; shift;;
+        --innodb-read-io-_threads)       OPTION_INNODB_READ_IO_THREADS="$1"; shift;;
+        --innodb-write-io-threads)      OPTION_INNODB_WRITE_IO_THREADS="$1"; shift;;
+        --max-connections)              OPTION_MAX_CONNECTIONS="$1"; shift;;
+        --performance-schema)           OPTION_PERFORMANCE_SCHEMA="$1"; shift;;
+        --port)                         OPTION_DBPORT="$1"; shift;;
+        --slow-query-log)               OPTION_SLOW_QUERY_LOG=TRUE;;
+        --table-open-cache)             OPTION_TABLE_OPEN_CACHE="$1"; shift;;
+        --thread-pool)                  OPTION_THREAD_POOL=TRUE;;
+        --thread-pool-size)             OPTION_THREAD_POOL_SIZE="$1"; shift;;
+        --thread-pool-max-threads)      OPTION_THREAD_POOL_MAX_THREADS="$1"; shift;;
+        --transaction-isolation)        OPTION_TRANSACTION_ISOLATION="$1"; shift;;
         --ssl)                          OPTION_SSL=TRUE;;
 
         # enable as a Master
-        --log_bin|--binlog)             OPTION_MASTER=TRUE;;
+        --log_bin)                      OPTION_MASTER=TRUE;;
         --skip_log_bin|--skip_binlog)   OPTION_MASTER=FALSE;;
+        # alternative option names
+        --log-bin|--binlog)             OPTION_MASTER=TRUE;;
+        --skip-log-bin|--skip-binlog)   OPTION_MASTER=FALSE;;
 
         # enable as a Slave of a Master
         --master)                       OPTION_SLAVE="$1"; shift;;
@@ -99,6 +121,14 @@ while [[ $# > 0 ]] ; do
         --semisync_after_sync)          OPTION_SEMISYNC_AFTER_SYNC=TRUE;;
         --sync_binlog)                  OPTION_SYNC_BINLOG=TRUE;;
         --sync_relaylog)                OPTION_SYNC_RELAYLOG=TRUE;;
+        # alternative option names
+        --binlog-commit-wait-usec)      OPTION_BINLOG_COMMIT_WAIT_USEC="$1"; shift;;
+        --binlog-commit-wait-count)     OPTION_BINLOG_COMMIT_WAIT_COUNT="$1"; shift;;
+        --semisync-replication)         OPTION_SEMISYNC_REP=TRUE;;
+        --semisync-after-commit)        OPTION_SEMISYNC_AFTER_COMMIT=TRUE;;
+        --semisync-after-sync)          OPTION_SEMISYNC_AFTER_SYNC=TRUE;;
+        --sync-binlog)                  OPTION_SYNC_BINLOG=TRUE;;
+        --sync-relaylog)                OPTION_SYNC_RELAYLOG=TRUE;;
 
         -h|--help)                      echo -e "$USAGE"; exit 1;;
         *)  echo "Invalid input switch: $key"; echo -e "COMMAND_LINE = ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
