@@ -240,8 +240,9 @@ slave_caught_up_gtid() {
         local MASTER_GTID=$(mariadb -sN $(get_database_connection ${MASTER}) -e 'SELECT @@GLOBAL.gtid_current_pos' | cut -d- -f3)
         local SLAVE_GTID=$(mariadb -sN $(get_database_connection ${SLAVE}) -e 'SELECT @@GLOBAL.gtid_current_pos' | cut -d- -f3)
         # echo "DEBUG: Master ${MASTER} @ ${MASTER_GTID}, Slave ${SLAVE} @ ${SLAVE_GTID}"
-        return (( SLAVE_GTID >= MASTER_GTID ))
+        (( SLAVE_GTID >= MASTER_GTID )) && return 0
     fi
+    return 1
 }
 
 wait_for_slaves_gtid() {
