@@ -81,6 +81,7 @@ while [[ $# > 0 ]] ; do
         --force_innodb_checkpoint) OPTION_FORCE_INNODB_CHECKPOINT=TRUE;;
         --force-innodb-checkpoint) OPTION_FORCE_INNODB_CHECKPOINT=TRUE;;
 
+        --monitor)              OPTION_PERFMONITOR=TRUE;;
         --skipmonitor)          OPTION_PERFMONITOR=FALSE;;
         --skipsnapshot)         export OPTION_SNAPSHOT=FALSE;;
         --skipcheck)            export OPTION_SKIPCHECK=TRUE;;
@@ -227,9 +228,9 @@ time {
 
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).preprocessing.log 2>&1
 
-    #echo
-    #echo "    ===== Start Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-    #time start_performance_monitor ${CLUSTER} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).start.performance.monitor 2>&1
+    echo
+    echo "    ===== Start Performance Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+    time start_performance_monitor ${CLUSTER} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).start.performance.monitor 2>&1
 
     [[ ${OPTION_GRAFANA} == TRUE ]] && start_grafana
 
@@ -381,7 +382,7 @@ time {
     echo "    ===== Post Processing =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     time {
 
-        #stop_monitors;
+        stop_monitors;
 
         [[ ${OPTION_GRAFANA} == TRUE ]] && stop_grafana > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.log 2>&1
 
