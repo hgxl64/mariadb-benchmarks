@@ -82,7 +82,7 @@ IDX=3
     done
     echo
     echo "exit"
-} | gnuplot 2 > /dev/null
+} | gnuplot &>/dev/null
 
 (( IDX = IDX + 1 ))
 
@@ -104,7 +104,7 @@ if [[ ${OPTION_CPU} ]] ; then
         done
         echo
         echo "exit"
-    } | gnuplot 2 > /dev/null
+    } | gnuplot &>/dev/null
     (( IDX = IDX + 1 ))
 fi
 
@@ -126,7 +126,7 @@ if [[ ${OPTION_MEMORY} ]] ; then
         done
         echo
         echo "exit"
-    } | gnuplot 2 > /dev/null
+    } | gnuplot &>/dev/null
     (( IDX = IDX + 5 ))
 fi
 
@@ -148,7 +148,7 @@ if [[ ${OPTION_DISKSPACE} ]] ; then
         done
         echo
         echo "exit"
-    } | gnuplot 2 > /dev/null
+    } | gnuplot &>/dev/null
     (( IDX = IDX + 4 ))
 fi
 
@@ -170,7 +170,7 @@ if [[ ${OPTION_DISK} ]] ; then
         done
         echo
         echo "exit"
-    } | gnuplot 2 > /dev/null
+    } | gnuplot &>/dev/null
     (( IDX = IDX + 2 ))
     {
         echo "set terminal png size 1000,500 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
@@ -188,7 +188,7 @@ if [[ ${OPTION_DISK} ]] ; then
         done
         echo
         echo "exit"
-    } | gnuplot 2 > /dev/null
+    } | gnuplot &>/dev/null
     (( IDX = IDX + 2 ))
     {
         echo "set terminal png size 1000,500 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
@@ -206,7 +206,7 @@ if [[ ${OPTION_DISK} ]] ; then
         done
         echo
         echo "exit"
-    } | gnuplot 2 > /dev/null
+    } | gnuplot &>/dev/null
     (( IDX = IDX + 1 ))
 fi
 
@@ -228,7 +228,7 @@ if [[ ${OPTION_NETWORK} ]] ; then
         done
         echo
         echo "exit"
-    } | gnuplot 2 > /dev/null
+    } | gnuplot &>/dev/null
     (( IDX = IDX + 1 ))
     {
         echo "set terminal png size 1000,500 enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 11 linewidth 2"
@@ -246,7 +246,7 @@ if [[ ${OPTION_NETWORK} ]] ; then
         done
         echo
         echo "exit"
-    } | gnuplot 2 > /dev/null
+    } | gnuplot &>/dev/null
     (( IDX = IDX + 2 ))
 fi
 
