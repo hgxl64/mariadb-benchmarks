@@ -38,7 +38,7 @@ plot \
 
 set title 'OLTP update indexed' font ',14'
 plot \
-'ASYNC.oltp_oltp_update_index2.test.data' using 2:3 with linespoints linestyle 1 title 'async repl',\
-'SYNC.oltp_oltp_update_index2.test.data' using 2:3 with linespoints linestyle 2 title 'semisync wt=sync',\
-'COMMIT.oltp_oltp_update_index2.test.data' using 2:3 with linespoints linestyle 3 title 'semisync wt=commit',\
+'ASYNC.oltp_update_index2.test.data' using 2:3 with linespoints linestyle 1 title 'async repl',\
+'SYNC.oltp_update_index2.test.data' using 2:3 with linespoints linestyle 2 title 'semisync wt=sync',\
+'COMMIT.oltp_update_index2.test.data' using 2:3 with linespoints linestyle 3 title 'semisync wt=commit',\
 
