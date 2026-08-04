@@ -221,9 +221,8 @@ time {
             start_profiling ${CLUSTER}
         fi
 
-        #start_performance_monitor ${CLUSTER}
+        start_performance_monitor ${CLUSTER}
         start_raft_monitors ${CLUSTER}
-        #start_wsrep_monitors ${CLUSTER}
         start_mariadb_status_monitors ${CLUSTER}
         [[ ${OPTION_GRAFANA} == TRUE ]] && start_grafana
 
@@ -502,9 +501,8 @@ time {
 
         echo
         echo "        ===== Stop Monitors =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-        #time stop_monitors
+        time stop_monitors
         stop_raft_monitors
-        #stop_wsrep_monitors
         stop_mariadb_status_monitors
 
         [[ ${OPTION_GRAFANA} == TRUE ]] && stop_grafana > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.log 2>&1

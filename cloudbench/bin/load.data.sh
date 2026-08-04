@@ -166,7 +166,7 @@ time {
 
         #check_cluster
         gather_preload_snapshot ${CLUSTER}
-        #start_performance_monitor
+        start_performance_monitor
         start_raft_monitors ${CLUSTER}
         start_mariadb_status_monitors ${CLUSTER}
 
@@ -389,7 +389,7 @@ time {
 
 
         gather_postload_snapshot ${CLUSTER}
-        #stop_monitors
+        stop_monitors
         stop_raft_monitors
         stop_mariadb_status_monitors
 
