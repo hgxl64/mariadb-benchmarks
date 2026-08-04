@@ -5,7 +5,7 @@
 # $Id$
 
 USAGE="
-$0 - PERF-542, semisync replication
+$0 - PERF-542, test semisync replication performance
 
 Usage: $0 [options]
 
@@ -94,32 +94,37 @@ mkdir -p ${LOGDIRECTORY}
     COMMAND="${COMMAND} --driver-system ${CLUSTER}-driver-1"
     exec ${COMMAND}
 
-    for WAITPOINT in SYNC COMMIT; do
+    # results dir to collect data
+    T=${LOGDIRECTORY}/results
+    [[ -d ${T} ]] || mkdir ${T}
 
-        # summary dir to collect data
-        T=${LOGDIRECTORY}/results
-        [[ -d ${T} ]] || mkdir ${T}
+    for WAITPOINT in ASYNC SYNC COMMIT; do
 
         LOGDIRECTORY_SAVE=${LOGDIRECTORY}
-        LOGDIRECTORY="${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).semisync-waitpoint=${WAITPOINT}"
+        LOGDIRECTORY="${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).waitpoint=${WAITPOINT}"
         mkdir -p ${LOGDIRECTORY}
 
         COMMAND="build.cluster.sh --cluster ${CLUSTER} --mariadb-branch ENTERPRISE/11.8-enterprise"
-        if [[ ${WAITPOINT} == 'SYNC' ]] ; then
-            COMMAND="${COMMAND} --semisync-replication --semisync-after-sync"
-        else
-            COMMAND="${COMMAND} --semisync-replication --semisync-after-commit"
-        fi
         [[ ${MARIADB_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${MARIADB_TARBALL}"
+        case ${WAITPOINT} in
+            # default is async, nothing to add for this
+            SYNC)   COMMAND="${COMMAND} --semisync-replication --semisync-after-sync";;
+            COMMIT) COMMAND="${COMMAND} --semisync-replication --semisync-after-commit";;
+        esac
         exec ${COMMAND}
 
-        COMMAND="load.data.sh --cluster ${CLUSTER} --skipcheck --benchmark sysbench --bulkload --monitor"
+        COMMAND="load.data.sh --cluster ${CLUSTER} --skipcheck --benchmark sysbench --bulkload"
         exec ${COMMAND}
+
+        # slaves are behind after loading tables
+        wait_for_slaves_gtid ${CLUSTER}
 
         for WORKLOAD in ${WORKLOADS[*]} ; do
-            COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats ${REPEATS} --"
-            COMMAND="${COMMAND} --benchmark sysbench --workload ${WORKLOAD} --skipcheck"
-            COMMAND="${COMMAND} --monitor --wait-for-slave-gtid"
+            COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats ${REPEATS}"
+            [[ ${SOFIA} ]] || COMMAND="${COMMAND} --grafana"
+            COMMAND="${COMMAND} -- --benchmark sysbench --workload ${WORKLOAD}"
+            COMMAND="${COMMAND} --wait-for-slave-gtid --skipcheck"
+            [[ ${SOFIA} ]] && COMMAND="${COMMAND} --monitor"
             exec ${COMMAND}
 
             # find logdir for this run and copy results
