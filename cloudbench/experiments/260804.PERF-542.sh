@@ -119,8 +119,7 @@ mkdir -p ${LOGDIRECTORY}
         for WORKLOAD in ${WORKLOADS[*]} ; do
             COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats ${REPEATS} --"
             COMMAND="${COMMAND} --benchmark sysbench --workload ${WORKLOAD} --skipcheck"
-            COMMAND="${COMMAND} --start-streams 4 --monitor"
-            #COMMAND="${COMMAND} --slave-delay"
+            COMMAND="${COMMAND} --monitor --wait-for-slave-gtid"
             exec ${COMMAND}
 
             # find logdir for this run and copy results

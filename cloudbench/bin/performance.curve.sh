@@ -45,6 +45,7 @@ while [[ $# > 0 ]] ; do
         --slave_delay)          OPTION_SLAVE_DELAY=TRUE;;
         --slave-delay)          OPTION_SLAVE_DELAY=TRUE;;
         --slave-delay-gtid)     OPTION_SLAVE_DELAY_GTID=TRUE;;
+        --wait-for-slave-gtid)  OPTION_SLAVE_DELAY_GTID=TRUE;;
 
         # Benchmark/Workload Controls
         --schema)               SCHEMA="$1"; shift;;
