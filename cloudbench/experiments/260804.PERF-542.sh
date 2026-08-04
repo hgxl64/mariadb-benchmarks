@@ -109,13 +109,14 @@ mkdir -p ${LOGDIRECTORY}
         [[ ${MARIADB_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${MARIADB_TARBALL}"
         exec ${COMMAND}
 
-        COMMAND="load.data.sh --cluster ${CLUSTER} --skipcheck --benchmark sysbench --bulkload"
+        COMMAND="load.data.sh --cluster ${CLUSTER} --skipcheck --benchmark sysbench --bulkload --monitor"
         exec ${COMMAND}
 
         for WORKLOAD in ${WORKLOADS[*]} ; do
             COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats ${REPEATS} --"
             COMMAND="${COMMAND} --benchmark sysbench --workload ${WORKLOAD} --skipcheck"
-            COMMAND="${COMMAND} --start-streams 4 --slave-delay"
+            COMMAND="${COMMAND} --start-streams 4 --monitor"
+            #COMMAND="${COMMAND} --slave-delay"
             exec ${COMMAND}
         done
 
