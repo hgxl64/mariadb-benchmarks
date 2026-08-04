@@ -96,6 +96,10 @@ mkdir -p ${LOGDIRECTORY}
 
     for WAITPOINT in SYNC COMMIT; do
 
+        # summary dir to collect data
+        T=${LOGDIRECTORY}/results
+        [[ -d ${T} ]] || mkdir ${T}
+
         LOGDIRECTORY_SAVE=${LOGDIRECTORY}
         LOGDIRECTORY="${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).semisync-waitpoint=${WAITPOINT}"
         mkdir -p ${LOGDIRECTORY}
@@ -118,6 +122,12 @@ mkdir -p ${LOGDIRECTORY}
             COMMAND="${COMMAND} --start-streams 4 --monitor"
             #COMMAND="${COMMAND} --slave-delay"
             exec ${COMMAND}
+
+            # find logdir for this run and copy results
+            D=$(ls -1d ${LOGDIRECTORY}/*.performance.curves | tail -1)
+            cp ${D}/test.data ${T}/${WAITPOINT}.${WORKLOAD}.test.data
+            F=$(ls ${D}/*.performance.curves.png | tail -1)
+            cp ${F} ${T}/${WAITPOINT}.${WORKLOAD}.curves.png
         done
 
         LOGDIRECTORY=${LOGDIRECTORY_SAVE}
