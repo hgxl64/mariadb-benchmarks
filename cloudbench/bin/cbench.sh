@@ -1495,33 +1495,33 @@ start_performance_monitor() {
         #MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
 
         for MASTER_SYSTEM in $(get_property ${SYSTEM} master.systems) ; do
-            database_performance_monitor ${MASTER_SYSTEM} &
-            sleep 2 # Keep initial output from interleaving in the logs
-            MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
+#            database_performance_monitor ${MASTER_SYSTEM} &
+#            sleep 2 # Keep initial output from interleaving in the logs
+#            MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
             if [[ ! " ${SYSTEMS[@]} " =~ " ${MASTER_SYSTEM} " ]]; then
-                    SYSTEMS=( ${MASTER_SYSTEM} ${SYSTEMS[*]} )
+                   SYSTEMS=( ${MASTER_SYSTEM} ${SYSTEMS[*]} )
             fi
         done
         for SLAVE_SYSTEM in $(get_property ${SYSTEM} slave.systems) ; do
-            database_performance_monitor ${SLAVE_SYSTEM} &
-            sleep 2 # Keep initial output from interleaving in the logs
-            MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
+#            database_performance_monitor ${SLAVE_SYSTEM} &
+#            sleep 2 # Keep initial output from interleaving in the logs
+#            MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
             if [[ ! " ${SYSTEMS[@]} " =~ " ${SLAVE_SYSTEM} " ]]; then
                     SYSTEMS=( ${SLAVE_SYSTEM} ${SYSTEMS[*]} )
             fi
         done
         for GALERA_SYSTEM in $(get_property ${SYSTEM} galera.systems) ; do
-            database_performance_monitor ${GALERA_SYSTEM} &
-            sleep 2 # Keep initial output from interleaving in the logs
-            MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
+#            database_performance_monitor ${GALERA_SYSTEM} &
+#            sleep 2 # Keep initial output from interleaving in the logs
+#            MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
             if [[ ! " ${SYSTEMS[@]} " =~ " ${GALERA_SYSTEM} " ]]; then
                     SYSTEMS=( ${GALERA_SYSTEM} ${SYSTEMS[*]} )
             fi
         done
         for MARIADB_SYSTEM in $(get_property ${SYSTEM} mariadb.systems) ; do
-            database_performance_monitor ${MARIADB_SYSTEM} &
-            sleep 2 # Keep initial output from interleaving in the logs
-            MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
+#            database_performance_monitor ${MARIADB_SYSTEM} &
+#            sleep 2 # Keep initial output from interleaving in the logs
+#            MONITOR_PIDS=( ${MONITOR_PIDS[*]} $! )
             if [[ ! " ${SYSTEMS[@]} " =~ " ${MARIADB_SYSTEM} " ]]; then
                     SYSTEMS=( ${MARIADB_SYSTEM} ${SYSTEMS[*]} )
             fi
