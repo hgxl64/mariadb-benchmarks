@@ -50,6 +50,7 @@ while [[ $# > 0 ]] ; do
         --skipdrop)             OPTION_SKIP_DROP=TRUE;;
         --skipcheck)            OPTION_SKIPCHECK=TRUE;;
         --snapshot)             OPTION_SNAPSHOT=TRUE;;
+        --monitor)              OPTION_PERFMONITOR=TRUE;;
 
         # HammerDB specific
         --prepared)             PREPARED=TRUE;;
