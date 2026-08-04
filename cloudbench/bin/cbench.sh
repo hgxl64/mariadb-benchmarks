@@ -231,6 +231,29 @@ wait_for_slaves() {
     done
 }
 
+slave_caught_up_gtid() {
+    # return True when slave is at the same position as the master
+    # Args: <slave host/cluster>
+    local SLAVE=$1
+    if [[ $(get_property ${SLAVE} database) == 'mariadb' ]] ; then
+        local MASTER=$(mariadb -sN $(get_database_connection ${SLAVE}) -e "show slave status" | grep 'Master_Host:' | awk '{print $2}')
+        local MASTER_GTID=$(mariadb -sN $(get_database_connection ${MASTER}) -e 'SELECT @@GLOBAL.gtid_current_pos' | cut -d- -f3)
+        local SLAVE_GTID=$(mariadb -sN $(get_database_connection ${SLAVE}) -e 'SELECT @@GLOBAL.gtid_current_pos' | cut -d- -f3)
+        # echo "DEBUG: Master ${MASTER} @ ${MASTER_GTID}, Slave ${SLAVE} @ ${SLAVE_GTID}"
+        return (( SLAVE_GTID >= MASTER_GTID ))
+    fi
+}
+
+wait_for_slaves_gtid() {
+    local SYSTEM=$1
+    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+    for SLAVE in $(get_property ${SYSTEM} slave.systems) ; do
+        echo -n "        Waiting for slave ${SLAVE} to catch up..."
+        while ! slave_caught_up_gtid ${SLAVE}; do echo -n .; sleep 1; done
+        echo "Done"
+    done
+}
+
 purge_binary_logs() {
     local SYSTEM=$1
     [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}

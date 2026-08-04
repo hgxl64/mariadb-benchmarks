@@ -44,6 +44,7 @@ while [[ $# > 0 ]] ; do
         --stop-delay)           STOP_DELAY="$1"; shift;;
         --slave_delay)          OPTION_SLAVE_DELAY=TRUE;;
         --slave-delay)          OPTION_SLAVE_DELAY=TRUE;;
+        --slave-delay-gtid)     OPTION_SLAVE_DELAY_GTID=TRUE;;
 
         # Benchmark/Workload Controls
         --schema)               SCHEMA="$1"; shift;;
@@ -224,7 +225,8 @@ time {
         echo "    ===== Capture env settings =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time env
 
-        [[ ${OPTION_SLAVE_DELAY} ]] && wait_for_slaves
+        [[ ${OPTION_SLAVE_DELAY} == TRUE ]] && wait_for_slaves
+        [[ ${OPTION_SLAVE_DELAY_GTID} == TRUE ]] && wait_for_slaves_gtid
 
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).preprocessing.log 2>&1
 
@@ -261,7 +263,8 @@ time {
                 echo "    ===== Inter Test Processing =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
                 time {
                     [[ ${OPTION_FORCE_INNODB_CHECKPOINT} ]] && force_innodb_checkpoint
-                    [[ ${OPTION_SLAVE_DELAY} ]] && wait_for_slaves
+                    [[ ${OPTION_SLAVE_DELAY} == TRUE ]] && wait_for_slaves
+                    [[ ${OPTION_SLAVE_DELAY_GTID} == TRUE ]] && wait_for_slaves_gtid
                     [[ ${OPTION_SLAVE_DELAY} ]] && purge_binary_logs
                     [[ ${OPTION_SLAVE_DELAY} ]] || trim_binary_logs
                     if [[ ${INTER_TEST_DELAY} ]] ; then
@@ -364,7 +367,8 @@ time {
     echo "    ===== Test Complete =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     echo
 
-    [[ ${OPTION_SLAVE_DELAY} ]] && wait_for_slaves
+    [[ ${OPTION_SLAVE_DELAY} == TRUE ]] && wait_for_slaves
+    [[ ${OPTION_SLAVE_DELAY_GTID} == TRUE ]] && wait_for_slaves_gtid
 
     echo "    ===== Test Results =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     echo
