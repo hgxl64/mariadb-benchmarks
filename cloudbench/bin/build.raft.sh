@@ -36,11 +36,13 @@ while [[ $# > 0 ]] ; do
         --raft-tarball)        RAFT_SOURCE="tarball";
                                RAFT_TARBALL="$1"; shift;;
 
+        --arm)                 OPTION_ARM=TRUE;;
+
         --thread-pool)         OPTION_THREAD_POOL=TRUE;;
         --thread-pool-size)    OPTION_THREAD_POOL_SIZE="$1"; shift;;
 
         # Raft Options
-        --slavethreads)        OPTION_SLAVE_THREADS="$1"; shift;;
+        --slave-threads)       OPTION_SLAVE_THREADS="$1"; shift;;
         --deferflush)          OPTION_DEFERRED_FLUSH=TRUE;;
         --raft-ssl)            OPTION_RAFT_SSL=TRUE;;
 
@@ -123,8 +125,6 @@ mkdir -p ${LOGDIRECTORY}
             {
                 echo "    Cluster = ${CLUSTER}, System = ${SYSTEM}"
                 COMMAND="build.system.sh --database mariadb --system ${SYSTEM} --initdb --raft"
-                [[ ${OPTION_THREAD_POOL} ]] && COMMAND="${COMMAND} --thread-pool"
-                [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
                 [[ ${MARIADB_SOURCE} ]] && COMMAND="${COMMAND} --mariadb-source ${MARIADB_SOURCE}"
                 [[ ${MARIADB_BRANCH} ]] && COMMAND="${COMMAND} --mariadb-branch ${MARIADB_BRANCH}"
                 [[ ${MARIADB_COMMIT} ]] && COMMAND="${COMMAND} --mariadb-commit ${MARIADB_COMMIT}"
@@ -133,7 +133,12 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${RAFT_BRANCH} ]] && COMMAND="${COMMAND} --raft-branch ${RAFT_BRANCH}"
                 [[ ${RAFT_COMMIT} ]] && COMMAND="${COMMAND} --raft-commit ${RAFT_COMMIT}"
                 [[ ${RAFT_TARBALL} ]] && COMMAND="${COMMAND} --raft-tarball ${RAFT_TARBALL}"
-                [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
+                [[ ${OPTION_THREAD_POOL} == TRUE ]] && COMMAND="${COMMAND} --thread-pool"
+                [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
+                [[ ${OPTION_SLAVE_THREADS} ]] && COMMAND="${COMMAND} --slave-threads ${OPTION_SLAVE_THREADS}"
+                [[ ${OPTION_DEFERRED_FLUSH} == TRUE ]] && COMMAND="${COMMAND} --deferflush"
+                [[ ${OPTION_SSL} == TRUE ]] && COMMAND="${COMMAND} --ssl"
+                [[ ${OPTION_ARM} == TRUE ]] && COMMAND="${COMMAND} --arm"
                 echo "        COMMAND = ${COMMAND}"
                 ${COMMAND}
             } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).install.raft.${SYSTEM}.log 2>&1 &

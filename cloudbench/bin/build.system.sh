@@ -117,18 +117,20 @@ while [[ $# > 0 ]] ; do
         --binlog_commit_wait_usec)      OPTION_BINLOG_COMMIT_WAIT_USEC="$1"; shift;;
         --binlog_commit_wait_count)     OPTION_BINLOG_COMMIT_WAIT_COUNT="$1"; shift;;
         --semisync_replication)         OPTION_SEMISYNC_REP=TRUE;;
-        --semisync_after_commit)        OPTION_SEMISYNC_AFTER_COMMIT=TRUE;;
-        --semisync_after_sync)          OPTION_SEMISYNC_AFTER_SYNC=TRUE;;
+        --semisync_after_commit)        OPTION_SEMISYNC_AFTER_COMMIT=TRUE; OPTION_SEMISYNC_REP=TRUE;;
+        --semisync_after_sync)          OPTION_SEMISYNC_AFTER_SYNC=TRUE; OPTION_SEMISYNC_REP=TRUE;;
         --sync_binlog)                  OPTION_SYNC_BINLOG=TRUE;;
         --sync_relaylog)                OPTION_SYNC_RELAYLOG=TRUE;;
+
         # alternative option names
         --binlog-commit-wait-usec)      OPTION_BINLOG_COMMIT_WAIT_USEC="$1"; shift;;
         --binlog-commit-wait-count)     OPTION_BINLOG_COMMIT_WAIT_COUNT="$1"; shift;;
         --semisync-replication)         OPTION_SEMISYNC_REP=TRUE;;
-        --semisync-after-commit)        OPTION_SEMISYNC_AFTER_COMMIT=TRUE;;
-        --semisync-after-sync)          OPTION_SEMISYNC_AFTER_SYNC=TRUE;;
+        --semisync-after-commit)        OPTION_SEMISYNC_AFTER_COMMIT=TRUE; OPTION_SEMISYNC_REP=TRUE;;
+        --semisync-after-sync)          OPTION_SEMISYNC_AFTER_SYNC=TRUE; OPTION_SEMISYNC_REP=TRUE;;
         --sync-binlog)                  OPTION_SYNC_BINLOG=TRUE;;
         --sync-relaylog)                OPTION_SYNC_RELAYLOG=TRUE;;
+        --slave-threads)                OPTION_SLAVE_THREADS="$1"; shift;;
 
         -h|--help)                      echo -e "$USAGE"; exit 1;;
         *)  echo "Invalid input switch: $key"; echo -e "COMMAND_LINE = ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
@@ -730,7 +732,7 @@ mkdir -p ${LOGDIRECTORY}
                                 if [[ ${OPTION_BINLOG_COMMIT_WAIT_COUNT} ]] ; then
                                     echo "binlog_commit_wait_count = ${OPTION_BINLOG_COMMIT_WAIT_COUNT}"
                                 fi
-                                echo "max_binlog_size = 100M"
+                                echo "max_binlog_size = 1G"
                             fi
                             if [[ ${OPTION_SLAVE} ]] ; then
                                 if [[ ${OPTION_SLAVE_PARALLEL_MODE} ]] ; then

@@ -57,19 +57,23 @@ while [[ $# > 0 ]] ; do
         --maxscale-tarball)         MAXSCALE_SOURCE="tarball";
                                     MAXSCALE_TARBALL="$1"; shift;;
 
+        --arm)                      OPTION_ARM=TRUE;;
+
+        # config generator options
         --thread-pool)              OPTION_THREAD_POOL=TRUE;;
         --thread-pool-size)         OPTION_THREAD_POOL_SIZE="$1"; shift;;
 
         # Master/Slave Replication Config Options
         --semisync-replication)     OPTION_SEMISYNC_REPLICATION=TRUE;;
-        --semisync-after-commit)    OPTION_SEMISYNC_AFTER_COMMIT=TRUE;;
-        --semisync-after-sync)      OPTION_SEMISYNC_AFTER_SYNC=TRUE;;
-
+        --semisync-after-commit)    OPTION_SEMISYNC_AFTER_COMMIT=TRUE; OPTION_SEMISYNC_REPLICATION=TRUE;;
+        --semisync-after-sync)      OPTION_SEMISYNC_AFTER_SYNC=TRUE; OPTION_SEMISYNC_REPLICATION=TRUE;;
         --binlog-commit-wait-usec)  OPTION_BINLOG_COMMIT_WAIT_USEC="$1"; shift;;
         --binlog-commit-wait-count) OPTION_BINLOG_COMMIT_WAIT_COUNT="$1"; shift;;
+        --sync-binlog)              OPTION_SYNC_BINLOG=TRUE;;
+        --sync-relaylog)            OPTION_SYNC_RELAYLOG=TRUE;;
 
         # Galera/Raft Config Options
-        --slavethreads)             OPTION_SLAVE_THREADS="$1"; shift;;
+        --slave-threads)            OPTION_SLAVE_THREADS="$1"; shift;;
         --deferflush)               OPTION_DEFERRED_FLUSH=TRUE;;
 
         --profile)                  OPTION_PROFILING=TRUE;;
@@ -122,13 +126,14 @@ mkdir -p ${LOGDIRECTORY}
                 echo
                 echo "    ===== Build MariaDB System = ${CLUSTER} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
                 COMMAND="build.system.sh --system ${CLUSTER} --initdb"
-                [[ ${OPTION_THREAD_POOL} ]] && COMMAND="${COMMAND} --thread-pool"
+                [[ ${OPTION_THREAD_POOL} == TRUE ]] && COMMAND="${COMMAND} --thread-pool"
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
                 [[ ${MARIADB_SOURCE} ]] && COMMAND="${COMMAND} --mariadb-source ${MARIADB_SOURCE}"
                 [[ ${MARIADB_BRANCH} ]] && COMMAND="${COMMAND} --mariadb-branch ${MARIADB_BRANCH}"
                 [[ ${MARIADB_COMMIT} ]] && COMMAND="${COMMAND} --mariadb-commit ${MARIADB_COMMIT}"
                 [[ ${MARIADB_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${MARIADB_TARBALL}"
-                [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
+                [[ ${OPTION_SSL} == TRUE ]] && COMMAND="${COMMAND} --ssl"
+                [[ ${OPTION_ARM} == TRUE ]] && COMMAND="${COMMAND} --arm"
                 echo "        COMMAND = ${COMMAND}"
                 time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.mariadb.${CLUSTER}.log 2>&1
                 ;;
@@ -139,18 +144,21 @@ mkdir -p ${LOGDIRECTORY}
                 echo
                 echo "    ===== Build Master - SYSTEMS = ${MASTER_SYSTEMS[0]} =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
                 COMMAND="build.system.sh --system ${MASTER_SYSTEMS[0]} --initdb --binlog"
-                [[ ${OPTION_SEMISYNC_REPLICATION} ]] && COMMAND="${COMMAND} --semisync-replication"
-                [[ ${OPTION_SEMISYNC_AFTER_COMMIT} ]] && COMMAND="${COMMAND} --semisync-after-commit"
-                [[ ${OPTION_SEMISYNC_AFTER_SYNC} ]] && COMMAND="${COMMAND} --semisync-after-sync"
+                [[ ${OPTION_SEMISYNC_REPLICATION} == TRUE ]] && COMMAND="${COMMAND} --semisync-replication"
+                [[ ${OPTION_SEMISYNC_AFTER_COMMIT} == TRUE ]] && COMMAND="${COMMAND} --semisync-after-commit"
+                [[ ${OPTION_SEMISYNC_AFTER_SYNC} == TRUE ]] && COMMAND="${COMMAND} --semisync-after-sync"
                 [[ ${OPTION_BINLOG_COMMIT_WAIT_USEC} ]] && COMMAND="${COMMAND} --binlog-commit-wait-usec ${OPTION_BINLOG_COMMIT_WAIT_USEC}"
                 [[ ${OPTION_BINLOG_COMMIT_WAIT_COUNT} ]] && COMMAND="${COMMAND} --binlog-commit-wait-count ${OPTION_BINLOG_COMMIT_WAIT_COUNT}"
-                [[ ${OPTION_THREAD_POOL} ]] && COMMAND="${COMMAND} --thread-pool"
+                [[ ${OPTION_SYNC_BINLOG} == TRUE ]] && COMMAND="${COMMAND} --sync-binlog"
+                [[ ${OPTION_SYNC_RELAYLOG} == TRUE ]] && COMMAND="${COMMAND} --sync-relaylog"
+                [[ ${OPTION_THREAD_POOL} == TRUE ]] && COMMAND="${COMMAND} --thread-pool"
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
                 [[ ${MARIADB_SOURCE} ]] && COMMAND="${COMMAND} --mariadb-source ${MARIADB_SOURCE}"
                 [[ ${MARIADB_BRANCH} ]] && COMMAND="${COMMAND} --mariadb-branch ${MARIADB_BRANCH}"
                 [[ ${MARIADB_COMMIT} ]] && COMMAND="${COMMAND} --mariadb-commit ${MARIADB_COMMIT}"
                 [[ ${MARIADB_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${MARIADB_TARBALL}"
-                [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
+                [[ ${OPTION_SSL} == TRUE ]] && COMMAND="${COMMAND} --ssl"
+                [[ ${OPTION_ARM} == TRUE ]] && COMMAND="${COMMAND} --arm"
                 echo "        COMMAND = ${COMMAND}"
                 time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.master.${MASTER_SYSTEMS[0]}.log 2>&1
                 echo
@@ -158,18 +166,22 @@ mkdir -p ${LOGDIRECTORY}
                 time {
                     for SYSTEM in ${REPLICA_SYSTEMS[*]} ; do
                         COMMAND="build.system.sh --system ${SYSTEM} --master ${MASTER_SYSTEMS[0]} --initdb"
-                        [[ ${OPTION_SEMISYNC_REPLICATION} ]] && COMMAND="${COMMAND} --semisync-replication"
-                        [[ ${OPTION_SEMISYNC_AFTER_COMMIT} ]] && COMMAND="${COMMAND} --semisync-after-commit"
-                        [[ ${OPTION_SEMISYNC_AFTER_SYNC} ]] && COMMAND="${COMMAND} --semisync-after-sync"
+                        [[ ${OPTION_SEMISYNC_REPLICATION} == TRUE ]] && COMMAND="${COMMAND} --semisync-replication"
+                        [[ ${OPTION_SEMISYNC_AFTER_COMMIT} == TRUE ]] && COMMAND="${COMMAND} --semisync-after-commit"
+                        [[ ${OPTION_SEMISYNC_AFTER_SYNC} == TRUE ]] && COMMAND="${COMMAND} --semisync-after-sync"
                         [[ ${OPTION_BINLOG_COMMIT_WAIT_USEC} ]] && COMMAND="${COMMAND} --binlog-commit-wait-usec ${OPTION_BINLOG_COMMIT_WAIT_USEC}"
                         [[ ${OPTION_BINLOG_COMMIT_WAIT_COUNT} ]] && COMMAND="${COMMAND} --binlog-commit-wait-count ${OPTION_BINLOG_COMMIT_WAIT_COUNT}"
-                        [[ ${OPTION_THREAD_POOL} ]] && COMMAND="${COMMAND} --thread-pool"
+                        [[ ${OPTION_SYNC_BINLOG} == TRUE ]] && COMMAND="${COMMAND} --sync-binlog"
+                        [[ ${OPTION_SYNC_RELAYLOG} == TRUE ]] && COMMAND="${COMMAND} --sync-relaylog"
+                        [[ ${OPTION_THREAD_POOL} == TRUE ]] && COMMAND="${COMMAND} --thread-pool"
                         [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
+                        [[ ${OPTION_SLAVE_THREADS} ]] && COMMAND="${COMMAND} --slave-threads ${OPTION_SLAVE_THREADS}"
                         [[ ${MARIADB_SOURCE} ]] && COMMAND="${COMMAND} --mariadb-source ${MARIADB_SOURCE}"
                         [[ ${MARIADB_BRANCH} ]] && COMMAND="${COMMAND} --mariadb-branch ${MARIADB_BRANCH}"
                         [[ ${MARIADB_COMMIT} ]] && COMMAND="${COMMAND} --mariadb-commit ${MARIADB_COMMIT}"
                         [[ ${MARIADB_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${MARIADB_TARBALL}"
-                        [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
+                        [[ ${OPTION_SSL} == TRUE ]] && COMMAND="${COMMAND} --ssl"
+                        [[ ${OPTION_ARM} == TRUE ]] && COMMAND="${COMMAND} --arm"
                         echo "        COMMAND = ${COMMAND}"
                         ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.slave.${SYSTEM}.log 2>&1 &
                         sleep 1
@@ -180,10 +192,10 @@ mkdir -p ${LOGDIRECTORY}
 
             galera_*)
                 COMMAND="build.galera.sh --cluster ${CLUSTER}"
-                [[ ${OPTION_THREAD_POOL} ]] && COMMAND="${COMMAND} --thread-pool"
+                [[ ${OPTION_THREAD_POOL} == TRUE ]] && COMMAND="${COMMAND} --thread-pool"
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
-                [[ ${OPTION_SLAVE_THREADS} ]] && COMMAND="${COMMAND} --slavethreads ${OPTION_SLAVE_THREADS}"
-                [[ ${OPTION_DEFERRED_FLUSH} ]] && COMMAND="${COMMAND} --deferflush"
+                [[ ${OPTION_SLAVE_THREADS} ]] && COMMAND="${COMMAND} --slave-threads ${OPTION_SLAVE_THREADS}"
+                [[ ${OPTION_DEFERRED_FLUSH} == TRUE ]] && COMMAND="${COMMAND} --deferflush"
                 [[ ${MARIADB_SOURCE} ]] && COMMAND="${COMMAND} --mariadb-source ${MARIADB_SOURCE}"
                 [[ ${MARIADB_BRANCH} ]] && COMMAND="${COMMAND} --mariadb-branch ${MARIADB_BRANCH}"
                 [[ ${MARIADB_COMMIT} ]] && COMMAND="${COMMAND} --mariadb-commit ${MARIADB_COMMIT}"
@@ -192,16 +204,18 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${GALERA_BRANCH} ]] && COMMAND="${COMMAND} --galera-branch ${GALERA_BRANCH}"
                 [[ ${GALERA_COMMIT} ]] && COMMAND="${COMMAND} --galera-commit ${GALERA_COMMIT}"
                 [[ ${GALERA_TARBALL} ]] && COMMAND="${COMMAND} --galera-tarball ${GALERA_TARBALL}"
+                [[ ${OPTION_SSL} == TRUE ]] && COMMAND="${COMMAND} --ssl"
+                [[ ${OPTION_ARM} == TRUE ]] && COMMAND="${COMMAND} --arm"
                 echo "        COMMAND = ${COMMAND}"
                 time ${COMMAND}
                 ;;
 
             raft_*)
                 COMMAND="build.raft.sh --cluster ${CLUSTER}"
-                [[ ${OPTION_THREAD_POOL} ]] && COMMAND="${COMMAND} --thread-pool"
+                [[ ${OPTION_THREAD_POOL} == TRUE ]] && COMMAND="${COMMAND} --thread-pool"
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
-                [[ ${OPTION_SLAVE_THREADS} ]] && COMMAND="${COMMAND} --slavethreads ${OPTION_SLAVE_THREADS}"
-                [[ ${OPTION_DEFERRED_FLUSH} ]] && COMMAND="${COMMAND} --deferflush"
+                [[ ${OPTION_SLAVE_THREADS} ]] && COMMAND="${COMMAND} --slave-threads ${OPTION_SLAVE_THREADS}"
+                [[ ${OPTION_DEFERRED_FLUSH} == TRUE ]] && COMMAND="${COMMAND} --deferflush"
                 [[ ${MARIADB_SOURCE} ]] && COMMAND="${COMMAND} --mariadb-source ${MARIADB_SOURCE}"
                 [[ ${MARIADB_BRANCH} ]] && COMMAND="${COMMAND} --mariadb-branch ${MARIADB_BRANCH}"
                 [[ ${MARIADB_COMMIT} ]] && COMMAND="${COMMAND} --mariadb-commit ${MARIADB_COMMIT}"
@@ -210,6 +224,8 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${RAFT_BRANCH} ]] && COMMAND="${COMMAND} --raft-branch ${RAFT_BRANCH}"
                 [[ ${RAFT_COMMIT} ]] && COMMAND="${COMMAND} --raft-commit ${RAFT_COMMIT}"
                 [[ ${RAFT_TARBALL} ]] && COMMAND="${COMMAND} --raft-tarball ${RAFT_TARBALL}"
+                [[ ${OPTION_SSL} == TRUE ]] && COMMAND="${COMMAND} --ssl"
+                [[ ${OPTION_ARM} == TRUE ]] && COMMAND="${COMMAND} --arm"
                 echo "        COMMAND = ${COMMAND}"
                 time ${COMMAND}
                 ;;
@@ -228,7 +244,7 @@ mkdir -p ${LOGDIRECTORY}
         [[ ${MAXSCALE_SOURCE} ]] && COMMAND="${COMMAND} --maxscale-source ${MAXSCALE_SOURCE}"
         [[ ${MAXSCALE_VERSION} ]] && COMMAND="${COMMAND} --maxscale-version ${MAXSCALE_VERSION}"
         [[ ${MAXSCALE_TARBALL} ]] && COMMAND="${COMMAND} --maxscale-tarball ${MAXSCALE_TARBALL}"
-        [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --ssl"
+        [[ ${OPTION_SSL} == TRUE ]] && COMMAND="${COMMAND} --ssl"
         echo "        COMMAND = ${COMMAND}"
         time ${COMMAND} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).build.maxscale.log 2>&1
         echo
