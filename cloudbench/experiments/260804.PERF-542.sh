@@ -45,14 +45,19 @@ if [[ ${SOFIA} ]] ; then
     TEST_NAME="perf-542-sofia"
     cp properties/g1.properties properties/${CLUSTER}-server-1.properties
     cp properties/g2.properties properties/${CLUSTER}-server-2.properties
+    cp properties/g3.properties properties/${CLUSTER}-server-3.properties
     cp properties/g4.properties properties/${CLUSTER}-driver-1.properties
     [[ ${REPEATS} ]] || REPEATS=1
+    # the goal is to have slave threads = 3 x nCPU
+    [[ ${OPTION_SLAVE_THREADS} ]] || OPTION_SLAVE_THREADS=36
 else
     # if not run in Sofia, use GCP
     source ${CBENCH_HOME}/config/gcp.conf
     [[ ${SERVER_TYPE} ]] || SERVER_TYPE="n2-standard-16"
     [[ ${DRIVER_TYPE} ]] || DRIVER_TYPE="n2-highcpu-8"
     [[ ${REPEATS} ]] || REPEATS=3
+    # the goal is to have slave threads = 3 x nCPU
+    [[ ${OPTION_SLAVE_THREADS} ]] || OPTION_SLAVE_THREADS=48
 fi
 
 
@@ -106,6 +111,7 @@ mkdir -p ${LOGDIRECTORY}
 
         COMMAND="build.cluster.sh --cluster ${CLUSTER} --mariadb-branch ENTERPRISE/11.8-enterprise"
         [[ ${MARIADB_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${MARIADB_TARBALL}"
+        [[ ${OPTION_SLAVE_THREADS} ]] && COMMAND="${COMMAND} --slave-threads OPTION_SLAVE_THREADS"
         case ${WAITPOINT} in
             # default is async, nothing to add for this
             SYNC)   COMMAND="${COMMAND} --semisync-replication --semisync-after-sync";;
