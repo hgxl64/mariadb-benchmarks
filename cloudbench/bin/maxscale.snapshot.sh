@@ -104,12 +104,12 @@ time {
 
                     if [[ ${INVOCATION} == "precurve" || ${INVOCATION} == "preload" ]] ; then
                         echo "            Clearing Statistics"
-                        SERVERS=$(ssh $(get_ssh_connection ${SYSTEM}) "/data/cbench/install/bin/maxctrl --tsv list servers | awk '{print $1}'")
+                        SERVERS=$(ssh $(get_ssh_connection ${SYSTEM}) "/data/cbench/install/bin/maxctrl --tsv list servers" | awk '{print $1}')
                         for SERVER in ${SERVERS} ; do
                             echo -n "              Server ${SERVER} "
                             ssh $(get_ssh_connection ${SYSTEM}) "/data/cbench/install/bin/maxctrl clear statistics ${SERVER}"
                         done
-                        SERVICES=$(ssh $(get_ssh_connection ${SYSTEM}) "/data/cbench/install/bin/maxctrl --tsv list services | awk '{print $1}'")
+                        SERVICES=$(ssh $(get_ssh_connection ${SYSTEM}) "/data/cbench/install/bin/maxctrl --tsv list services" | awk '{print $1}')
                         for SERVICE in $(/data/cbench/install/bin/maxctrl2 --format=tsv list services | awk '{print $1}') ; do
                             echo -n "              Service ${SERVICE} "
                             ssh $(get_ssh_connection ${SYSTEM}) "/data/cbench/install/bin/maxctrl clear statistics ${SERVICE}"
