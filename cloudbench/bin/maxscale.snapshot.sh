@@ -102,6 +102,20 @@ time {
                         [[ -s ${D} ]] || rm -f ${D}
                     done
 
+                    echo "            MaxScale Servers and Services"
+                    ssh $(get_ssh_connection ${SYSTEM}) "
+                        /data/cbench/install/bin/maxctrl2 --format=ascii list servers
+                        " > ${LOGDIRECTORY}/${SYSTEM}/list_servers.log
+                    ssh $(get_ssh_connection ${SYSTEM}) "
+                        /data/cbench/install/bin/maxctrl2 --format=ascii list services
+                        " > ${LOGDIRECTORY}/${SYSTEM}/list_services.log
+                    ssh $(get_ssh_connection ${SYSTEM}) "
+                        /data/cbench/install/bin/maxctrl2 --format=ascii show servers
+                        " > ${LOGDIRECTORY}/${SYSTEM}/show_servers.log
+                    ssh $(get_ssh_connection ${SYSTEM}) "
+                        /data/cbench/install/bin/maxctrl2 --format=ascii show services
+                        " > ${LOGDIRECTORY}/${SYSTEM}/show_services.log
+
                     echo "            Data Sizes"
                     ssh $(get_ssh_connection ${SYSTEM} ${NODE}) 'sudo du -sh /data/cbench/install/var/*' > ${LOGDIRECTORY}/${SYSTEM}/du.txt
                 done
