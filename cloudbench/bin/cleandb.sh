@@ -56,7 +56,10 @@ time {
     echo
     echo "    ===== Cleanup Any Leftover Objects from a Previous Database System =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-    unset NODES
+    # if called for a single system, we have just this node
+    NODES=( $(get_property ${CLUSTER} nodes) )
+
+    # of called for a whole cluster, add all it's systems nodes
     for SYSTEM in $(get_property ${CLUSTER} mariadb.systems) \
                   $(get_property ${CLUSTER} master.systems) $(get_property ${CLUSTER} slave.systems) \
                   $(get_property ${CLUSTER} galera.systems) $(get_property ${CLUSTER} raft.systems) ; do
