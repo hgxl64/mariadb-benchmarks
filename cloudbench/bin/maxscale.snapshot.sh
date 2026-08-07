@@ -102,6 +102,20 @@ time {
                         [[ -s ${D} ]] || rm -f ${D}
                     done
 
+                    if [[ ${INVOCATION} == "precurve" || ${INVOCATION} == "preload" ]] ; then
+                        echo "            Clearing Statistics"
+                        SERVERS=$(ssh $(get_ssh_connection ${SYSTEM}) "/data/cbench/install/bin/maxctrl --tsv list servers | awk '{print $1}'")
+                        for SERVER in ${SERVERS} ; do
+                            echo -n "              Server ${SERVER} "
+                            ssh $(get_ssh_connection ${SYSTEM}) "/data/cbench/install/bin/maxctrl clear statistics ${SERVER}"
+                        done
+                        SERVICES=$(ssh $(get_ssh_connection ${SYSTEM}) "/data/cbench/install/bin/maxctrl --tsv list services | awk '{print $1}'")
+                        for SERVICE in $(/data/cbench/install/bin/maxctrl2 --format=tsv list services | awk '{print $1}') ; do
+                            echo -n "              Service ${SERVICE} "
+                            ssh $(get_ssh_connection ${SYSTEM}) "/data/cbench/install/bin/maxctrl clear statistics ${SERVICE}"
+                        done
+                    fi
+
                     echo "            MaxScale Servers and Services"
                     ssh $(get_ssh_connection ${SYSTEM}) "
                         /data/cbench/install/bin/maxctrl2 --format=ascii list servers
