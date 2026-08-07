@@ -98,7 +98,7 @@ gen_graph(){
 html_begin
 
 # Interval Seconds
-gen_graph "Interval Seconds" "Seconds" 10 "interval:interval seconds"
+gen_graph "Interval Seconds" "Seconds" 20 "interval:interval seconds"
 
 # Slave Lag per Host
 pngfile="slave_lag.png"
