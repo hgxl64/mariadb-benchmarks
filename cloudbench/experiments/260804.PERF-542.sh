@@ -146,7 +146,7 @@ mkdir -p ${LOGDIRECTORY}
         done
 
         for WORKLOAD in ${MAXSCALE_WORKLOADS[*]} ; do
-            COMMAND="performance.curves.sh --cluster ${CLUSTER}-maxscale --repeats ${REPEATS}"
+            COMMAND="performance.curves.sh --cluster ${CLUSTER}.maxscale --repeats ${REPEATS}"
             COMMAND="${COMMAND} -- --benchmark sysbench --workload ${WORKLOAD}"
             COMMAND="${COMMAND} --wait-for-slave-gtid --skipcheck"
             [[ ${SOFIA} ]] && COMMAND="${COMMAND} --monitor"
