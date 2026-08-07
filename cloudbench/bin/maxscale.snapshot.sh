@@ -84,7 +84,7 @@ time {
 
                     echo "            Config Files"
                     CONFIG_FILES=(
-                        /data/cbench/install/etc/maxscale.conf
+                        /data/cbench/install/etc/maxscale.cnf
                     )
                     for FILE in ${CONFIG_FILES[*]} ; do
                         D=${LOGDIRECTORY}/${SYSTEM}/$(echo ${FILE} | rev | cut -d'/' -f 1 | rev)
