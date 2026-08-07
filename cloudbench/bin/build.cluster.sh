@@ -69,8 +69,9 @@ while [[ $# > 0 ]] ; do
         --semisync-after-sync)      OPTION_SEMISYNC_AFTER_SYNC=TRUE; OPTION_SEMISYNC_REPLICATION=TRUE;;
         --binlog-commit-wait-usec)  OPTION_BINLOG_COMMIT_WAIT_USEC="$1"; shift;;
         --binlog-commit-wait-count) OPTION_BINLOG_COMMIT_WAIT_COUNT="$1"; shift;;
-        --sync-binlog)              OPTION_SYNC_BINLOG=TRUE;;
-        --sync-relaylog)            OPTION_SYNC_RELAYLOG=TRUE;;
+        --sync-binlog)              OPTION_SYNC_BINLOG="$1"; shift;;
+        --sync-relaylog)            OPTION_SYNC_RELAYLOG="$1"; shift;;
+        --log-slave-updates)        OPTION_LOG_SLAVE_UPDATES=TRUE;;
 
         # Galera/Raft Config Options
         --slave-threads)            OPTION_SLAVE_THREADS="$1"; shift;;
@@ -149,8 +150,9 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${OPTION_SEMISYNC_AFTER_SYNC} == TRUE ]] && COMMAND="${COMMAND} --semisync-after-sync"
                 [[ ${OPTION_BINLOG_COMMIT_WAIT_USEC} ]] && COMMAND="${COMMAND} --binlog-commit-wait-usec ${OPTION_BINLOG_COMMIT_WAIT_USEC}"
                 [[ ${OPTION_BINLOG_COMMIT_WAIT_COUNT} ]] && COMMAND="${COMMAND} --binlog-commit-wait-count ${OPTION_BINLOG_COMMIT_WAIT_COUNT}"
-                [[ ${OPTION_SYNC_BINLOG} == TRUE ]] && COMMAND="${COMMAND} --sync-binlog"
-                [[ ${OPTION_SYNC_RELAYLOG} == TRUE ]] && COMMAND="${COMMAND} --sync-relaylog"
+                [[ ${OPTION_SYNC_BINLOG} ]] && COMMAND="${COMMAND} --sync-binlog ${OPTION_SYNC_BINLOG}"
+                [[ ${OPTION_SYNC_RELAYLOG} ]] && COMMAND="${COMMAND} --sync-relaylog ${OPTION_SYNC_RELAYLOG}"
+                [[ ${OPTION_LOG_SLAVE_UPDATES} == TRUE ]] && COMMAND="${COMMAND} --log-slave-updates"
                 [[ ${OPTION_THREAD_POOL} == TRUE ]] && COMMAND="${COMMAND} --thread-pool"
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
                 [[ ${MARIADB_SOURCE} ]] && COMMAND="${COMMAND} --mariadb-source ${MARIADB_SOURCE}"
@@ -171,8 +173,9 @@ mkdir -p ${LOGDIRECTORY}
                         [[ ${OPTION_SEMISYNC_AFTER_SYNC} == TRUE ]] && COMMAND="${COMMAND} --semisync-after-sync"
                         [[ ${OPTION_BINLOG_COMMIT_WAIT_USEC} ]] && COMMAND="${COMMAND} --binlog-commit-wait-usec ${OPTION_BINLOG_COMMIT_WAIT_USEC}"
                         [[ ${OPTION_BINLOG_COMMIT_WAIT_COUNT} ]] && COMMAND="${COMMAND} --binlog-commit-wait-count ${OPTION_BINLOG_COMMIT_WAIT_COUNT}"
-                        [[ ${OPTION_SYNC_BINLOG} == TRUE ]] && COMMAND="${COMMAND} --sync-binlog"
-                        [[ ${OPTION_SYNC_RELAYLOG} == TRUE ]] && COMMAND="${COMMAND} --sync-relaylog"
+                        [[ ${OPTION_SYNC_BINLOG} ]] && COMMAND="${COMMAND} --sync-binlog ${OPTION_SYNC_BINLOG}"
+                        [[ ${OPTION_SYNC_RELAYLOG} ]] && COMMAND="${COMMAND} --sync-relaylog ${OPTION_SYNC_RELAYLOG}"
+                        [[ ${OPTION_LOG_SLAVE_UPDATES} == TRUE ]] && COMMAND="${COMMAND} --log-slave-updates"
                         [[ ${OPTION_THREAD_POOL} == TRUE ]] && COMMAND="${COMMAND} --thread-pool"
                         [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
                         [[ ${OPTION_SLAVE_THREADS} ]] && COMMAND="${COMMAND} --slave-threads ${OPTION_SLAVE_THREADS}"

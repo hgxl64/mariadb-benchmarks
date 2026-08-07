@@ -89,7 +89,7 @@ while [[ $# > 0 ]] ; do
         --innodb-flush-method)          OPTION_INNODB_FLUSH_METHOD="$1"; shift;;
         --innodb-log-buffer-size)       OPTION_INNODB_LOG_BUFFER_SIZE="$1"; shift;;
         --innodb-io-capacity)           OPTION_INNODB_IO_CAPACITY="$1"; shift;;
-        --innodb-read-io-_threads)       OPTION_INNODB_READ_IO_THREADS="$1"; shift;;
+        --innodb-read-io-threads)       OPTION_INNODB_READ_IO_THREADS="$1"; shift;;
         --innodb-write-io-threads)      OPTION_INNODB_WRITE_IO_THREADS="$1"; shift;;
         --max-connections)              OPTION_MAX_CONNECTIONS="$1"; shift;;
         --performance-schema)           OPTION_PERFORMANCE_SCHEMA="$1"; shift;;
@@ -119,8 +119,8 @@ while [[ $# > 0 ]] ; do
         --semisync_replication)         OPTION_SEMISYNC_REP=TRUE;;
         --semisync_after_commit)        OPTION_SEMISYNC_AFTER_COMMIT=TRUE; OPTION_SEMISYNC_REP=TRUE;;
         --semisync_after_sync)          OPTION_SEMISYNC_AFTER_SYNC=TRUE; OPTION_SEMISYNC_REP=TRUE;;
-        --sync_binlog)                  OPTION_SYNC_BINLOG=TRUE;;
-        --sync_relaylog)                OPTION_SYNC_RELAYLOG=TRUE;;
+        --sync_binlog)                  OPTION_SYNC_BINLOG="$1"; shift;;
+        --sync_relaylog)                OPTION_SYNC_RELAYLOG="$1"; shift;;
 
         # alternative option names
         --binlog-commit-wait-usec)      OPTION_BINLOG_COMMIT_WAIT_USEC="$1"; shift;;
@@ -128,9 +128,10 @@ while [[ $# > 0 ]] ; do
         --semisync-replication)         OPTION_SEMISYNC_REP=TRUE;;
         --semisync-after-commit)        OPTION_SEMISYNC_AFTER_COMMIT=TRUE; OPTION_SEMISYNC_REP=TRUE;;
         --semisync-after-sync)          OPTION_SEMISYNC_AFTER_SYNC=TRUE; OPTION_SEMISYNC_REP=TRUE;;
-        --sync-binlog)                  OPTION_SYNC_BINLOG=TRUE;;
-        --sync-relaylog)                OPTION_SYNC_RELAYLOG=TRUE;;
+        --sync-binlog)                  OPTION_SYNC_BINLOG="$1"; shift;;
+        --sync-relaylog)                OPTION_SYNC_RELAYLOG="$1"; shift;;
         --slave-threads)                OPTION_SLAVE_THREADS="$1"; shift;;
+        --log-slave-updates)            OPTION_LOG_SLAVE_UPDATES=TRUE;;
 
         -h|--help)                      echo -e "$USAGE"; exit 1;;
         *)  echo "Invalid input switch: $key"; echo -e "COMMAND_LINE = ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
@@ -577,6 +578,8 @@ mkdir -p ${LOGDIRECTORY}
                     OPTION_SYNC_BINLOG="'${OPTION_SYNC_BINLOG}'"
                     OPTION_SYNC_MASTER="'${OPTION_SYNC_MASTER}'"
                     OPTION_SYNC_RELAYLOG="'${OPTION_SYNC_RELAYLOG}'"
+                    OPTION_LOG_SLAVE_UPDATES="'${OPTION_LOG_SLAVE_UPDATES}'"
+                    OPTION_MAX_BINLOG_SIZE="'${OPTION_MAX_BINLOG_SIZE}'"
                     OPTION_TABLE_OPEN_CACHE="'${OPTION_TABLE_OPEN_CACHE}'"
                     OPTION_THREAD_POOL="'${OPTION_THREAD_POOL}'"
                     OPTION_THREAD_POOL_SIZE="'${OPTION_THREAD_POOL_SIZE}'"
@@ -701,28 +704,47 @@ mkdir -p ${LOGDIRECTORY}
                         echo "server_id = ${SERVER_ID}"
                         if [[ ${OPTION_MASTER} == TRUE || ${OPTION_SLAVE} ]] ; then
                             echo "log_bin = /data/cbench/datadir/binlog"
-                            echo "relay_log = /data/cbench/datadir/relaylog"
                             echo "binlog_format = ROW"
                             echo "binlog_row_image = MINIMAL"
                             echo "binlog_cache_size = 256K"
                             echo "binlog_stmt_cache_size = 128K"
-                            if [[ ${OPTION_SYNC_BINLOG} ]] ; then
-                                echo "sync_binlog = 1"
+                            if [[ ${OPTION_MAX_BINLOG_SIZE} ]] ; then
+                                echo "max_binlog_size = ${OPTION_MAX_BINLOG_SIZE}"
+                            else
+                                echo "max_binlog_size = 1G"
                             fi
-                            if [[ ${OPTION_SYNC_MASTER} ]] ; then
+                            if [[ ${OPTION_SYNC_BINLOG} ]] ; then
+                                echo "sync_binlog = ${OPTION_SYNC_BINLOG}"
+                            fi
+                            if [[ ${OPTION_SYNC_MASTER} == TRUE ]] ; then
                                 echo "sync_master_info = 1"
                             fi
+                            echo "relay_log = /data/cbench/datadir/relaylog"
                             if [[ ${OPTION_SYNC_RELAYLOG} ]] ; then
-                                echo "sync_relay_log = 1"
-                                echo "sync_relay_log_info = 1"
+                                echo "sync_relay_log = ${OPTION_SYNC_RELAYLOG}"
+                                echo "sync_relay_log_info = ${OPTION_SYNC_RELAYLOG}"
+                            fi
+                            if [[ ${OPTION_LOG_SLAVE_UPDATES} == TRUE ]] ; then
+                                echo "log_slave_updates = on"
+                            fi
+                            if [[ ${OPTION_SLAVE_PARALLEL_MODE} ]] ; then
+                                echo "slave_parallel_mode = ${OPTION_SLAVE_PARALLEL_MODE}"
+                            fi
+                            if [[ ${OPTION_SLAVE_THREADS} ]] ; then
+                                echo "slave_parallel_threads = ${OPTION_SLAVE_THREADS}"
+                            else
+                                echo "slave_parallel_threads = ${AUTO_SLAVE_THREADS}"
+                            fi
+                            if [[ ${OPTION_SEMISYNC_REP} == TRUE ]] ; then
+                                echo "rpl_semi_sync_slave_enabled = on"
                             fi
                             if [[ ${OPTION_MASTER} == TRUE ]] ; then
-                                if [[ ${OPTION_SEMISYNC_REP} ]] ; then
+                                if [[ ${OPTION_SEMISYNC_REP} == TRUE ]] ; then
                                     echo "rpl_semi_sync_master_enabled = on"
-                                    if [[ ${OPTION_SEMISYNC_AFTER_SYNC} ]] ; then
+                                    if [[ ${OPTION_SEMISYNC_AFTER_SYNC} == TRUE ]] ; then
                                         echo "rpl_semi_sync_master_wait_point = AFTER_SYNC"
                                     fi
-                                    if [[ ${OPTION_SEMISYNC_AFTER_COMMIT} ]] ; then
+                                    if [[ ${OPTION_SEMISYNC_AFTER_COMMIT} == TRUE ]] ; then
                                         echo "rpl_semi_sync_master_wait_point = AFTER_COMMIT"
                                     fi
                                 fi
@@ -731,20 +753,6 @@ mkdir -p ${LOGDIRECTORY}
                                 fi
                                 if [[ ${OPTION_BINLOG_COMMIT_WAIT_COUNT} ]] ; then
                                     echo "binlog_commit_wait_count = ${OPTION_BINLOG_COMMIT_WAIT_COUNT}"
-                                fi
-                                echo "max_binlog_size = 1G"
-                            fi
-                            if [[ ${OPTION_SLAVE} ]] ; then
-                                if [[ ${OPTION_SLAVE_PARALLEL_MODE} ]] ; then
-                                    echo "slave_parallel_mode = ${OPTION_SLAVE_PARALLEL_MODE}"
-                                fi
-                                if [[ ${OPTION_SLAVE_THREADS} ]] ; then
-                                    echo "slave_parallel_threads = ${OPTION_SLAVE_THREADS}"
-                                else
-                                    echo "slave_parallel_threads = ${AUTO_SLAVE_THREADS}"
-                                fi
-                                if [[ ${OPTION_SEMISYNC_REP} ]] ; then
-                                    echo "rpl_semi_sync_slave_enabled = on"
                                 fi
                             fi
                         else
@@ -833,8 +841,8 @@ mkdir -p ${LOGDIRECTORY}
                 "
         fi
 
-        if [[ ${OPTION_MASTER} == TRUE ]] ; then
-            echo "        Binlogging enabled - Create Replication User"
+        if [[ ${OPTION_MASTER} == TRUE || ${OPTION_SLAVE} ]] ; then
+            echo "        Replication configured - Create Replication User"
             ssh $(get_ssh_connection ${CLUSTER} ${SYSTEM}) "
                 uname -n
                 /data/cbench/install/bin/mariadb -S /data/cbench/mariadb.sock -u root -vvv -e\"
