@@ -50,7 +50,7 @@ if [[ ${SOFIA} ]] ; then
     cp properties/g4.properties properties/${CLUSTER}-driver-1.properties
     [[ ${REPEATS} ]] || REPEATS=1
     # the goal is to have slave threads = 3 x nCPU
-    [[ ${OPTION_SLAVE_THREADS} ]] || OPTION_SLAVE_THREADS=36
+    [[ ${OPTION_SLAVE_THREADS} ]] || export OPTION_SLAVE_THREADS=36
 else
     # if not run in Sofia, use GCP
     source ${CBENCH_HOME}/config/gcp.conf
@@ -58,7 +58,7 @@ else
     [[ ${DRIVER_TYPE} ]] || DRIVER_TYPE="n2-highcpu-8"
     [[ ${REPEATS} ]] || REPEATS=3
     # the goal is to have slave threads = 3 x nCPU
-    [[ ${OPTION_SLAVE_THREADS} ]] || OPTION_SLAVE_THREADS=48
+    [[ ${OPTION_SLAVE_THREADS} ]] || export OPTION_SLAVE_THREADS=48
 fi
 
 
