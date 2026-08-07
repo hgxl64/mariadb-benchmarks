@@ -56,17 +56,17 @@ time {
     echo
     echo "    ===== Cleanup Any Leftover Objects from a Previous Database System =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-    NODES=( $(get_property ${CLUSTER} nodes) )
-    if [[ $(get_property ${CLUSTER} galera.systems) ]] ; then
-        for SYSTEM in $(get_property ${CLUSTER} galera.systems) ; do
-            for NODE in $(get_property ${SYSTEM} nodes) ; do
-                if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
-                    # if the node is not already in the list of hardware nodes, add it
-                    NODES=( ${NODES[*]} ${NODE} )
-                fi
-            done
+    unset NODES
+    for SYSTEM in $(get_property ${CLUSTER} mariadb.systems) \
+                  $(get_property ${CLUSTER} master.systems) $(get_property ${CLUSTER} slave.systems) \
+                  $(get_property ${CLUSTER} galera.systems) $(get_property ${CLUSTER} raft.systems) ; do
+        for NODE in $(get_property ${SYSTEM} nodes) ; do
+            if [[ ! " ${NODES[@]} " =~ " ${NODE} " ]]; then
+                # if the node is not already in the list of hardware nodes, add it
+                NODES=( ${NODES[*]} ${NODE} )
+            fi
         done
-    fi
+    done
     if [[ $(get_property ${CLUSTER} maxscale.systems) ]] ; then
         for SYSTEM in $(get_property ${CLUSTER} maxscale.systems) ; do
             for NODE in $(get_property ${SYSTEM} nodes) ; do
