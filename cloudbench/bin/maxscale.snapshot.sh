@@ -110,7 +110,7 @@ time {
                             ssh $(get_ssh_connection ${SYSTEM}) "/data/cbench/install/bin/maxctrl clear statistics ${SERVER}"
                         done
                         SERVICES=$(ssh $(get_ssh_connection ${SYSTEM}) "/data/cbench/install/bin/maxctrl --tsv list services" | awk '{print $1}')
-                        for SERVICE in ${SERVICES}) ; do
+                        for SERVICE in ${SERVICES} ; do
                             echo -n "              Service ${SERVICE} "
                             ssh $(get_ssh_connection ${SYSTEM}) "/data/cbench/install/bin/maxctrl clear statistics ${SERVICE}"
                         done
