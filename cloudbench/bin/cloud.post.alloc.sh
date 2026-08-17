@@ -71,7 +71,7 @@ time {
                                 echo "Ubuntu 24 detected, installing packages"
                                 sudo apt-get update
                                 sudo apt-get -y install ntpdate liburing2 iproute2 \
-                                  libodbc2 libprotobuf32t64 libmicrohttpd12 libarchive13t64 \
+                                  libodbc2 libprotobuf32t64 libmicrohttpd12 nodejs libarchive13t64 \
                                   prometheus-node-exporter
                                 ;;
                             *)
