@@ -117,6 +117,9 @@ case ${BENCHMARK} in
     *) echo "Unsupported Benchmark : BENCHMARK = ${BENCHMARK}"; echo -e "$USAGE"; exit 1;;
 esac
 
+# load Galera / Raft using all nodes
+[[ ${OPTION_PARALLEL_LOAD} ]] || OPTION_PARALLEL_LOAD=TRUE
+
 
 TEST_NAME=${BENCHMARK}.load
 if [[ ! ${TESTID} ]] ; then TESTID=$(date +%y%m%d.%H%M%S).${CLUSTER}; fi
