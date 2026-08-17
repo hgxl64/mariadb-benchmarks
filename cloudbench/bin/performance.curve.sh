@@ -30,19 +30,12 @@ while [[ $# > 0 ]] ; do
 
         # Performance Curve Controls
         --streams)              START_STREAMS="$1"; shift;;
-        --start_streams)        START_STREAMS="$1"; shift;;
         --start-streams)        START_STREAMS="$1"; shift;;
-        --max_streams)          MAX_STREAMS="$1"; shift;;
         --max-streams)          MAX_STREAMS="$1"; shift;;
-        --target_latency)       TARGET_LATENCY="$1"; shift;;
         --target-latency)       TARGET_LATENCY="$1"; shift;;
-        --start_delay)          START_DELAY="$1"; shift;;
         --start-delay)          START_DELAY="$1"; shift;;
-        --intertest_delay)      INTER_TEST_DELAY="$1"; shift;;
         --intertest-delay)      INTER_TEST_DELAY="$1"; shift;;
-        --stop_delay)           STOP_DELAY="$1"; shift;;
         --stop-delay)           STOP_DELAY="$1"; shift;;
-        --slave_delay)          OPTION_SLAVE_DELAY=TRUE;;
         --slave-delay)          OPTION_SLAVE_DELAY=TRUE;;
         --slave-delay-gtid)     OPTION_SLAVE_DELAY_GTID=TRUE;;
         --wait-for-slave-gtid)  OPTION_SLAVE_DELAY_GTID=TRUE;;
@@ -70,17 +63,15 @@ while [[ $# > 0 ]] ; do
         --skiptransaction)      SYSBENCH_ARGS="${SYSBENCH_ARGS} --skiptransaction";;
         --ignoreerrors)         SYSBENCH_ARGS="${SYSBENCH_ARGS} --ignoreerrors";;
         --reconnect)            SYSBENCH_ARGS="${SYSBENCH_ARGS} --reconnect $1"; shift;;
-        --ssl)                  SYSBENCH_ARGS="${SYSBENCH_ARGS} --ssl";;
         --skipbinlog)           SYSBENCH_ARGS="${SYSBENCH_ARGS} --skipbinlog";;
         --histogram)            SYSBENCH_ARGS="${SYSBENCH_ARGS} --histogram";;
+        --ssl)                  SYSBENCH_ARGS="${SYSBENCH_ARGS} --ssl";;
 
         # HammerDB Options
         --allwarehouse)         ALLWAREHOUSE=TRUE;;
 
         # CBENCH Options
         --binlogging)           ENABLE_BINLOGGING=TRUE;;
-
-        --force_innodb_checkpoint) OPTION_FORCE_INNODB_CHECKPOINT=TRUE;;
         --force-innodb-checkpoint) OPTION_FORCE_INNODB_CHECKPOINT=TRUE;;
 
         --monitor)              OPTION_PERFMONITOR=TRUE;;
@@ -90,6 +81,16 @@ while [[ $# > 0 ]] ; do
         --grafana)              OPTION_GRAFANA=TRUE;;
 
         -h|--help)              echo -e "$USAGE"; exit 1;;
+
+        # deprecated options
+        --start_streams)        START_STREAMS="$1"; shift;;
+        --max_streams)          MAX_STREAMS="$1"; shift;;
+        --target_latency)       TARGET_LATENCY="$1"; shift;;
+        --start_delay)          START_DELAY="$1"; shift;;
+        --intertest_delay)      INTER_TEST_DELAY="$1"; shift;;
+        --stop_delay)           STOP_DELAY="$1"; shift;;
+        --slave_delay)          OPTION_SLAVE_DELAY=TRUE;;
+        --force_innodb_checkpoint) OPTION_FORCE_INNODB_CHECKPOINT=TRUE;;
 
         *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
 

@@ -53,7 +53,7 @@ while [[ $# > 0 ]] ; do
         --duration)             DURATION="$1"; shift;;
         --exectime)             DURATION="$1"; shift;;
         --reportinterval)       REPORT_INTERVAL="$1"; shift;;
-        --interval_length)      REPORT_INTERVAL="$1"; shift;;
+        --interval-length)      REPORT_INTERVAL="$1"; shift;;
         --streams)              STREAMSPERDRIVER="$1"; shift;;
         --totalstreams)         TOTAL_STREAMS="$1"; shift;;
         --reload)               OPTION_LOADTABLES=TRUE;LOAD_OPTIONS="${LOAD_OPTIONS} --restore";;
@@ -72,7 +72,6 @@ while [[ $# > 0 ]] ; do
         --table-size)           TABLESIZE="$1";shift;;
         --tablesize)            TABLESIZE="$1";shift;;
         --sbtablesize)          TABLESIZE="$1";shift;;
-        --ssl)                  OPTION_SSL=TRUE;;
         --randtype)             DISTRIBUTION="$1"; shift;;
         --distribution)         DISTRIBUTION="$1"; shift;;
         --autocommit)           SKIP_TRANSACTION=TRUE;;
@@ -85,8 +84,8 @@ while [[ $# > 0 ]] ; do
         --seeded)               OPTION_SEEDED=TRUE;;
         --histogram)            ;; #SYSBENCH_OPTIONS="${SYSBENCH_OPTIONS} --histogram";;
         --directexec)           DIRECTEXEC=TRUE;SYSBENCH_OPTIONS="${SYSBENCH_OPTIONS} --db-ps-mode=disable";;
-        --target_tps)           TARGET_TPS="$1"; shift;;
-        --driver_1_to_1)        OPTION_1_TO_1_DRIVER=TRUE;;
+        --target-tps)           TARGET_TPS="$1"; shift;;
+        --ssl)                  OPTION_SSL=TRUE;;
 
         # Profiling Options
         --profile)              PROFILE_TYPE="$1"; shift;;
@@ -103,6 +102,11 @@ while [[ $# > 0 ]] ; do
         --cleanup)              OPTION_CLEANUP=TRUE;;
         --monitor)              OPTION_PERFMONITOR=TRUE;;
         --grafana)              OPTION_GRAFANA=TRUE;;
+
+        # deprecated
+        --interval_length)      REPORT_INTERVAL="$1"; shift;;
+        --target_tps)           TARGET_TPS="$1"; shift;;
+        --driver_1_to_1)        OPTION_1_TO_1_DRIVER=TRUE;;
 
         -h|--help)              echo -e "$USAGE"; exit 1;;
 
