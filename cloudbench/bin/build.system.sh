@@ -81,6 +81,7 @@ while [[ $# > 0 ]] ; do
         --transaction_isolation)        OPTION_TRANSACTION_ISOLATION="$1"; shift;;
         # alternative option names
         --charset)                      OPTION_CHARSET="$1"; shift;;
+        --deferflush)                   OPTION_DEFERRED_FLUSH=TRUE;;
         --disable-temp-pool)            OPTION_DISABLE_TEMP_POOL=TRUE;;
         --general-log-file)             OPTION_GENERAL_LOG_FILE="$1"; shift;;
         --innodb-adaptive-hash-index)   OPTION_INNODB_ADAPTIVE_HASH_INDEX="$1"; shift;;
@@ -553,6 +554,7 @@ mkdir -p ${LOGDIRECTORY}
                     OPTION_BINLOG_COMMIT_WAIT_COUNT="'${OPTION_BINLOG_COMMIT_WAIT_COUNT}'"
                     OPTION_CHARSET="'${OPTION_CHARSET}'"
                     OPTION_DBPORT="'${OPTION_DBPORT}'"
+                    OPTION_DEFERRED_FLUSH="'${OPTION_DEFERRED_FLUSH}'"
                     OPTION_DISABLE_TEMP_POOL="'${OPTION_DISABLE_TEMP_POOL}'"
                     OPTION_GENERAL_LOG_FILE="'${OPTION_GENERAL_LOG_FILE}'"
                     OPTION_INNODB_ADAPTIVE_HASH_INDEX="'${OPTION_INNODB_ADAPTIVE_HASH_INDEX}'"
@@ -626,11 +628,15 @@ mkdir -p ${LOGDIRECTORY}
                             echo "table_open_cache = 4096"
                         fi
                         echo "max_prepared_stmt_count = 1048576"
+                        [[ ${OPTION_THREAD_POOL} ]] && echo "thread_handling = pool-of-threads"
+                        [[ ${OPTION_THREAD_POOL_SIZE} ]] && echo "thread-pool-size = ${OPTION_THREAD_POOL_SIZE}"
+                        [[ ${OPTION_THREAD_POOL_MAX_THREADS} ]] && echo "thread_pool_max_threads = ${OPTION_THREAD_POOL_MAX_THREADS}"
 
                         echo
                         echo "#disable query cache"
                         echo "query_cache_type = 0"
                         echo "query_cache_size = 0"
+                        echo
                         if [[ ${OPTION_PERFORMANCE_SCHEMA} ]] ; then
                             echo "performance_schema = ${OPTION_PERFORMANCE_SCHEMA}"
                         fi
@@ -641,9 +647,6 @@ mkdir -p ${LOGDIRECTORY}
                             echo "# 200805  Jira MDEV-22278 sets default to off."
                             echo "temp_pool = 0"
                         fi
-                        [[ ${OPTION_THREAD_POOL} ]] && echo "thread_handling = pool-of-threads"
-                        [[ ${OPTION_THREAD_POOL_SIZE} ]] && echo "thread-pool-size = ${OPTION_THREAD_POOL_SIZE}"
-                        [[ ${OPTION_THREAD_POOL_MAX_THREADS} ]] && echo "thread_pool_max_threads = ${OPTION_THREAD_POOL_MAX_THREADS}"
                         echo
                         echo "#allow more connect errors"
                         echo "max_connect_errors = 10000000"
@@ -678,6 +681,9 @@ mkdir -p ${LOGDIRECTORY}
                         fi
                         if [[ ${OPTION_INNODB_BUFFER_POOL_INSTANCES} ]] ; then
                             echo "innodb_buffer_pool_instances = ${OPTION_INNODB_BUFFER_POOL_INSTANCES}"
+                        fi
+                        if [[ ${OPTION_DEFERRED_FLUSH} == TRUE ]] ; then
+                            echo "innodb_flush_log_at_trx_commit = 2"
                         fi
                         echo
                         echo "innodb_adaptive_flushing = 1"
