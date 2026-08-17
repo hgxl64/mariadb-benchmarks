@@ -132,8 +132,6 @@ mkdir -p ${LOGDIRECTORY}
                 [[ ${GALERA_TARBALL} ]] && COMMAND="${COMMAND} --galera-tarball ${GALERA_TARBALL}"
                 [[ ${OPTION_THREAD_POOL} == TRUE ]] && COMMAND="${COMMAND} --thread-pool"
                 [[ ${OPTION_THREAD_POOL_SIZE} ]] && COMMAND="${COMMAND} --thread-pool-size ${OPTION_THREAD_POOL_SIZE}"
-                [[ ${OPTION_SLAVE_THREADS} ]] && COMMAND="${COMMAND} --slave-threads ${OPTION_SLAVE_THREADS}"
-                [[ ${OPTION_DEFERRED_FLUSH} == TRUE ]] && COMMAND="${COMMAND} --deferflush"
                 [[ ${OPTION_SSL} == TRUE ]] && COMMAND="${COMMAND} --ssl"
                 [[ ${OPTION_ARM} == TRUE ]] && COMMAND="${COMMAND} --arm"
                 echo "        COMMAND = ${COMMAND}"
