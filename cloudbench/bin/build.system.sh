@@ -602,6 +602,7 @@ mkdir -p ${LOGDIRECTORY}
                         echo "datadir = /data/cbench/datadir"
                         echo "tmpdir = /data/cbench"
                         echo "log-error = /data/cbench/datadir/error.log"
+                        echo "skip-name-resolve = on"
                         [[ ${OPTION_GENERAL_LOG_FILE} == TRUE ]] && echo "general_log_file = /data/cbench/datadir/general.log"
                         if [[ ${OPTION_SLOW_QUERY_LOG} ]] ; then
                             echo
