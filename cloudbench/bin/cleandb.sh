@@ -113,7 +113,7 @@ time {
                 echo "done"
                 '
         } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).cleandb.${NODE}.log 2>&1 &
-        BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
+        BACKGROUND_PIDS+=( $! )
     done
     wait ${BACKGROUND_PIDS[*]}
 

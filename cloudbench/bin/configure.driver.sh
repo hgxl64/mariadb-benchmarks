@@ -29,9 +29,7 @@ while [[ $# > 0 ]]; do
         --drivers)          DRIVERS="$1"; shift;;
         --cloud)            OPTION_CLOUD=TRUE;;
         --aws | --gcp)      OPTION_CLOUD=TRUE;;
-        --extended_scripts) OPTION_EXTENDED_SCRIPTS=TRUE;;
-
-        --force) OPTION_FORCE=TRUE;;
+        --force)            OPTION_FORCE=TRUE;;
 
         -h | --help)        echo -e "$USAGE"; exit 1;;
         *)                  echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;

@@ -23,7 +23,6 @@ while [[ $# > 0 ]] ; do
          # Connection Info
         --cluster)                      CLUSTER="$1"; shift;;
         --system)                       CLUSTER="$1"; shift;;
-        --cloud)                        OPTION_CLOUD="$1"; shift;;
         -h|--help)                      echo -e "$USAGE"; exit 1;;
         *)  echo "Invalid input switch: $key"; echo -e "COMMAND_LINE = ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
     esac
