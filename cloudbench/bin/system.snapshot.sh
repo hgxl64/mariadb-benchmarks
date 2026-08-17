@@ -90,6 +90,8 @@ time {
             {
                 echo "    System = ${SYSTEM}"
                 echo
+                echo "        ssh Connection : ssh $(get_ssh_connection ${SYSTEM})"
+                echo
                 echo "        OS Conf"
                 mkdir -p ${LOGDIRECTORY}/${SYSTEM}/conf
 

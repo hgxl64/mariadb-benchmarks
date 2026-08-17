@@ -79,7 +79,7 @@ time {
                 for NODE in $(get_property ${SYSTEM} nodes) ; do
                     mkdir -p ${LOGDIRECTORY}/${SYSTEM}
                     echo "            NODE     = ${NODE}"
-                    echo "            ssh Connection : $(get_ssh_connection ${SYSTEM} ${NODE})"
+                    echo "            ssh Connection : ssh $(get_ssh_connection ${SYSTEM} ${NODE})"
                     echo
 
                     echo "            Config Files"

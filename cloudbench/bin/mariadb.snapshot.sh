@@ -77,7 +77,7 @@ time {
     for SYSTEM in ${SYSTEMS[*]} ; do
 
         echo "            SYSTEM     = ${SYSTEM}"
-        echo "            Database Connection : $(get_database_connection ${SYSTEM})"
+        echo "            Database Connection : mariadb $(get_database_connection ${SYSTEM})"
 
         {
             [[ -d ${LOGDIRECTORY}/${SYSTEM} ]] || mkdir -p ${LOGDIRECTORY}/${SYSTEM}
@@ -117,7 +117,7 @@ time {
                 for NODE in $(get_property ${SYSTEM} nodes) ; do
                     echo
                     echo "            NODE     = ${NODE}"
-                    echo "            ssh Connection : $(get_ssh_connection ${SYSTEM} ${NODE})"
+                    echo "            ssh Connection : ssh $(get_ssh_connection ${SYSTEM} ${NODE})"
 
                     echo "            Config Files"
                     [[ -d ${LOGDIRECTORY}/${SYSTEM}/conf ]] || mkdir -p ${LOGDIRECTORY}/${SYSTEM}/conf
