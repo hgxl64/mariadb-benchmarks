@@ -310,7 +310,8 @@ time {
                 COMMAND="${COMMAND} --mysql-db=${SCHEMA} --threads=${STREAMS} ${SYSBENCH_OPTIONS}"
                 [[ ${OPTION_BULKLOAD} ]] && COMMAND="${COMMAND} --bulk-load=true"
                 [[ ${OPTION_ENGINE} ]] && COMMAND="${COMMAND} --mysql_storage_engine=${OPTION_ENGINE}"
-                [[ ${OPTION_CHARSET} ]] && COMMAND="${COMMAND} --create_table_options=DEFAULT CHARSET=${OPTION_CHARSET}"
+                # this is better set on server side
+                #[[ ${OPTION_CHARSET} ]] && COMMAND="${COMMAND} --create_table_options=DEFAULT CHARSET=${OPTION_CHARSET}"
                 [[ ${OPTION_NOAUTOINC} ]] && COMMAND="${COMMAND} --auto-inc=off"
                 [[ ${OPTION_DIRECTEXEC} ]] && COMMAND="${COMMAND} --db-ps-mode=disable"
                 [[ ${OPTION_NOSECONDARY} ]] && COMMAND="${COMMAND} --secondary=off --create_secondary=off"
