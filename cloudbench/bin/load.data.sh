@@ -168,11 +168,16 @@ time {
         echo "            Properties File:"
         showproperties
 
-        #check_cluster
-        gather_preload_snapshot ${CLUSTER}
-        start_performance_monitor
-        start_raft_monitors ${CLUSTER}
-        start_mariadb_status_monitors ${CLUSTER}
+        echo
+        echo "    ===== Gather pre-Load Snapshot       ===== [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+
+        time {
+            #check_cluster
+            gather_preload_snapshot ${CLUSTER}
+            start_performance_monitor
+            start_raft_monitors ${CLUSTER}
+            start_mariadb_status_monitors ${CLUSTER}
+        }
 
         start_timer
 
@@ -358,7 +363,6 @@ time {
 
         echo
         echo "    ===== Check Data  =====       [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-        echo
 
         if [[ ${DATABASE} == 'mariadb' ]] ; then
 
@@ -380,7 +384,6 @@ time {
                                 SELECT COUNT(*), MIN(id), MAX(id) FROM ${TABLE};
                             "
                         done
-
                 esac
 
             } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).check.data.log 2>&1
@@ -392,15 +395,19 @@ time {
 
         fi
 
-
-        gather_postload_snapshot ${CLUSTER}
-        stop_monitors
-        stop_raft_monitors
-        stop_mariadb_status_monitors
-
         [[ ${LOADTIME} ]] && {
             echo
             echo "        LOADTIME = ${LOADTIME} Seconds"
+        }
+
+        echo
+        echo "    ===== Gather post-Load Snapshot =====       [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+
+        time {
+            gather_postload_snapshot ${CLUSTER}
+            stop_monitors
+            stop_raft_monitors
+            stop_mariadb_status_monitors
         }
 
     elif [[ ${LOAD_OPTION} == 'clean' ]] ; then

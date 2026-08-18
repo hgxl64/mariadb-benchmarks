@@ -822,17 +822,19 @@ gather_pretest_snapshot() {
     [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
     unset PIDS
-    time {
+    {
         echo
         echo "    ===== Gather Pre-Test Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-        mariadb.snapshot.sh --cluster ${SYSTEM} --pretest &
-        PIDS="${PIDS} $!"
-        maxscale.snapshot.sh --cluster ${SYSTEM} --pretest &
-        PIDS="${PIDS} $!"
-        system.snapshot.sh --cluster ${SYSTEM} --pretest &
-        PIDS="${PIDS} $!"
-        wait ${PIDS}
+        time {
+             mariadb.snapshot.sh --cluster ${SYSTEM} --pretest &
+             PIDS="${PIDS} $!"
+             maxscale.snapshot.sh --cluster ${SYSTEM} --pretest &
+             PIDS="${PIDS} $!"
+             system.snapshot.sh --cluster ${SYSTEM} --pretest &
+             PIDS="${PIDS} $!"
+             wait ${PIDS}
+        }
 
     }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.pretest.snapshot.log 2>&1
 }
@@ -842,17 +844,19 @@ gather_posttest_snapshot() {
     [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
     unset PIDS
-    time {
+    {
         echo
         echo "    ===== Gather Post-Test Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-        mariadb.snapshot.sh --cluster ${SYSTEM} --posttest &
-        PIDS="${PIDS} $!"
-        maxscale.snapshot.sh --cluster ${SYSTEM} --posttest &
-        PIDS="${PIDS} $!"
-        system.snapshot.sh --cluster ${SYSTEM} --posttest &
-        PIDS="${PIDS} $!"
-        wait ${PIDS}
+        time {
+            mariadb.snapshot.sh --cluster ${SYSTEM} --posttest &
+            PIDS="${PIDS} $!"
+            maxscale.snapshot.sh --cluster ${SYSTEM} --posttest &
+            PIDS="${PIDS} $!"
+            system.snapshot.sh --cluster ${SYSTEM} --posttest &
+            PIDS="${PIDS} $!"
+            wait ${PIDS}
+        }
 
     }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.posttest.snapshot.log 2>&1
 }
@@ -862,17 +866,19 @@ gather_preload_snapshot() {
     [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
     unset PIDS
-    time {
+    {
         echo
         echo "    ===== Gather Pre-Load Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-        mariadb.snapshot.sh --cluster ${SYSTEM} --preload &
-        PIDS="${PIDS} $!"
-        maxscale.snapshot.sh --cluster ${SYSTEM} --preload &
-        PIDS="${PIDS} $!"
-        system.snapshot.sh --cluster ${SYSTEM} --preload &
-        PIDS="${PIDS} $!"
-        wait ${PIDS}
+        time {
+            mariadb.snapshot.sh --cluster ${SYSTEM} --preload &
+            PIDS="${PIDS} $!"
+            maxscale.snapshot.sh --cluster ${SYSTEM} --preload &
+            PIDS="${PIDS} $!"
+            system.snapshot.sh --cluster ${SYSTEM} --preload &
+            PIDS="${PIDS} $!"
+            wait ${PIDS}
+        }
 
     }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.preload.snapshot.log 2>&1
 }
@@ -882,17 +888,19 @@ gather_postload_snapshot() {
     [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
     unset PIDS
-    time {
+    {
         echo
         echo "    ===== Gather Post-Load Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-        mariadb.snapshot.sh --cluster ${SYSTEM} --postload &
-        PIDS="${PIDS} $!"
-        maxscale.snapshot.sh --cluster ${SYSTEM} --postload &
-        PIDS="${PIDS} $!"
-        system.snapshot.sh --cluster ${SYSTEM} --postload &
-        PIDS="${PIDS} $!"
-        wait ${PIDS}
+        time {
+            mariadb.snapshot.sh --cluster ${SYSTEM} --postload &
+            PIDS="${PIDS} $!"
+            maxscale.snapshot.sh --cluster ${SYSTEM} --postload &
+            PIDS="${PIDS} $!"
+            system.snapshot.sh --cluster ${SYSTEM} --postload &
+            PIDS="${PIDS} $!"
+            wait ${PIDS}
+        }
 
     }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.postload.snapshot.log 2>&1
 }
@@ -902,17 +910,19 @@ gather_precurve_snapshot() {
     [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
     unset PIDS
-    time {
+    {
         echo
         echo "    ===== Gather Pre-Curve Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-        mariadb.snapshot.sh --cluster ${SYSTEM} --precurve &
-        PIDS="${PIDS} $!"
-        maxscale.snapshot.sh --cluster ${SYSTEM} --precurve &
-        PIDS="${PIDS} $!"
-        system.snapshot.sh --cluster ${SYSTEM} --precurve &
-        PIDS="${PIDS} $!"
-        wait ${PIDS}
+        time {
+            mariadb.snapshot.sh --cluster ${SYSTEM} --precurve &
+            PIDS="${PIDS} $!"
+            maxscale.snapshot.sh --cluster ${SYSTEM} --precurve &
+            PIDS="${PIDS} $!"
+            system.snapshot.sh --cluster ${SYSTEM} --precurve &
+            PIDS="${PIDS} $!"
+            wait ${PIDS}
+        }
 
     }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.precurve.snapshot.log 2>&1
 }
@@ -922,17 +932,19 @@ gather_postcurve_snapshot() {
     [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
     unset PIDS
-    time {
+    {
         echo
         echo "    ===== Gather Post-Curve Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-        mariadb.snapshot.sh --cluster ${SYSTEM} --postcurve &
-        PIDS="${PIDS} $!"
-        maxscale.snapshot.sh --cluster ${SYSTEM} --postcurve &
-        PIDS="${PIDS} $!"
-        system.snapshot.sh --cluster ${SYSTEM} --postcurve &
-        PIDS="${PIDS} $!"
-        wait ${PIDS}
+        time {
+            mariadb.snapshot.sh --cluster ${SYSTEM} --postcurve &
+            PIDS="${PIDS} $!"
+            maxscale.snapshot.sh --cluster ${SYSTEM} --postcurve &
+            PIDS="${PIDS} $!"
+            system.snapshot.sh --cluster ${SYSTEM} --postcurve &
+            PIDS="${PIDS} $!"
+            wait ${PIDS}
+        }
 
     }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.postcurve.snapshot.log 2>&1
 }
@@ -942,17 +954,19 @@ gather_prerun_snapshot() {
     [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
     unset PIDS
-    time {
+    {
         echo
         echo "    ===== Gather Pre-Run Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-        mariadb.snapshot.sh --cluster ${SYSTEM} --prerun &
-        PIDS="${PIDS} $!"
-        maxscale.snapshot.sh --cluster ${SYSTEM} --prerun &
-        PIDS="${PIDS} $!"
-        system.snapshot.sh --cluster ${SYSTEM} --prerun &
-        PIDS="${PIDS} $!"
-        wait ${PIDS}
+        time {
+            mariadb.snapshot.sh --cluster ${SYSTEM} --prerun &
+            PIDS="${PIDS} $!"
+            maxscale.snapshot.sh --cluster ${SYSTEM} --prerun &
+            PIDS="${PIDS} $!"
+            system.snapshot.sh --cluster ${SYSTEM} --prerun &
+            PIDS="${PIDS} $!"
+            wait ${PIDS}
+        }
 
     }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.prerun.snapshot.log 2>&1
 }
@@ -962,17 +976,19 @@ gather_postrun_snapshot() {
     [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
     unset PIDS
-    time {
+    {
         echo
         echo "    ===== Gather Post-Run Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-        mariadb.snapshot.sh --cluster ${SYSTEM} --postrun &
-        PIDS="${PIDS} $!"
-        maxscale.snapshot.sh --cluster ${SYSTEM} --postrun &
-        PIDS="${PIDS} $!"
-        system.snapshot.sh --cluster ${SYSTEM} --postrun &
-        PIDS="${PIDS} $!"
-        wait ${PIDS}
+        time {
+            mariadb.snapshot.sh --cluster ${SYSTEM} --postrun &
+            PIDS="${PIDS} $!"
+            maxscale.snapshot.sh --cluster ${SYSTEM} --postrun &
+            PIDS="${PIDS} $!"
+            system.snapshot.sh --cluster ${SYSTEM} --postrun &
+            PIDS="${PIDS} $!"
+            wait ${PIDS}
+        }
 
     }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.postrun.snapshot.log 2>&1
 }
