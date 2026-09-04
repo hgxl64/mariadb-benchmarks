@@ -1,0 +1,363 @@
+#!/bin/bash
+#
+# (w) Axel XL Schwenke for MariaDB
+#
+# $Id$
+
+USAGE="
+$0 - PERF-453, scenario D (node recovery, SST)
+
+Usage: $0 [options]
+
+Options:
+    --nodes             number of nodes (accepted: 3, 5, 7 - default: 3)
+
+    --mariadb-tarball   tarball to be used for MariaDB installation
+    --galera-tarball    tarball to be used for Galera installation
+    --raft-tarball      tarball to be used for Raft installation
+
+    --debug
+    --galera
+    --raft
+
+    --downtime          time between reboot and rejoining the cluster
+    --clean             clean the node (no InnoDB recovery)
+
+"
+
+COMMAND_LINE="$@"
+
+unset DEBUG
+unset SOFIA
+unset OPTION_GALERA_ONLY
+unset OPTION_RAFT_ONLY
+
+while [[ $# > 0 ]] ; do
+    key="$1"; shift;
+    case ${key} in
+
+        --nodes)              NUM_NODES="$1"; shift;;
+
+        --mariadb-tarball)    MARIADB_TARBALL="$1"; shift;;
+        --galera-tarball)     GALERA_TARBALL="$1"; shift;;
+        --raft-tarball)       RAFT_TARBALL="$1"; shift;;
+
+        --debug)              DEBUG=1;;
+        --galera)             OPTION_GALERA=TRUE;;
+        --raft)               OPTION_RAFT=TRUE;;
+
+        --maxscale)           OPTION_MAXSCALE=TRUE;;
+        --downtime)           OPTION_DOWNTIME="$1"; shift;;
+        --clean               OPTION_CLEAN=TRUE;;
+
+        -h|--help)            error -e "$USAGE";;
+        *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
+    esac
+done
+
+
+source ${CBENCH_HOME}/bin/cbench.sh
+[[ ${DEBUG} ]] || source ${CBENCH_HOME}/config/gcp.conf
+
+[[ ${CLUSTER} ]] || CLUSTER='perf-453'
+[[ ${NUM_NODES} ]] || NUM_NODES=3
+
+# if neither option is given, test both
+[[ ${OPTION_GALERA} ]] || [[ ${OPTION_RAFT} ]] || {
+    OPTION_GALERA=TRUE
+    OPTION_RAFT=TRUE
+}
+
+[[ ${OPTION_DOWNTIME} ]] || OPTION_DOWNTIME=60
+((RUNTIME=600 + OPTION_DOWNTIME))
+[[ ${OPTION_CLEAN} == TRUE ]] || OPTION_CLEAN=FALSE
+
+[[ ${WORKLOAD} ]] || WORKLOAD="oltp_read_write"
+
+
+case ${NUM_NODES} in
+    3) SERVER_ARCH="n2-standard-8"
+       DRIVER_ARCH="n2-highcpu-4"
+       NUM_DRIVER=1
+       MAXSCALE_ARCH="n2-highcpu-8"
+       NUM_MAXSCALE=1
+       STREAMS=24
+       ;;
+
+    5) SERVER_ARCH="n2-standard-8"
+       DRIVER_ARCH="n2-highcpu-8"
+       NUM_DRIVER=1
+       MAXSCALE_ARCH="n2-highcpu-8"
+       NUM_MAXSCALE=1
+       STREAMS=48
+       ;;
+    7) SERVER_ARCH="n2-standard-8"
+       DRIVER_ARCH="n2-highcpu-8"
+       NUM_DRIVER=2
+       MAXSCALE_ARCH="n2-highcpu-8"
+       NUM_MAXSCALE=2
+       STREAMS=96
+       ;;
+    *) error "illegal value of --nodes ${NUM_NODES}"
+esac
+
+
+#===== functions =======================================================
+
+exec() {
+    if [[ ${DEBUG} ]] ; then
+        echo $*
+    else
+        $*
+    fi
+}
+
+#===== end functions ===================================================
+
+
+TEST_NAME="PERF-453D-n=${NUM_NODES}"
+if [[ ${OPTION_CLEAN} == TRUE ]] ; then
+    TEST_NAME="${TEST_NAME}-clean"
+else
+    TEST_NAME="${TEST_NAME}-recover"
+fi
+[[ ${TESTID} ]] || TESTID=$(date +%y%m%d.%H%M%S).${TEST_NAME}
+export LOGDIRECTORY=${CBENCH_LOG_HOME}/${TESTID}
+mkdir -p ${LOGDIRECTORY}
+
+{
+    echo "===== ${TEST_NAME} started [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ====="
+    echo
+    echo "CLUSTER                = ${CLUSTER}"
+    echo "TESTID                 = ${TESTID}"
+    echo "LOGDIRECTORY           = ${LOGDIRECTORY}"
+    echo
+    echo "NUM_NODES              = ${NUM_NODES}"
+    echo "MARIADB_TARBALL        = ${MARIADB_TARBALL}"
+    echo "GALERA_TARBALL         = ${GALERA_TARBALL}"
+    echo "RAFT_TARBALL           = ${RAFT_TARBALL}"
+    echo
+    echo "Testing Galera         = ${OPTION_GALERA}"
+    echo "Testing Raft           = ${OPTION_RAFT}"
+    echo "Using MaxScale         = ${OPTION_MAXSCALE}"
+    echo "Downtime               = ${OPTION_DOWNTIME}"
+    echo "Cleaning failed node   = ${OPTION_CLEAN}"
+    echo
+
+    # initialize timer variables
+    declare -A BUILD_SEC LOAD_SEC SYSBENCH_SEC RECOVERY_SEC
+    BUILD_SEC['galera']=0;
+    BUILD_SEC['raft']=0;
+    LOAD_SEC['galera']=0;
+    LOAD_SEC['raft']=0;
+    SYSBENCH_SEC['galera']=0;
+    SYSBENCH_SEC['raft']=0;
+    RECOVERY_SEC['galera']=0;
+    RECOVERY_SEC['raft']=0;
+
+    echo
+    echo "=== Allocate Nodes [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
+    echo
+    start_timer
+    COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER} --collocate --parallel"
+    COMMAND="${COMMAND} --server-type ${SERVER_ARCH} --server-nodes ${NUM_NODES}"
+    COMMAND="${COMMAND} --driver-type ${DRIVER_ARCH} --driver-nodes ${NUM_DRIVER}"
+    if [[ ${OPTION_MAXSCALE} == TRUE ]] ; then
+        COMMAND="${COMMAND} --maxscale-type ${MAXSCALE_ARCH} --maxscale-nodes ${NUM_MAXSCALE}"
+    fi
+    exec ${COMMAND}
+    ALLOCATE_SEC=$(stop_timer)
+
+    [[ ${DEBUG} ]] || {
+        (( EXPECTED = NUM_NODES + NUM_DRIVER ))
+        [[ ${OPTION_MAXSCALE} == TRUE ]] && (( EXPECTED += NUM_MAXSCALE ))
+        SYSTEMS=( $(get_property ${CLUSTER} systems) )
+        echo
+        echo "allocated: ${SYSTEMS[*]}"
+        (( ${#SYSTEMS[*]} != EXPECTED )) && error "ERROR Unable to allocate nodes"
+    }
+
+    # summary dir to collect data
+    local T=${LOGDIRECTORY}/summary
+    [[ -d ${T} ]] || mkdir ${T}
+
+    for PRODUCT in galera raft; do
+        [[ ${PRODUCT} == galera ]] && [[ OPTION_GALERA != TRUE ]] && continue
+        [[ ${PRODUCT} == raft ]]   && [[ OPTION_RAFT != TRUE ]]   && continue
+
+        # use a custom log directory for each product
+        local LOGDIRECTORY_BAK=${LOGDIRECTORY}
+        LOGDIRECTORY=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${PRODUCT}.benchmark
+        mkdir ${LOGDIRECTORY}
+
+        echo
+        echo "=== Configure Cluster [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
+        echo
+        COMMAND="configure.cluster.sh --cluster ${CLUSTER} --cluster-type ${PRODUCT}_mastermaster"
+        for ((IDX=1; IDX<=NUM_NODES; IDX++ )) ; do
+            COMMAND="${COMMAND} --master-system ${CLUSTER}-server-${IDX}"
+        done
+        for ((IDX=1; IDX<=NUM_DRIVER; IDX++ )) ; do
+            COMMAND="${COMMAND} --driver-system ${CLUSTER}-driver-${IDX}"
+        done
+        if [[ ${OPTION_MAXSCALE} == TRUE ]] ; then
+            for ((IDX=1; IDX<=NUM_MAXSCALE; IDX++ )) ; do
+                COMMAND="${COMMAND} --maxscale-system ${CLUSTER}-maxscale-${IDX}"
+            done
+        else
+            # runtime cluster: all nodes except last
+            COMMAND="${COMMAND} --extra-nodemask $(( 2 ** (NUM_NODES-1) - 1 ))"
+        fi
+        exec ${COMMAND}
+
+        echo
+        echo "=== Build Cluster [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
+        echo
+        start_timer
+        COMMAND="build.cluster.sh --cluster ${CLUSTER}"
+        [[ ${MARIADB_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${MARIADB_TARBALL}"
+        [[ ${GALERA_TARBALL} ]] && COMMAND="${COMMAND} --galera-tarball ${GALERA_TARBALL}"
+        [[ ${RAFT_TARBALL} ]] && COMMAND="${COMMAND} --raft-tarball ${RAFT_TARBALL}"
+        # those do not have cmdline options
+        export SLAVE_SELECTION="ADAPTIVE_ROUTING"
+        export MASTER_READS="true"
+        exec ${COMMAND}
+        unset SLAVE_SELECTION MASTER_READS
+        BUILD_SEC[$PRODUCT]=$(stop_timer)
+
+        echo
+        echo "=== Load Data for Sysbench [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
+        echo
+        start_grafana
+        start_timer
+        COMMAND="load.data.sh --cluster ${CLUSTER} --benchmark sysbench --load --noautoinc --skipcheck"
+        exec ${COMMAND}
+        LOAD_SEC[$PRODUCT]=$(stop_timer)
+
+        # runtime cluster
+        if [[ ${OPTION_MAXSCALE} == TRUE ]] ; then
+            RUN_CLUSTER="${CLUSTER}.maxscale"
+        else
+            RUN_CLUSTER="${CLUSTER}."
+            for (( IDX=1; IDX<NUM_NODES; IDX++ )) ; do RUN_CLUSTER="${RUN_CLUSTER}1"; done
+            RUN_CLUSTER="${RUN_CLUSTER}0"
+        fi
+
+        echo
+        echo "=== Run Sysbench Workload=${WORKLOAD} on Cluster=${RUN_CLUSTER} ==="
+        echo
+
+        start_timer
+
+        # run benchmark in background
+        COMMAND="sysbench.run.sh --cluster ${RUN_CLUSTER} --workload ${WORKLOAD} --duration ${RUNTIME}"
+        COMMAND="${COMMAND} --totalstreams ${STREAMS} --reportinterval 5 --skipcheck"
+        exec ${COMMAND} > /dev/null &
+        BENCHMARK_PID=$!
+
+        # do the fail-and-recover-node job in foreground
+        {
+            echo
+            echo "let the benchmark run undisturbed for 1 minute ..."
+            sleep 60
+
+            NODE="${CLUSTER}-server-${NUM_NODES}"
+
+            echo
+            echo "=== Reset node (${NODE}) [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+            COMMAND="gcloud compute instances reset ${NODE}"
+            [[ ZONE_ID ]] && COMMAND="${COMMAND} --zone=${ZONE_ID}"
+            exec ${COMMAND}
+            echo "and wait ${OPTION_DOWNTIME} seconds"
+            sleep ${OPTION_DOWNTIME}
+
+            echo
+            echo "=== Mount /data/cbench on ${NODE} [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+            [[ ${DEBUG} ]] || ssh $(get_ssh_connection ${NODE}) '
+                sudo mount /dev/sdb /data/cbench && cd /data/cbench && sudo swapon swapfile
+            '
+
+            if [[ ${OPTION_CLEAN} == TRUE ]] ; then
+                echo
+                echo "=== Clean datadir on ${NODE} [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+                [[ ${DEBUG} ]] ||ssh $(get_ssh_connection ${NODE}) '
+                    cd /data/cbench
+                    rm -rf datadir
+                    mkdir datadir
+                    export PATH=/data/cbench/install/bin:/data/cbench/install/scripts:${PATH}
+                    mariadb-install-db --auth-root-authentication-method=normal
+                '
+            fi
+
+            echo
+            echo "=== Start MariaDB on ${NODE} [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+            [[ ${DEBUG} ]] || ssh $(get_ssh_connection ${NODE}) '
+                export PATH=/data/cbench/install/bin:/data/cbench/install/scripts:${PATH}
+                mariadbd-safe &
+            '
+
+            SUBTIMER=$(date +%s)
+            echo -n "wait for MariaDB to come online "
+            do
+                echo -n "."
+                sleep 1
+            while ! ssh $(get_ssh_connection ${NODE}) '/data/cbench/install/bin/mariadb-admin -S /data/cbench/mariadb.sock -u root -b -s ping'
+            echo " alive"
+            RECOVERY_SEC[$PRODUCT]=$(( $(date +%s) - ${SUBTIMER} ))
+
+            echo
+            echo "=== MariaDB on ${NODE} is alive again [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+            echo
+
+            echo "time for recovery = ${SYSBENCH_SEC[$PRODUCT]} seconds"
+
+        } | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).fail.and.recover.${NODE}.log 2>&1
+
+        # wait for the benchmark run to finish
+        wait ${BENCHMARK_PID}
+        SYSBENCH_SEC[$PRODUCT]=$(stop_timer)
+
+        # find logdir for this run and copy results
+        local D=$(ls -1d ${LOGDIRECTORY}/*.sysbench.${WORKLOAD}.run | tail -1)
+        cp ${D}/test.interval.data ${T}/${PRODUCT}.${WORKLOAD}.test.interval.data
+        cp ${D}/throughput.interval.png ${T}/${PRODUCT}.${WORKLOAD}.throughput.interval.png
+
+        exec "stop.grafana.sh --cluster ${CLUSTER}" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.sysbench.log 2>&1
+
+        #restore LOGDIRECTORY
+        LOGDIRECTORY=${LOGDIRECTORY_BAK}
+    done
+
+    echo
+    echo "=== Release Nodes [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
+    echo
+    start_timer
+    COMMAND="gcp.release.nodes.sh --cluster ${CLUSTER}"
+    exec ${COMMAND}
+    RELEASE_SEC=$(stop_timer)
+
+    BUILDS_SEC=$(( ${BUILD_SEC['galera']} + ${BUILD_SEC['raft']} ))
+    LOADS_SEC=$(( ${LOAD_SEC['galera']} + ${LOAD_SEC['raft']} ))
+    SYSBENCHS_SEC=$(( ${SYSBENCH_SEC['galera']} + ${SYSBENCH_SEC['raft']} ))
+    ((TOTAL_SEC=ALLOCATE_SEC+BUILDS_SEC+LOADS_SEC+SYSBENCHS_SEC+RELEASE_SEC))
+
+    echo
+    echo "Execution Times (minutes)"
+    echo "=================================="
+    perl -e "printf \"  Allocate Nodes      : %10.1f\n\", ${ALLOCATE_SEC}/60"
+    perl -e "printf \"  Galera:\n\""
+    perl -e "printf \"    Build Cluster     : %10.1f\n\", ${BUILD_SEC['galera']}/60"
+    perl -e "printf \"    Load Sysbench     : %10.1f\n\", ${LOAD_SEC['galera']}/60"
+    perl -e "printf \"    Run Sysbench      : %10.1f\n\", ${SYSBENCH_SEC['galera']}/60"
+    perl -e "printf \"    Node Recovery [s] : %10.1f\n\", ${RECOVERY_SEC['galera']}"
+    perl -e "printf \"  Raft:\n\""
+    perl -e "printf \"    Build Cluster     : %10.1f\n\", ${BUILD_SEC['raft']}/60"
+    perl -e "printf \"    Load Sysbench     : %10.1f\n\", ${LOAD_SEC['raft']}/60"
+    perl -e "printf \"    Run Sysbench      : %10.1f\n\", ${SYSBENCH_SEC['raft']}/60"
+    perl -e "printf \"    Node Recovery [s] : %10.1f\n\", ${RECOVERY_SEC['raft']}"
+    perl -e "printf \"  Release Nodes       : %10.1f\n\", ${RELEASE_SEC}/60"
+    echo "=================================="
+    perl -e "printf \"TotalElapsed          : %10.1f\n\", ${TOTAL_SEC}/60"
+    echo
+
+} | tee ${LOGDIRECTORY}/${TEST_NAME}.log
