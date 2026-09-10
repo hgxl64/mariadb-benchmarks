@@ -320,7 +320,7 @@ mkdir -p ${LOGDIRECTORY}
             while 1
             do
                 [[ ${DEBUG} ]] && break
-                ONLINE=$(mariadb -sN $(get_database_connection ${CLUSTER} -e 'SELECT @@GLOBAL.wsrep_cluster_size')
+                ONLINE=$(mariadb -sN $(get_database_connection ${CLUSTER}) -e 'SELECT @@GLOBAL.wsrep_cluster_size')
                 echo -n ".${ONLINE}"
                 (( ONLINE == NUM_NODES )) && break
                 (( TIMEOUT-- <= 0 )) && break
