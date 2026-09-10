@@ -62,8 +62,10 @@ source ${CBENCH_HOME}/bin/cbench.sh
 
 [[ ${PRODUCTS[*]} ]] || PRODUCTS=( "galera" "raft" )
 
+# time to run initially
+INITIAL=180
 [[ ${OPTION_DOWNTIME} ]] || OPTION_DOWNTIME=60
-((RUNTIME=600 + OPTION_DOWNTIME))
+((RUNTIME=600 + OPTION_DOWNTIME + INITIAL))
 [[ ${OPTION_CLEAN} == TRUE ]] || OPTION_CLEAN=FALSE
 
 [[ ${WORKLOAD} ]] || WORKLOAD="oltp_read_write"
@@ -76,6 +78,7 @@ case ${NUM_NODES} in
        MAXSCALE_ARCH="n2-highcpu-8"
        NUM_MAXSCALE=1
        STREAMS=24
+       [[ ${OPTION_MAXSCALE} == TRUE ]] && STREAMS=36
        ;;
 
     5) SERVER_ARCH="n2-standard-8"
@@ -84,6 +87,7 @@ case ${NUM_NODES} in
        MAXSCALE_ARCH="n2-highcpu-8"
        NUM_MAXSCALE=1
        STREAMS=48
+       [[ ${OPTION_MAXSCALE} == TRUE ]] && STREAMS=60
        ;;
     7) SERVER_ARCH="n2-standard-8"
        DRIVER_ARCH="n2-highcpu-8"
@@ -91,6 +95,8 @@ case ${NUM_NODES} in
        MAXSCALE_ARCH="n2-highcpu-8"
        NUM_MAXSCALE=2
        STREAMS=96
+       [[ ${OPTION_MAXSCALE} == TRUE ]] && STREAMS=112
+
        ;;
     *) error "illegal value of --nodes ${NUM_NODES}"
 esac
@@ -249,8 +255,8 @@ mkdir -p ${LOGDIRECTORY}
         # do the fail-and-recover-node job in foreground
         {
             echo
-            echo "let the benchmark run undisturbed for 3 minutes ..."
-            sleep 180
+            echo "let the benchmark run undisturbed for ${INITIAL} seconds ..."
+            sleep ${INITIAL}
 
             NODE="${CLUSTER}-server-${NUM_NODES}"
 
@@ -291,25 +297,56 @@ mkdir -p ${LOGDIRECTORY}
                 sleep 2
             '
 
+            (( TIMEOUT = RUNTIME - INITIAL - OPTION_DOWNTIME ))
             SUBTIMER=$(date +%s)
             echo -n "wait for MariaDB to come online "
             while ! ssh $(get_ssh_connection ${NODE}) '/data/cbench/install/bin/mariadb-admin -S /data/cbench/mariadb.sock -u root -b -s ping'
             do
                 [[ ${DEBUG} ]] && break
+                (( TIMEOUT-- <= 0 )) && break
                 echo -n "."
                 sleep 1
             done
-            echo " alive"
-            RECOVERY=$(( $(date +%s) - ${SUBTIMER} ))
+            if (( TIMEOUT > 0 )) ; then
+                echo " alive"
+                RECOVERY1=$(( $(date +%s) - ${SUBTIMER} ))
+                echo "time for InnoDB recovery = ${RECOVERY1} seconds"
+            else
+                echo " timed out"
+            fi
 
             echo
-            echo "=== MariaDB on ${NODE} is alive again [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-            echo
+            echo -n "wait for cluster to complete (${NUM_NODES} nodes) 0"
+            while 1
+            do
+                [[ ${DEBUG} ]] && break
+                ONLINE=$(mariadb -sN $(get_database_connection ${CLUSTER} -e 'SELECT @@GLOBAL.wsrep_cluster_size')
+                echo -n ".${ONLINE}"
+                (( ONLINE == NUM_NODES )) && break
+                (( TIMEOUT-- <= 0 )) && break
+                sleep 1
+            done
+            if (( TIMEOUT > 0 )) ; then
+                echo " complete"
+                RECOVERY2=$(( $(date +%s) - ${RECOVERY1} ))
+                echo "time for WSREP recovery = ${RECOVERY2} seconds"
+            else
+                echo " timed out"
+            fi
 
-            echo "time for recovery = ${RECOVERY} seconds"
-            RECOVERY_SEC[$PRODUCT]=${RECOVERY}
+            if (( TIMEOUT > 0 )) ; then
+                echo
+                echo "=== MariaDB on ${NODE} is alive again [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+                echo
+                RECOVERY_SEC[$PRODUCT]=$(( RECOVERY1 + RECOVERY2 ))
+            else
+                echo
+                echo "=== MariaDB on ${NODE} did not come alive [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+                echo
+                RECOVERY_SEC[$PRODUCT]=0
+            fi
 
-        } | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).fail.and.recover.${NODE}.log 2>&1
+        } | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).fail.and.recover.log 2>&1
 
         # wait for the benchmark run to finish
         [[ ${DEBUG} ]] || wait ${BENCHMARK_PID}
