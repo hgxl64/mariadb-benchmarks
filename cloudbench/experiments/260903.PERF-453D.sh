@@ -178,7 +178,7 @@ mkdir -p ${LOGDIRECTORY}
     }
 
     # summary dir to collect data
-    local T=${LOGDIRECTORY}/summary
+    T=${LOGDIRECTORY}/summary
     [[ -d ${T} ]] || mkdir ${T}
 
     for PRODUCT in galera raft; do
