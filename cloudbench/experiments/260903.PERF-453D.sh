@@ -48,7 +48,7 @@ while [[ $# > 0 ]] ; do
 
         --maxscale)           OPTION_MAXSCALE=TRUE;;
         --downtime)           OPTION_DOWNTIME="$1"; shift;;
-        --clean               OPTION_CLEAN=TRUE;;
+        --clean)              OPTION_CLEAN=TRUE;;
 
         -h|--help)            error -e "$USAGE";;
         *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
