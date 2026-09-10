@@ -363,4 +363,4 @@ mkdir -p ${LOGDIRECTORY}
     perl -e "printf \"TotalElapsed          : %10.1f\n\", ${TOTAL_SEC}/60"
     echo
 
-} | tee ${LOGDIRECTORY}/${TEST_NAME}.log
+} | tee ${LOGDIRECTORY}/${TEST_NAME}.log 2>&1
