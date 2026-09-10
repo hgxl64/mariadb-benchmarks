@@ -317,10 +317,10 @@ mkdir -p ${LOGDIRECTORY}
 
             echo
             echo -n "wait for cluster to complete (${NUM_NODES} nodes) 0"
-            while 1
+            while true
             do
                 [[ ${DEBUG} ]] && break
-                ONLINE=$(mariadb -sN $(get_database_connection ${CLUSTER}) -e 'SELECT @@GLOBAL.wsrep_cluster_size')
+                ONLINE=$(mariadb -sN $(get_database_connection ${CLUSTER}) -e "SHOW GLOBAL STATUS LIKE 'wsrep_cluster_size'" | cut -f2)
                 echo -n ".${ONLINE}"
                 (( ONLINE == NUM_NODES )) && break
                 (( TIMEOUT-- <= 0 )) && break
