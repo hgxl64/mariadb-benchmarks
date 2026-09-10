@@ -299,10 +299,11 @@ mkdir -p ${LOGDIRECTORY}
 
             SUBTIMER=$(date +%s)
             echo -n "wait for MariaDB to come online "
+            while ! ssh $(get_ssh_connection ${NODE}) '/data/cbench/install/bin/mariadb-admin -S /data/cbench/mariadb.sock -u root -b -s ping'
             do
                 echo -n "."
                 sleep 1
-            while ! ssh $(get_ssh_connection ${NODE}) '/data/cbench/install/bin/mariadb-admin -S /data/cbench/mariadb.sock -u root -b -s ping'
+            done
             echo " alive"
             RECOVERY=$(( $(date +%s) - ${SUBTIMER} ))
 
