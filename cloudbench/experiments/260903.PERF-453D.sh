@@ -182,8 +182,8 @@ mkdir -p ${LOGDIRECTORY}
     [[ -d ${T} ]] || mkdir ${T}
 
     for PRODUCT in galera raft; do
-        [[ ${PRODUCT} == galera ]] && [[ OPTION_GALERA != TRUE ]] && continue
-        [[ ${PRODUCT} == raft ]]   && [[ OPTION_RAFT != TRUE ]]   && continue
+#        [[ ${PRODUCT} == galera ]] && [[ OPTION_GALERA != TRUE ]] && continue
+#        [[ ${PRODUCT} == raft ]]   && [[ OPTION_RAFT != TRUE ]]   && continue
 
         # use a custom log directory for each product
         LOGDIRECTORY_BAK=${LOGDIRECTORY}
