@@ -27,7 +27,7 @@ Options:
 
 COMMAND_LINE="$@"
 
-unset DEBUG PRODUCTS
+unset DEBUG PRODUCTS OPTION_MAXSCALE
 
 
 while [[ $# > 0 ]] ; do
@@ -41,8 +41,8 @@ while [[ $# > 0 ]] ; do
         --raft-tarball)       RAFT_TARBALL="$1"; shift;;
 
         --debug)              DEBUG=1;;
-        --galera)             PRODUCTS+=( "galera" );;
-        --raft)               PRODUCTS+=( "raft" );;
+        --galera)             PRODUCTS+=( galera );;
+        --raft)               PRODUCTS+=( raft );;
 
         --maxscale)           OPTION_MAXSCALE=TRUE;;
         --downtime)           OPTION_DOWNTIME="$1"; shift;;
@@ -60,12 +60,12 @@ source ${CBENCH_HOME}/bin/cbench.sh
 [[ ${CLUSTER} ]] || CLUSTER='perf-453'
 [[ ${NUM_NODES} ]] || NUM_NODES=3
 
-[[ ${PRODUCTS[*]} ]] || PRODUCTS=( "galera" "raft" )
+[[ ${PRODUCTS[*]} ]] || PRODUCTS=( galera raft )
 
 # time to run initially
-INITIAL=180
+INITIAL_TIME=180
 [[ ${OPTION_DOWNTIME} ]] || OPTION_DOWNTIME=60
-((RUNTIME=600 + OPTION_DOWNTIME + INITIAL))
+((RUNTIME = 500 + OPTION_DOWNTIME + INITIAL_TIME))
 [[ ${OPTION_CLEAN} == TRUE ]] || OPTION_CLEAN=FALSE
 
 [[ ${WORKLOAD} ]] || WORKLOAD="oltp_read_write"
@@ -139,8 +139,8 @@ mkdir -p ${LOGDIRECTORY}
     echo
     echo "Downtime               = ${OPTION_DOWNTIME}"
     echo "Testing [ ${PRODUCTS[*]} ]"
-    [[ ${OPTION_MAXSCALE}=TRUE ]] && echo "Using MaxScale"
-    [[ ${OPTION_CLEAN}=TRUE ]]    && echo "Cleaning failed node"
+    [[ ${OPTION_MAXSCALE} == TRUE ]] && echo "Using MaxScale"
+    [[ ${OPTION_CLEAN} == TRUE ]]    && echo "Cleaning failed node"
     echo
 
     # initialize timer variables
@@ -255,8 +255,8 @@ mkdir -p ${LOGDIRECTORY}
         # do the fail-and-recover-node job in foreground
         {
             echo
-            echo "let the benchmark run undisturbed for ${INITIAL} seconds ..."
-            sleep ${INITIAL}
+            echo "let the benchmark run undisturbed for ${INITIAL_TIME} seconds ..."
+            sleep ${INITIAL_TIME}
 
             NODE="${CLUSTER}-server-${NUM_NODES}"
 
@@ -297,18 +297,18 @@ mkdir -p ${LOGDIRECTORY}
                 sleep 2
             '
 
-            (( TIMEOUT = RUNTIME - INITIAL - OPTION_DOWNTIME ))
+            (( TIMEOUT = RUNTIME - INITIAL_TIME - OPTION_DOWNTIME ))
             SUBTIMER=$(date +%s)
             echo -n "wait for MariaDB to come online "
-            while ! ssh $(get_ssh_connection ${NODE}) '/data/cbench/install/bin/mariadb-admin -S /data/cbench/mariadb.sock -u root -b -s ping'
+            while true
             do
                 [[ ${DEBUG} ]] && break
-                (( TIMEOUT-- <= 0 )) && break
+                ssh $(get_ssh_connection ${NODE}) '/data/cbench/install/bin/mariadb-admin -S /data/cbench/mariadb.sock -u root -b -s ping' && break
                 echo -n "."
+                (( TIMEOUT-- <= 0 )) && break
                 sleep 1
             done
             if (( TIMEOUT > 0 )) ; then
-                echo " alive"
                 RECOVERY1=$(( $(date +%s) - ${SUBTIMER} ))
                 echo "time for InnoDB recovery = ${RECOVERY1} seconds"
             else
@@ -316,7 +316,7 @@ mkdir -p ${LOGDIRECTORY}
             fi
 
             echo
-            echo -n "wait for cluster to complete (${NUM_NODES} nodes) 0"
+            echo -n "wait for all (${NUM_NODES}) nodes 0"
             while true
             do
                 [[ ${DEBUG} ]] && break
@@ -328,7 +328,7 @@ mkdir -p ${LOGDIRECTORY}
             done
             if (( TIMEOUT > 0 )) ; then
                 echo " complete"
-                RECOVERY2=$(( $(date +%s) - ${RECOVERY1} ))
+                RECOVERY2=$(( $(date +%s) - ${SUBTIMER} - ${RECOVERY1} ))
                 echo "time for WSREP recovery = ${RECOVERY2} seconds"
             else
                 echo " timed out"
