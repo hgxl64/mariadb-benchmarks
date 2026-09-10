@@ -133,15 +133,15 @@ mkdir -p ${LOGDIRECTORY}
     echo "LOGDIRECTORY           = ${LOGDIRECTORY}"
     echo
     echo "NUM_NODES              = ${NUM_NODES}"
-    echo "MARIADB_TARBALL        = ${MARIADB_TARBALL}"
-    echo "GALERA_TARBALL         = ${GALERA_TARBALL}"
-    echo "RAFT_TARBALL           = ${RAFT_TARBALL}"
+    [[ ${MARIADB_TARBALL} ]] && echo "MARIADB_TARBALL        = ${MARIADB_TARBALL}"
+    [[ ${GALERA_TARBALL} ]]  && echo "GALERA_TARBALL         = ${GALERA_TARBALL}"
+    [[ ${RAFT_TARBALL} ]]    && echo "RAFT_TARBALL           = ${RAFT_TARBALL}"
     echo
-    echo "Testing Galera         = ${OPTION_GALERA}"
-    echo "Testing Raft           = ${OPTION_RAFT}"
-    echo "Using MaxScale         = ${OPTION_MAXSCALE}"
     echo "Downtime               = ${OPTION_DOWNTIME}"
-    echo "Cleaning failed node   = ${OPTION_CLEAN}"
+    [[ ${OPTION_GALERA}=TRUE ]]   && echo "Testing Galera"
+    [[ ${OPTION_RAFT}=TRUE ]]     && echo "Testing Raft"
+    [[ ${OPTION_MAXSCALE}=TRUE ]] && echo "Using MaxScale"
+    [[ ${OPTION_CLEAN}=TRUE ]]    && echo "Cleaning failed node"
     echo
 
     # initialize timer variables
@@ -186,7 +186,7 @@ mkdir -p ${LOGDIRECTORY}
         [[ ${PRODUCT} == raft ]]   && [[ OPTION_RAFT != TRUE ]]   && continue
 
         # use a custom log directory for each product
-        local LOGDIRECTORY_BAK=${LOGDIRECTORY}
+        LOGDIRECTORY_BAK=${LOGDIRECTORY}
         LOGDIRECTORY=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${PRODUCT}.benchmark
         mkdir ${LOGDIRECTORY}
 
@@ -294,6 +294,7 @@ mkdir -p ${LOGDIRECTORY}
             [[ ${DEBUG} ]] || ssh $(get_ssh_connection ${NODE}) '
                 export PATH=/data/cbench/install/bin:/data/cbench/install/scripts:${PATH}
                 mariadbd-safe &
+                sleep 2
             '
 
             SUBTIMER=$(date +%s)
@@ -303,13 +304,14 @@ mkdir -p ${LOGDIRECTORY}
                 sleep 1
             while ! ssh $(get_ssh_connection ${NODE}) '/data/cbench/install/bin/mariadb-admin -S /data/cbench/mariadb.sock -u root -b -s ping'
             echo " alive"
-            RECOVERY_SEC[$PRODUCT]=$(( $(date +%s) - ${SUBTIMER} ))
+            RECOVERY=$(( $(date +%s) - ${SUBTIMER} ))
 
             echo
             echo "=== MariaDB on ${NODE} is alive again [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
             echo
 
-            echo "time for recovery = ${SYSBENCH_SEC[$PRODUCT]} seconds"
+            echo "time for recovery = ${RECOVERY} seconds"
+            RECOVERY_SEC[$PRODUCT]=${RECOVERY}
 
         } | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).fail.and.recover.${NODE}.log 2>&1
 
