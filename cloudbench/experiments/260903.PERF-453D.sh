@@ -27,10 +27,8 @@ Options:
 
 COMMAND_LINE="$@"
 
-unset DEBUG
-unset SOFIA
-unset OPTION_GALERA_ONLY
-unset OPTION_RAFT_ONLY
+unset DEBUG PRODUCTS
+
 
 while [[ $# > 0 ]] ; do
     key="$1"; shift;
@@ -43,8 +41,8 @@ while [[ $# > 0 ]] ; do
         --raft-tarball)       RAFT_TARBALL="$1"; shift;;
 
         --debug)              DEBUG=1;;
-        --galera)             OPTION_GALERA=TRUE;;
-        --raft)               OPTION_RAFT=TRUE;;
+        --galera)             PRODUCTS+=( "galera" );;
+        --raft)               PRODUCTS+=( "raft" );;
 
         --maxscale)           OPTION_MAXSCALE=TRUE;;
         --downtime)           OPTION_DOWNTIME="$1"; shift;;
@@ -62,11 +60,7 @@ source ${CBENCH_HOME}/bin/cbench.sh
 [[ ${CLUSTER} ]] || CLUSTER='perf-453'
 [[ ${NUM_NODES} ]] || NUM_NODES=3
 
-# if neither option is given, test both
-[[ ${OPTION_GALERA} ]] || [[ ${OPTION_RAFT} ]] || {
-    OPTION_GALERA=TRUE
-    OPTION_RAFT=TRUE
-}
+[[ ${PRODUCTS[*]} ]] || PRODUCTS=( "galera" "raft" )
 
 [[ ${OPTION_DOWNTIME} ]] || OPTION_DOWNTIME=60
 ((RUNTIME=600 + OPTION_DOWNTIME))
@@ -138,8 +132,7 @@ mkdir -p ${LOGDIRECTORY}
     [[ ${RAFT_TARBALL} ]]    && echo "RAFT_TARBALL           = ${RAFT_TARBALL}"
     echo
     echo "Downtime               = ${OPTION_DOWNTIME}"
-    [[ ${OPTION_GALERA}=TRUE ]]   && echo "Testing Galera"
-    [[ ${OPTION_RAFT}=TRUE ]]     && echo "Testing Raft"
+    echo "Testing [ ${PRODUCTS[*]} ]"
     [[ ${OPTION_MAXSCALE}=TRUE ]] && echo "Using MaxScale"
     [[ ${OPTION_CLEAN}=TRUE ]]    && echo "Cleaning failed node"
     echo
@@ -181,9 +174,7 @@ mkdir -p ${LOGDIRECTORY}
     T=${LOGDIRECTORY}/summary
     [[ -d ${T} ]] || mkdir ${T}
 
-    for PRODUCT in galera raft; do
-#        [[ ${PRODUCT} == galera ]] && [[ OPTION_GALERA != TRUE ]] && continue
-#        [[ ${PRODUCT} == raft ]]   && [[ OPTION_RAFT != TRUE ]]   && continue
+    for PRODUCT in ${PRODUCTS[*]}; do
 
         # use a custom log directory for each product
         LOGDIRECTORY_BAK=${LOGDIRECTORY}
