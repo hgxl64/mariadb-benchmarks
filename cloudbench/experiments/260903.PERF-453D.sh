@@ -338,7 +338,7 @@ mkdir -p ${LOGDIRECTORY}
                 echo
                 echo "=== MariaDB on ${NODE} is alive again [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
                 echo
-                RECOVERY_SEC[$PRODUCT]=$(( RECOVERY1 + RECOVERY2 ))
+                RECOVERY_SEC[$PRODUCT]=$(( ${RECOVERY1} + ${RECOVERY2} ))
             else
                 echo
                 echo "=== MariaDB on ${NODE} did not come alive [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
