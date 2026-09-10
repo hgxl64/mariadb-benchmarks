@@ -249,8 +249,8 @@ mkdir -p ${LOGDIRECTORY}
         # do the fail-and-recover-node job in foreground
         {
             echo
-            echo "let the benchmark run undisturbed for 1 minute ..."
-            sleep 60
+            echo "let the benchmark run undisturbed for 3 minutes ..."
+            sleep 180
 
             NODE="${CLUSTER}-server-${NUM_NODES}"
 
@@ -265,7 +265,10 @@ mkdir -p ${LOGDIRECTORY}
             echo
             echo "=== Mount /data/cbench on ${NODE} [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
             [[ ${DEBUG} ]] || ssh $(get_ssh_connection ${NODE}) '
-                sudo mount /dev/sdb /data/cbench && cd /data/cbench && sudo swapon swapfile
+                sudo mount /dev/sdb /data/cbench
+                sudo lsblk
+                cd /data/cbench
+                test -f swapfile && sudo swapon swapfile
             '
 
             if [[ ${OPTION_CLEAN} == TRUE ]] ; then
