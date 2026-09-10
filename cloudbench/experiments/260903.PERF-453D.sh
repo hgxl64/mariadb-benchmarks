@@ -292,6 +292,7 @@ mkdir -p ${LOGDIRECTORY}
             echo -n "wait for MariaDB to come online "
             while ! ssh $(get_ssh_connection ${NODE}) '/data/cbench/install/bin/mariadb-admin -S /data/cbench/mariadb.sock -u root -b -s ping'
             do
+                [[ ${DEBUG} ]] && break
                 echo -n "."
                 sleep 1
             done
@@ -308,11 +309,11 @@ mkdir -p ${LOGDIRECTORY}
         } | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).fail.and.recover.${NODE}.log 2>&1
 
         # wait for the benchmark run to finish
-        wait ${BENCHMARK_PID}
+        [[ ${DEBUG} ]] || wait ${BENCHMARK_PID}
         SYSBENCH_SEC[$PRODUCT]=$(stop_timer)
 
         # find logdir for this run and copy results
-        local D=$(ls -1d ${LOGDIRECTORY}/*.sysbench.${WORKLOAD}.run | tail -1)
+        D=$(ls -1d ${LOGDIRECTORY}/*.sysbench.${WORKLOAD}.run | tail -1)
         cp ${D}/test.interval.data ${T}/${PRODUCT}.${WORKLOAD}.test.interval.data
         cp ${D}/throughput.interval.png ${T}/${PRODUCT}.${WORKLOAD}.throughput.interval.png
 
