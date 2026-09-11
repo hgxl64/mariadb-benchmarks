@@ -174,7 +174,7 @@ sub dump_I_S_table
 sub cleanup
 {
     print STDERR "\nclosing database connection\n";
-    $dbh->disconnect();
+    $dbh->ping and $dbh->disconnect();
     die "MariaDB status monitor completed\n"
 }
 

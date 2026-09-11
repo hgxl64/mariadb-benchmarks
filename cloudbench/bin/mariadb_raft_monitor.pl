@@ -139,7 +139,7 @@ sub dump_raft_status
 sub cleanup
 {
     print STDERR "\nclosing database connection\n";
-    $dbh->disconnect();
+    $dbh->ping and $dbh->disconnect();
     die "Raft status monitor completed\n"
 }
 
