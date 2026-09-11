@@ -65,8 +65,13 @@ source ${CBENCH_HOME}/bin/cbench.sh
 # time to run initially
 INITIAL_TIME=180
 [[ ${OPTION_DOWNTIME} ]] || OPTION_DOWNTIME=60
-((RUNTIME = 600 + OPTION_DOWNTIME + INITIAL_TIME))
-[[ ${OPTION_CLEAN} == TRUE ]] || OPTION_CLEAN=FALSE
+((RUNTIME = 300 + OPTION_DOWNTIME + INITIAL_TIME))
+if [[ ${OPTION_CLEAN} == TRUE ]] ; then
+   # SST takes long so run longer
+   ((RUNTIME = 600 + OPTION_DOWNTIME + INITIAL_TIME))
+else
+   OPTION_CLEAN=FALSE
+fi
 
 [[ ${WORKLOAD} ]] || WORKLOAD="oltp_read_write"
 
