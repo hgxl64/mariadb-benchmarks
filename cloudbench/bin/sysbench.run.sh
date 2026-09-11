@@ -369,7 +369,7 @@ time {
                         COMMAND="${COMMAND} --mysql-db=${SCHEMA}"
                         COMMAND="${COMMAND} --time=${DURATION} ${SYSBENCH_OPTIONS}"
                         # 190920  Added Errno 8005 - a tiDB write conflict
-                        [[ ${OPTION_IGNORE_ERRORS} ]] && COMMAND="${COMMAND} --mysql-ignore-errors=1180,1020,1205,1213,1317,8005"
+                        [[ ${OPTION_IGNORE_ERRORS} ]] && COMMAND="${COMMAND} --mysql-ignore-errors=1020,1047,1180,1205,1213,1317,8005"
                         [[ ${OPTION_IGNORE_ALL_ERRORS} ]] && COMMAND="${COMMAND} --mysql-ignore-errors=all"
                         ;;
                 esac
