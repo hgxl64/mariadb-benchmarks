@@ -35,18 +35,18 @@ while [[ $# > 0 ]] ; do
     case ${key} in
 
         --nodes)              NUM_NODES="$1"; shift;;
+        --collocate)          OPTION_COLLOCATE=TRUE;;
 
         --mariadb-tarball)    MARIADB_TARBALL="$1"; shift;;
+        --galera)             PRODUCTS+=( galera );;
         --galera-tarball)     GALERA_TARBALL="$1"; shift;;
+        --raft)               PRODUCTS+=( raft );;
         --raft-tarball)       RAFT_TARBALL="$1"; shift;;
 
-        --debug)              DEBUG=1;;
-        --galera)             PRODUCTS+=( galera );;
-        --raft)               PRODUCTS+=( raft );;
-
+        --clean)              OPTION_CLEAN=TRUE;;
         --maxscale)           OPTION_MAXSCALE=TRUE;;
         --downtime)           OPTION_DOWNTIME="$1"; shift;;
-        --clean)              OPTION_CLEAN=TRUE;;
+        --debug)              DEBUG=1;;
 
         -h|--help)            error -e "$USAGE";;
         *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
@@ -65,7 +65,7 @@ source ${CBENCH_HOME}/bin/cbench.sh
 # time to run initially
 INITIAL_TIME=180
 [[ ${OPTION_DOWNTIME} ]] || OPTION_DOWNTIME=60
-((RUNTIME = 500 + OPTION_DOWNTIME + INITIAL_TIME))
+((RUNTIME = 600 + OPTION_DOWNTIME + INITIAL_TIME))
 [[ ${OPTION_CLEAN} == TRUE ]] || OPTION_CLEAN=FALSE
 
 [[ ${WORKLOAD} ]] || WORKLOAD="oltp_read_write"
@@ -116,6 +116,7 @@ exec() {
 
 
 TEST_NAME="PERF-453D-n=${NUM_NODES}"
+[[ ${OPTION_MAXSCALE} == TRUE ]] && TEST_NAME="${TEST_NAME}-mx"
 if [[ ${OPTION_CLEAN} == TRUE ]] ; then
     TEST_NAME="${TEST_NAME}-clean"
 else
@@ -139,8 +140,8 @@ mkdir -p ${LOGDIRECTORY}
     echo
     echo "Downtime               = ${OPTION_DOWNTIME}"
     echo "Testing [ ${PRODUCTS[*]} ]"
-    [[ ${OPTION_MAXSCALE} == TRUE ]] && echo "Using MaxScale"
     [[ ${OPTION_CLEAN} == TRUE ]]    && echo "Cleaning failed node"
+    [[ ${OPTION_MAXSCALE} == TRUE ]] && echo "Using MaxScale"
     echo
 
     # initialize timer variables
@@ -158,11 +159,14 @@ mkdir -p ${LOGDIRECTORY}
     echo "=== Allocate Nodes [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
     echo
     start_timer
-    COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER} --collocate --parallel"
+    COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER} --parallel"
     COMMAND="${COMMAND} --server-type ${SERVER_ARCH} --server-nodes ${NUM_NODES}"
     COMMAND="${COMMAND} --driver-type ${DRIVER_ARCH} --driver-nodes ${NUM_DRIVER}"
     if [[ ${OPTION_MAXSCALE} == TRUE ]] ; then
         COMMAND="${COMMAND} --maxscale-type ${MAXSCALE_ARCH} --maxscale-nodes ${NUM_MAXSCALE}"
+    fi
+    if [[ ${OPTION_COLLOCATE} == TRUE ]] ; then
+        COMMAND="${COMMAND} --collocate"
     fi
     exec ${COMMAND}
     ALLOCATE_SEC=$(stop_timer)
@@ -215,11 +219,12 @@ mkdir -p ${LOGDIRECTORY}
         [[ ${MARIADB_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${MARIADB_TARBALL}"
         [[ ${GALERA_TARBALL} ]] && COMMAND="${COMMAND} --galera-tarball ${GALERA_TARBALL}"
         [[ ${RAFT_TARBALL} ]] && COMMAND="${COMMAND} --raft-tarball ${RAFT_TARBALL}"
-        # those do not have cmdline options
-        export SLAVE_SELECTION="ADAPTIVE_ROUTING"
-        export MASTER_READS="true"
+        if [[ ${OPTION_MAXSCALE} == TRUE ]] ; then
+            # those do not have cmdline options
+            export SLAVE_SELECTION="ADAPTIVE_ROUTING"
+            export MASTER_READS="true"
+        fi
         exec ${COMMAND}
-        unset SLAVE_SELECTION MASTER_READS
         BUILD_SEC[$PRODUCT]=$(stop_timer)
 
         echo
@@ -256,7 +261,7 @@ mkdir -p ${LOGDIRECTORY}
         {
             echo
             echo "let the benchmark run undisturbed for ${INITIAL_TIME} seconds ..."
-            sleep ${INITIAL_TIME}
+            [[ ${DEBUG} ]] || sleep ${INITIAL_TIME}
 
             NODE="${CLUSTER}-server-${NUM_NODES}"
 
@@ -266,7 +271,7 @@ mkdir -p ${LOGDIRECTORY}
             [[ ZONE_ID ]] && COMMAND="${COMMAND} --zone=${ZONE_ID}"
             exec ${COMMAND}
             echo "and wait ${OPTION_DOWNTIME} seconds"
-            sleep ${OPTION_DOWNTIME}
+            [[ ${DEBUG} ]] || sleep ${OPTION_DOWNTIME}
 
             echo
             echo "=== Mount /data/cbench on ${NODE} [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
@@ -299,51 +304,32 @@ mkdir -p ${LOGDIRECTORY}
 
             (( TIMEOUT = RUNTIME - INITIAL_TIME - OPTION_DOWNTIME ))
             SUBTIMER=$(date +%s)
-            echo -n "wait for MariaDB to come online "
-            while true
-            do
-                [[ ${DEBUG} ]] && break
-                ssh $(get_ssh_connection ${NODE}) '/data/cbench/install/bin/mariadb-admin -S /data/cbench/mariadb.sock -u root -b -s ping' && break
-                echo -n "."
-                (( TIMEOUT-- <= 0 )) && break
-                sleep 1
-            done
-            if (( TIMEOUT > 0 )) ; then
-                RECOVERY1=$(( $(date +%s) - ${SUBTIMER} ))
-                echo "time for InnoDB recovery = ${RECOVERY1} seconds"
-            else
-                echo " timed out"
-            fi
+            echo -n "waiting for MariaDB to come online (timeout ${TIMEOUT}s) "
+            [[ ${DEBUG} ]] || ssh $(get_ssh_connection ${NODE}) '
+                TIMEOUT="'${TIMEOUT}'"
+                export PATH=/data/cbench/install/bin:${PATH}
+                while true
+                do
+                    mariadb-admin -S /data/cbench/mariadb.sock -u root -b -s ping && break
+                    (( TIMEOUT-- <= 0 )) && break
+                    echo -n "."
+                    sleep 1
+                done
+                (( TIMEOUT > 0 ))' || TIMEOUT=0
 
-            echo
-            echo -n "wait for all (${NUM_NODES}) nodes 0"
-            while true
-            do
-                [[ ${DEBUG} ]] && break
-                ONLINE=$(mariadb -sN $(get_database_connection ${CLUSTER}) -e "SHOW GLOBAL STATUS LIKE 'wsrep_cluster_size'" | cut -f2)
-                echo -n ".${ONLINE}"
-                (( ONLINE == NUM_NODES )) && break
-                (( TIMEOUT-- <= 0 )) && break
-                sleep 1
-            done
-            if (( TIMEOUT > 0 )) ; then
-                echo " complete"
-                RECOVERY2=$(( $(date +%s) - ${SUBTIMER} - ${RECOVERY1} ))
-                echo "time for WSREP recovery = ${RECOVERY2} seconds"
-            else
+            if (( TIMEOUT == 0 )) ; then
                 echo " timed out"
-            fi
-
-            if (( TIMEOUT > 0 )) ; then
-                echo
-                echo "=== MariaDB on ${NODE} is alive again [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-                echo
-                RECOVERY_SEC[$PRODUCT]=$(( ${RECOVERY1} + ${RECOVERY2} ))
-            else
                 echo
                 echo "=== MariaDB on ${NODE} did not come alive [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
                 echo
-                RECOVERY_SEC[$PRODUCT]=0
+                RECOVERY_SEC[$PRODUCT]=999
+            else
+                RECOVERY=$(( $(date +%s) - ${SUBTIMER} ))
+                echo "time for node recovery = ${RECOVERY} seconds"
+                echo
+                echo "=== MariaDB on ${NODE} is alive again [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+                echo
+                RECOVERY_SEC[$PRODUCT]=${RECOVERY}
             fi
 
         } | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).fail.and.recover.log 2>&1
