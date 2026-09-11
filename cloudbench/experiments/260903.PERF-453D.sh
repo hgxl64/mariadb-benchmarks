@@ -246,7 +246,7 @@ mkdir -p ${LOGDIRECTORY}
         fi
 
         echo
-        echo "=== Run Sysbench Workload=${WORKLOAD} on Cluster=${RUN_CLUSTER} ==="
+        echo "=== Run Sysbench Workload=${WORKLOAD} on Cluster=${RUN_CLUSTER} in background ==="
         echo
 
         start_timer
@@ -260,13 +260,13 @@ mkdir -p ${LOGDIRECTORY}
         # do the fail-and-recover-node job in foreground
         {
             echo
-            echo "let the benchmark run undisturbed for ${INITIAL_TIME} seconds ..."
+            echo "=== Let the benchmark run undisturbed for ${INITIAL_TIME} seconds ..."
             [[ ${DEBUG} ]] || sleep ${INITIAL_TIME}
 
             NODE="${CLUSTER}-server-${NUM_NODES}"
 
             echo
-            echo "=== Reset node (${NODE}) [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+            echo "=== Reset node (${NODE}) [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
             COMMAND="gcloud compute instances reset ${NODE}"
             [[ ZONE_ID ]] && COMMAND="${COMMAND} --zone=${ZONE_ID}"
             exec ${COMMAND}
@@ -274,7 +274,7 @@ mkdir -p ${LOGDIRECTORY}
             [[ ${DEBUG} ]] || sleep ${OPTION_DOWNTIME}
 
             echo
-            echo "=== Mount /data/cbench on ${NODE} [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+            echo "=== Mount /data/cbench on ${NODE} [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
             [[ ${DEBUG} ]] || ssh $(get_ssh_connection ${NODE}) '
                 sudo mount /dev/sdb /data/cbench
                 sudo lsblk
@@ -284,7 +284,7 @@ mkdir -p ${LOGDIRECTORY}
 
             if [[ ${OPTION_CLEAN} == TRUE ]] ; then
                 echo
-                echo "=== Clean datadir on ${NODE} [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+                echo "=== Clean datadir on ${NODE} [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
                 [[ ${DEBUG} ]] ||ssh $(get_ssh_connection ${NODE}) '
                     cd /data/cbench
                     rm -rf datadir
@@ -295,16 +295,17 @@ mkdir -p ${LOGDIRECTORY}
             fi
 
             echo
-            echo "=== Start MariaDB on ${NODE} [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+            echo "=== Start MariaDB on ${NODE} [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
             [[ ${DEBUG} ]] || ssh $(get_ssh_connection ${NODE}) '
                 export PATH=/data/cbench/install/bin:/data/cbench/install/scripts:${PATH}
                 mariadbd-safe &
                 sleep 2
             '
 
+            echo
+            echo -n "waiting for MariaDB to come online (timeout ${TIMEOUT}s) "
             (( TIMEOUT = RUNTIME - INITIAL_TIME - OPTION_DOWNTIME ))
             SUBTIMER=$(date +%s)
-            echo -n "waiting for MariaDB to come online (timeout ${TIMEOUT}s) "
             [[ ${DEBUG} ]] || ssh $(get_ssh_connection ${NODE}) '
                 TIMEOUT="'${TIMEOUT}'"
                 export PATH=/data/cbench/install/bin:${PATH}
@@ -320,25 +321,27 @@ mkdir -p ${LOGDIRECTORY}
             if (( TIMEOUT == 0 )) ; then
                 echo " timed out"
                 echo
-                echo "=== MariaDB on ${NODE} did not come alive [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+                echo "=== MariaDB on ${NODE} did not come alive [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
                 echo
                 RECOVERY_SEC[$PRODUCT]=999
             else
                 RECOVERY=$(( $(date +%s) - ${SUBTIMER} ))
                 echo "time for node recovery = ${RECOVERY} seconds"
                 echo
-                echo "=== MariaDB on ${NODE} is alive again [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+                echo "=== MariaDB on ${NODE} is alive again [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
                 echo
                 RECOVERY_SEC[$PRODUCT]=${RECOVERY}
             fi
 
-        } | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).fail.and.recover.log 2>&1
+        } | tee ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).fail.and.recover.node.log 2>&1
 
-        # wait for the benchmark run to finish
+        echo
+        echo "=== waiting for background job to finish [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
         [[ ${DEBUG} ]] || wait ${BENCHMARK_PID}
         SYSBENCH_SEC[$PRODUCT]=$(stop_timer)
 
-        # find logdir for this run and copy results
+        echo
+        echo "=== copying results [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
         D=$(ls -1d ${LOGDIRECTORY}/*.sysbench.${WORKLOAD}.run | tail -1)
         cp ${D}/test.interval.data ${T}/${PRODUCT}.${WORKLOAD}.test.interval.data
         cp ${D}/throughput.interval.png ${T}/${PRODUCT}.${WORKLOAD}.throughput.interval.png
