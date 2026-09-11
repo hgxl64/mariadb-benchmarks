@@ -78,8 +78,10 @@ while [[ $# > 0 ]] ; do
         --skiptransaction)      SKIP_TRANSACTION=TRUE;;
         --skipbinlog)           SKIP_BINLOG=TRUE;;
         --ignoreerrors)         OPTION_IGNORE_ERRORS=TRUE;;
+        --ignore-errors)        OPTION_IGNORE_ERRORS=TRUE;;
         --ignoreallerrors)      OPTION_IGNORE_ALL_ERRORS=TRUE;;
-        --reconnect)            SYSBENCH_OPTIONS="${SYSBENCH_OPTIONS} --oltp-reconnect-mode=$1"; shift;;
+        --ignore-all-errors)    OPTION_IGNORE_ALL_ERRORS=TRUE;;
+        --reconnect)            SYSBENCH_OPTIONS="${SYSBENCH_OPTIONS} --reconnect=$1"; shift;;
         --threadinittimeout)    SYSBENCH_OPTIONS="${SYSBENCH_OPTIONS} --thread-init-timeout=$1"; shift;;
         --seeded)               OPTION_SEEDED=TRUE;;
         --histogram)            ;; #SYSBENCH_OPTIONS="${SYSBENCH_OPTIONS} --histogram";;
