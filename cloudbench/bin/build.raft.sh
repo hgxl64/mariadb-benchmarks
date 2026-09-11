@@ -69,7 +69,7 @@ done
 DB_USER=$(getproperty ${CLUSTER} database.user)
 DB_PASSWORD=$(getproperty ${CLUSTER} database.password)
 
-# default MariaDB source; RAFT needs special raft-enabled build
+# default MariaDB source, latest Enterprise branch
 [[ ${MARIADB_SOURCE} ]] || MARIADB_SOURCE="jenkins"
 [[ ${MARIADB_BRANCH} ]] || MARIADB_BRANCH="ENTERPRISE/12.3-enterprise"
 [[ ${MARIADB_COMMIT} ]] || MARIADB_COMMIT="latest"
