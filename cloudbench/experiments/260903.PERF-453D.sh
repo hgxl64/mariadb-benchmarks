@@ -302,10 +302,10 @@ mkdir -p ${LOGDIRECTORY}
                 sleep 2
             '
 
-            echo
-            echo -n "waiting for MariaDB to come online (timeout ${TIMEOUT}s) "
             (( TIMEOUT = RUNTIME - INITIAL_TIME - OPTION_DOWNTIME ))
             SUBTIMER=$(date +%s)
+            echo
+            echo -n "waiting for MariaDB to come online (timeout ${TIMEOUT}s) "
             [[ ${DEBUG} ]] || ssh $(get_ssh_connection ${NODE}) '
                 TIMEOUT="'${TIMEOUT}'"
                 export PATH=/data/cbench/install/bin:${PATH}
