@@ -70,6 +70,10 @@ INITIAL_TIME=180
 
 [[ ${WORKLOAD} ]] || WORKLOAD="oltp_read_write"
 
+# lets set this higher
+export RAFT_EVENT_STORE_MAX_SIZE="32G"
+export GCACHE_SIZE="32G"
+
 
 case ${NUM_NODES} in
     3) SERVER_ARCH="n2-standard-8"
@@ -78,7 +82,7 @@ case ${NUM_NODES} in
        MAXSCALE_ARCH="n2-highcpu-8"
        NUM_MAXSCALE=1
        STREAMS=24
-       [[ ${OPTION_MAXSCALE} == TRUE ]] && STREAMS=36
+       #[[ ${OPTION_MAXSCALE} == TRUE ]] && STREAMS=36
        ;;
 
     5) SERVER_ARCH="n2-standard-8"
@@ -87,7 +91,7 @@ case ${NUM_NODES} in
        MAXSCALE_ARCH="n2-highcpu-8"
        NUM_MAXSCALE=1
        STREAMS=48
-       [[ ${OPTION_MAXSCALE} == TRUE ]] && STREAMS=60
+       #[[ ${OPTION_MAXSCALE} == TRUE ]] && STREAMS=60
        ;;
     7) SERVER_ARCH="n2-standard-8"
        DRIVER_ARCH="n2-highcpu-8"
@@ -95,7 +99,7 @@ case ${NUM_NODES} in
        MAXSCALE_ARCH="n2-highcpu-8"
        NUM_MAXSCALE=2
        STREAMS=96
-       [[ ${OPTION_MAXSCALE} == TRUE ]] && STREAMS=112
+       #[[ ${OPTION_MAXSCALE} == TRUE ]] && STREAMS=112
 
        ;;
     *) error "illegal value of --nodes ${NUM_NODES}"
@@ -254,6 +258,8 @@ mkdir -p ${LOGDIRECTORY}
         # run benchmark in background
         COMMAND="sysbench.run.sh --cluster ${RUN_CLUSTER} --workload ${WORKLOAD} --duration ${RUNTIME}"
         COMMAND="${COMMAND} --totalstreams ${STREAMS} --reportinterval 5 --skipcheck"
+        #COMMAND="${COMMAND} --reconnect=10000"
+        COMMAND="${COMMAND} --ignore-errors"
         exec ${COMMAND} > /dev/null &
         BENCHMARK_PID=$!
 
