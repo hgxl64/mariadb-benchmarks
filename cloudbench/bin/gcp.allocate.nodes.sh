@@ -38,6 +38,7 @@ USAGE="
         --disk-size         Size of persistent disk
 
         --collocate
+        --spread
 
         -h | --help         Show usage message and exit
 
@@ -71,6 +72,7 @@ while [[ $# > 0 ]] ; do
         --disk-size)                DISK_SIZE="$1"; shift;;
 
         --collocate)                OPTION_COLLOCATE=TRUE;;
+        --spread)                   OPTION_SPREAD="$1"; shift;;
 
         --disablewritebarrier)      DISABLE_WRITE_BARRIER='-o nobarrier';;
         --lazyinit)                 LAZY_INIT="$1"; shift;;
@@ -109,12 +111,12 @@ SANITIZED_CLUSTER=$(echo ${CLUSTER} | perl -pe 'tr/A-Z\._/a-z\-\-/')
 
 # determine collocation policy
 if [[ ${OPTION_COLLOCATE} == TRUE ]] ; then
-    # find our region and the collocation policy
+    # find our region and the resource policy
     REGION=$(gcloud compute zones list | grep ${ZONE_ID} | awk '{ print $2 }')
     [[ ${REGION} ]] || error "cannot determine the cloud region for zone '${ZONE_ID}'"
     PLACEMENT_POLICY=$(gcloud compute resource-policies list | fgrep "${CLUSTER}-collocated" | awk '{print $1}')
     if [[ ! ${PLACEMENT_POLICY} ]] ; then
-        # try to create the policy for our region
+        # create the policy for our region
         COMMAND="gcloud compute resource-policies create group-placement ${CLUSTER}-collocated"
         COMMAND="${COMMAND} --collocation=collocated --region=${REGION}"
         echo "create group placement policy:"
@@ -122,6 +124,23 @@ if [[ ${OPTION_COLLOCATE} == TRUE ]] ; then
         $COMMAND
         PLACEMENT_POLICY=$(gcloud compute resource-policies list | fgrep "${CLUSTER}-collocated" | awk '{print $1}')
     fi
+# or spread policy
+elif [[ ${OPTION_SPREAD} ]] ; then
+    # find our region and the resource policy
+    REGION=$(gcloud compute zones list | grep ${ZONE_ID} | awk '{ print $2 }')
+    [[ ${REGION} ]] || error "cannot determine the cloud region for zone '${ZONE_ID}'"
+    PLACEMENT_POLICY=$(gcloud compute resource-policies list | fgrep "${CLUSTER}-spread" | awk '{print $1}')
+    if [[ ! ${PLACEMENT_POLICY} ]] ; then
+        # create the policy for our region
+        COMMAND="gcloud compute resource-policies create group-placement ${CLUSTER}-spread"
+        COMMAND="${COMMAND} --availability-domain-count=${OPTION_SPREAD} --region=${REGION}"
+        echo "create group placement policy:"
+        echo ${COMMAND}
+        $COMMAND
+        PLACEMENT_POLICY=$(gcloud compute resource-policies list | fgrep "${CLUSTER}-spread" | awk '{print $1}')
+    fi
+else
+    unset PLACEMENT_POLICY
 fi
 
 
@@ -236,7 +255,7 @@ done
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
                 # placement policy
-                if [[ ${OPTION_COLLOCATE} == TRUE && -n ${PLACEMENT_POLICY} ]] ; then
+                if [[ ${PLACEMENT_POLICY} ]] ; then
                     COMMAND="${COMMAND} --resource-policies=${PLACEMENT_POLICY}"
                 fi
 
@@ -264,7 +283,7 @@ done
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
                 # placement policy
-                if [[ ${OPTION_COLLOCATE} == TRUE && -n ${PLACEMENT_POLICY} ]] ; then
+                if [[ ${PLACEMENT_POLICY} ]] ; then
                     COMMAND="${COMMAND} --resource-policies=${PLACEMENT_POLICY}"
                 fi
 
@@ -290,7 +309,7 @@ done
                 # default SSH key
                 COMMAND="${COMMAND} --metadata-from-file ssh-keys=${SSH_PUB_FILE}"
                 # placement policy
-                if [[ ${OPTION_COLLOCATE} == TRUE && -n ${PLACEMENT_POLICY} ]] ; then
+                if [[ ${PLACEMENT_POLICY} ]] ; then
                     COMMAND="${COMMAND} --resource-policies=${PLACEMENT_POLICY}"
                 fi
 
@@ -407,6 +426,9 @@ done
             echo
             echo "server.cloud = gcp"
             echo "gcp.zone = ${ZONE_ID}"
+            if [[ ${PLACEMENT_POLICY} ]] ; then
+                echo "gcp.resource_policy = ${PLACEMENT_POLICY}"
+            fi
             if (( ${INDX} == 0 )) ; then
                 echo "gcp.instance_type = ${SERVER1_INSTANCE_TYPE}"
             else
@@ -433,6 +455,9 @@ done
             echo
             echo "server.cloud = gcp"
             echo "gcp.zone = ${ZONE_ID}"
+            if [[ ${PLACEMENT_POLICY} ]] ; then
+                echo "gcp.resource_policy = ${PLACEMENT_POLICY}"
+            fi
             echo "gcp.instance_type = ${DRIVER_INSTANCE_TYPE}"
             echo
             echo "ssh.user = ${SSH_USER}"
@@ -455,6 +480,9 @@ done
             echo
             echo "server.cloud = gcp"
             echo "gcp.zone = ${ZONE_ID}"
+            if [[ ${PLACEMENT_POLICY} ]] ; then
+                echo "gcp.resource_policy = ${PLACEMENT_POLICY}"
+            fi
             echo "gcp.instance_type = ${MAXSCALE_INSTANCE_TYPE}"
             echo
             echo "ssh.user = ${SSH_USER}"
@@ -477,6 +505,9 @@ done
         echo "server.cloud = gcp"
         echo "gcp.zone = ${ZONE_ID}"
         echo "gcp.driver.zone = ${ZONE_ID}"
+        if [[ ${PLACEMENT_POLICY} ]] ; then
+            echo "gcp.resource_policy = ${PLACEMENT_POLICY}"
+        fi
         echo "gcp.instance_type = ${SERVER_INSTANCE_TYPE}"
         if [[ ${SERVER1_INSTANCE_TYPE} != ${SERVER_INSTANCE_TYPE} ]] ; then
             echo "gcp.node1.instance_type = ${SERVER1_INSTANCE_TYPE}"
