@@ -81,6 +81,7 @@ DB_PASSWORD=$(getproperty ${CLUSTER} database.password)
 # default config options
 [[ ${OPTION_SLAVE_THREADS} ]]  || OPTION_SLAVE_THREADS=0       #0 means auto-size
 [[ ${OPTION_DEFERRED_FLUSH} ]] || OPTION_DEFERRED_FLUSH=TRUE
+[[ ${OPTION_WSREP_DEBUG} ]]    || OPTION_WSREP_DEBUG=NONE
 [[ ${EVS_SEND_WINDOW} ]]       || EVS_SEND_WINDOW=256
 [[ ${EVS_USER_SEND_WINDOW} ]]  || (( EVS_USER_SEND_WINDOW = EVS_SEND_WINDOW / 2 ))
 [[ ${GCACHE_SIZE} ]]           || GCACHE_SIZE="16G"
@@ -158,6 +159,7 @@ mkdir -p ${LOGDIRECTORY}
                 GALERA_BACKEND_IPS=('${GALERA_BACKEND_IPS[*]}')
                 SLAVE_THREADS="'${OPTION_SLAVE_THREADS}'"
                 GCACHE_SIZE="'${GCACHE_SIZE}'"
+                OPTION_WSREP_DEBUG="'${OPTION_WSREP_DEBUG}'"
                 EVS_USER_SEND_WINDOW="'${EVS_USER_SEND_WINDOW}'"
                 EVS_SEND_WINDOW="'${EVS_SEND_WINDOW}'"
                 (( ${SLAVE_THREADS} == 0 )) && ((SLAVE_THREADS = $(grep -c processor /proc/cpuinfo) * 3))
@@ -177,6 +179,7 @@ mkdir -p ${LOGDIRECTORY}
                     echo "wsrep_slave_threads = ${SLAVE_THREADS}"
                     echo "wsrep_sst_method = rsync_wan"
                     echo "innodb_autoinc_lock_mode = 2"
+                    [[ ${OPTION_WSREP_DEBUG} != NONE ]] && echo "wsrep_debug = ${OPTION_WSREP_DEBUG}"
                 } > ${CONFIG_FILE}
                 '
 
