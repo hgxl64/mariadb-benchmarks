@@ -261,7 +261,7 @@ mkdir -p ${LOGDIRECTORY}
 
         start_timer
 
-        if [[ ${GALERA_DEBUG} == TRUE} ]] ; then
+        if [[ ${GALERA_DEBUG} == TRUE ]] ; then
             echo "setting wsrep_debug=CLIENT"
             for SYSTEM in $(get_property ${CLUSTER} galera.systems) ; do
                 echo "SET GLOBAL wsrep_debug='CLIENT'" | mariadbci ${SYSTEM}
@@ -363,7 +363,7 @@ mkdir -p ${LOGDIRECTORY}
         cp ${D}/test.interval.data ${T}/${PRODUCT}.${WORKLOAD}.test.interval.data
         cp ${D}/throughput.interval.png ${T}/${PRODUCT}.${WORKLOAD}.throughput.interval.png
 
-        if [[ ${GALERA_DEBUG} == TRUE} ]] ; then
+        if [[ ${GALERA_DEBUG} == TRUE ]] ; then
             echo "collecting GALERA information"
             for SYSTEM in $(get_property ${CLUSTER} galera.systems) ; do
                 {
@@ -384,7 +384,7 @@ mkdir -p ${LOGDIRECTORY}
     echo
     start_timer
     COMMAND="gcp.release.nodes.sh --cluster ${CLUSTER}"
-    if [[ ${GALERA_DEBUG} != TRUE} ]] ; then
+    if [[ ${GALERA_DEBUG} != TRUE ]] ; then
         exec ${COMMAND}
     fi
     RELEASE_SEC=$(stop_timer)
