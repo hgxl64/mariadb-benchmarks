@@ -369,6 +369,12 @@ time {
                         COMMAND="${COMMAND} --mysql-db=${SCHEMA}"
                         COMMAND="${COMMAND} --time=${DURATION} ${SYSBENCH_OPTIONS}"
                         # 190920  Added Errno 8005 - a tiDB write conflict
+                        # 1020 ... Galera/Raft (Record has changed since last read)
+                        # 1047 ... Raft (WSREP has not yet prepared node for application use)
+                        # 1180 ... Raft (Got error ... during COMMIT)
+                        # 1205 ... (Lock wait timeout exceeded)
+                        # 1213 ... (Deadlock found when trying to get lock)
+                        # 1317 ... (Query execution was interrupted)
                         [[ ${OPTION_IGNORE_ERRORS} ]] && COMMAND="${COMMAND} --mysql-ignore-errors=1020,1047,1180,1205,1213,1317,8005"
                         [[ ${OPTION_IGNORE_ALL_ERRORS} ]] && COMMAND="${COMMAND} --mysql-ignore-errors=all"
                         ;;
