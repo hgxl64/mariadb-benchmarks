@@ -47,6 +47,7 @@ while [[ $# > 0 ]] ; do
         --maxscale)           OPTION_MAXSCALE=TRUE;;
         --downtime)           OPTION_DOWNTIME="$1"; shift;;
         --debug)              DEBUG=1;;
+        --galera-debug)       GALERA_DEBUG=TRUE;;
 
         -h|--help)            error -e "$USAGE";;
         *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
@@ -260,11 +261,16 @@ mkdir -p ${LOGDIRECTORY}
 
         start_timer
 
+        if [[ ${GALERA_DEBUG} == TRUE} ]] ; then
+            echo "setting wsrep_debug=CLIENT"
+            for SYSTEM in $(get_property ${CLUSTER} galera.systems) ; do
+                echo "SET GLOBAL wsrep_debug='CLIENT'" | mariadbci ${SYSTEM}
+            done
+        fi
+
         # run benchmark in background
         COMMAND="sysbench.run.sh --cluster ${RUN_CLUSTER} --workload ${WORKLOAD} --duration ${RUNTIME}"
-        COMMAND="${COMMAND} --totalstreams ${STREAMS} --reportinterval 5 --skipcheck"
-        #COMMAND="${COMMAND} --reconnect=10000"
-        COMMAND="${COMMAND} --ignore-errors"
+        COMMAND="${COMMAND} --totalstreams ${STREAMS} --reportinterval 5 --skipcheck --ignore-errors"
         exec ${COMMAND} > /dev/null &
         BENCHMARK_PID=$!
 
@@ -357,6 +363,16 @@ mkdir -p ${LOGDIRECTORY}
         cp ${D}/test.interval.data ${T}/${PRODUCT}.${WORKLOAD}.test.interval.data
         cp ${D}/throughput.interval.png ${T}/${PRODUCT}.${WORKLOAD}.throughput.interval.png
 
+        if [[ ${GALERA_DEBUG} == TRUE} ]] ; then
+            echo "collecting GALERA information"
+            for SYSTEM in $(get_property ${CLUSTER} galera.systems) ; do
+                {
+                    echo "SHOW FULL PROCESSLIST"
+                    echo "SHOW STATUS LIKE 'wsrep_flow_control_requested'"
+                } | mariadbci ${SYSTEM} > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).${SYSTEM}.galera.log 2>&1
+            done
+        fi
+
         exec "stop.grafana.sh --cluster ${CLUSTER}" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.sysbench.log 2>&1
 
         #restore LOGDIRECTORY
@@ -368,7 +384,9 @@ mkdir -p ${LOGDIRECTORY}
     echo
     start_timer
     COMMAND="gcp.release.nodes.sh --cluster ${CLUSTER}"
-    exec ${COMMAND}
+    if [[ ${GALERA_DEBUG} != TRUE} ]] ; then
+        exec ${COMMAND}
+    fi
     RELEASE_SEC=$(stop_timer)
 
     BUILDS_SEC=$(( ${BUILD_SEC['galera']} + ${BUILD_SEC['raft']} ))
