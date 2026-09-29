@@ -68,11 +68,12 @@ time {
                         DISTRIBUTION=$(cat /etc/lsb-release | grep DESCRIPTION | cut -d= -f2 | sed s/\"//g)
                         case ${DISTRIBUTION} in
                             "Ubuntu 24."*)
-                                echo "Ubuntu 24 detected, installing packages"
+                                echo "Ubuntu 24.xx detected, installing packages"
                                 sudo apt-get update
-                                sudo apt-get -y install ntpdate liburing2 iproute2 \
+                                sudo apt-get -y install ntpdate liburing2 iproute2 gdb zip \
                                   libodbc2 libprotobuf32t64 libmicrohttpd12 nodejs libarchive13t64 \
-                                  prometheus-node-exporter
+                                  prometheus-node-exporter \
+                                  ubuntu-kernel-accessories bpfcc-tools bpftrace linux-tools-$(uname -r)
                                 ;;
                             *)
                                 echo "unknown target OS: \"${DISTRIBUTION}\", doing nothing"
