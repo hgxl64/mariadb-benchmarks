@@ -124,9 +124,9 @@ mkdir -p ${LOGDIRECTORY}
                 SYSTEM=${SERVER_SYSTEMS[$IDX1]}
                 echo -n "${SYSTEM}.latency ="
                 if [[ " ${SLOW_SYSTEMS[*]} " =~ " ${SYSTEM} " ]]; then
-                    #this is a slow system, set latency exept for self
+                    #this is a slow system, set latency exept for other slow systems (this includes self)
                     for (( IDX2=0; IDX2<$NUM_SYSTEMS; IDX2++ )) ; do
-                        if (( ${IDX1} == ${IDX2} )) ; then
+                        if [[ " ${SLOW_SYSTEMS[*]} " =~ " ${SERVER_SYSTEMS[$IDX2]} " ]] ; then
                             echo -n " 0"
                         else
                             echo -n " ${LATENCY}"
