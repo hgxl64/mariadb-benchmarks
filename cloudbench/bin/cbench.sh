@@ -730,69 +730,77 @@ get_cpu() {
 }
 
 gather_before_data() {
-    if [[ $(get_property ${CLUSTER} nodes) ]] ; then
-        echo "            Gather Before Data"
-        time {
-            mkdir -p ${LOGDIRECTORY}/data/before/
-            local BACKGROUND_PIDS=""
-            for NODE in $(get_property ${CLUSTER} nodes) ; do
-                mkdir -p ${LOGDIRECTORY}/data/before/${NODE}
-                {
-                    for STAT in stat interrupts diskstats meminfo ; do
-                        ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "cat /proc/${STAT}" > ${LOGDIRECTORY}/data/before/${NODE}/proc.${STAT}.txt
-                    done
-                    for STAT in dev ; do
-                        ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "cat /proc/net/${STAT}" > ${LOGDIRECTORY}/data/before/${NODE}/proc.net.${STAT}.txt
-                    done
-                    for STAT in mdstat version mounts ; do
-                        ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "cat /proc/${STAT}" > ${LOGDIRECTORY}/data/before/${NODE}/proc.${STAT}.txt
-                    done
-                    ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "df" > ${LOGDIRECTORY}/data/before/${NODE}/df.txt
-                } &
-                BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
-            done
-            wait ${BACKGROUND_PIDS[*]}
-        } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.before.data.log 2>&1
-    fi
-}
-
-gather_after_data() {
-    if [[ $(get_property ${CLUSTER} nodes) ]] ; then
-        echo
-        echo "    ===== Gather System After Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-        time {
-
-            {
-                mkdir -p ${LOGDIRECTORY}/data/after/
+    if [[ ${OPTION_SNAPSHOT} != FALSE ]] ; then
+        if [[ $(get_property ${CLUSTER} nodes) ]] ; then
+            echo "            Gather Before Data"
+            time {
+                mkdir -p ${LOGDIRECTORY}/data/before/
                 local BACKGROUND_PIDS=""
                 for NODE in $(get_property ${CLUSTER} nodes) ; do
-                    mkdir -p ${LOGDIRECTORY}/data/after/${NODE}
+                    mkdir -p ${LOGDIRECTORY}/data/before/${NODE}
                     {
                         for STAT in stat interrupts diskstats meminfo ; do
-                            ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "cat /proc/${STAT}" > ${LOGDIRECTORY}/data/after/${NODE}/proc.${STAT}.txt
+                            ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "cat /proc/${STAT}" > ${LOGDIRECTORY}/data/before/${NODE}/proc.${STAT}.txt
                         done
                         for STAT in dev ; do
-                            ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "cat /proc/net/${STAT}" > ${LOGDIRECTORY}/data/after/${NODE}/proc.net.${STAT}.txt
+                            ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "cat /proc/net/${STAT}" > ${LOGDIRECTORY}/data/before/${NODE}/proc.net.${STAT}.txt
                         done
                         for STAT in mdstat version mounts ; do
-                            ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "cat /proc/${STAT}" > ${LOGDIRECTORY}/data/after/${NODE}/proc.${STAT}.txt
+                            ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "cat /proc/${STAT}" > ${LOGDIRECTORY}/data/before/${NODE}/proc.${STAT}.txt
                         done
-                            ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "df" > ${LOGDIRECTORY}/data/after/${NODE}/df.txt
+                        ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "df" > ${LOGDIRECTORY}/data/before/${NODE}/df.txt
                     } &
                     BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
                 done
                 wait ${BACKGROUND_PIDS[*]}
-            } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.after.data.log 2>&1
+            } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.before.data.log 2>&1
+        fi
+    else
+        echo "    snapshots are disabled"
+    fi
+}
 
-            START_CPU=$(cat ${LOGDIRECTORY}/data/before/*/proc.stat.txt | grep '^cpu ' | awk '{ cpu = cpu + $2 + $3 + $4 + $7 + $8 }; END { print cpu }')
-            [[ ${START_CPU} ]] || START_CPU=0
-            echo "    Start CPU = ${START_CPU} "
-            STOP_CPU=$(cat ${LOGDIRECTORY}/data/after/*/proc.stat.txt | grep '^cpu ' | awk '{ cpu = cpu + $2 + $3 + $4 + $7 + $8 }; END { print cpu }')
-            [[ ${STOP_CPU} ]] || STOP_CPU=0
-            echo "    Stop CPU = ${STOP_CPU} "
-            TOTAL_CPU_PATH_LENGTH=$(( ${STOP_CPU} - ${START_CPU} ))
-            echo "    Total CPU Path Length = ${TOTAL_CPU_PATH_LENGTH}"
-        }
+gather_after_data() {
+    if [[ ${OPTION_SNAPSHOT} != FALSE ]] ; then
+        if [[ $(get_property ${CLUSTER} nodes) ]] ; then
+            echo
+            echo "    ===== Gather System After Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+            time {
+
+                {
+                    mkdir -p ${LOGDIRECTORY}/data/after/
+                    local BACKGROUND_PIDS=""
+                    for NODE in $(get_property ${CLUSTER} nodes) ; do
+                        mkdir -p ${LOGDIRECTORY}/data/after/${NODE}
+                        {
+                            for STAT in stat interrupts diskstats meminfo ; do
+                                ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "cat /proc/${STAT}" > ${LOGDIRECTORY}/data/after/${NODE}/proc.${STAT}.txt
+                            done
+                            for STAT in dev ; do
+                                ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "cat /proc/net/${STAT}" > ${LOGDIRECTORY}/data/after/${NODE}/proc.net.${STAT}.txt
+                            done
+                            for STAT in mdstat version mounts ; do
+                                ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "cat /proc/${STAT}" > ${LOGDIRECTORY}/data/after/${NODE}/proc.${STAT}.txt
+                            done
+                                ssh $(get_ssh_connection ${CLUSTER} ${NODE}) "df" > ${LOGDIRECTORY}/data/after/${NODE}/df.txt
+                        } &
+                        BACKGROUND_PIDS=( ${BACKGROUND_PIDS[*]} $! )
+                    done
+                    wait ${BACKGROUND_PIDS[*]}
+                } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.after.data.log 2>&1
+
+                START_CPU=$(cat ${LOGDIRECTORY}/data/before/*/proc.stat.txt | grep '^cpu ' | awk '{ cpu = cpu + $2 + $3 + $4 + $7 + $8 }; END { print cpu }')
+                [[ ${START_CPU} ]] || START_CPU=0
+                echo "    Start CPU = ${START_CPU} "
+                STOP_CPU=$(cat ${LOGDIRECTORY}/data/after/*/proc.stat.txt | grep '^cpu ' | awk '{ cpu = cpu + $2 + $3 + $4 + $7 + $8 }; END { print cpu }')
+                [[ ${STOP_CPU} ]] || STOP_CPU=0
+                echo "    Stop CPU = ${STOP_CPU} "
+                TOTAL_CPU_PATH_LENGTH=$(( ${STOP_CPU} - ${START_CPU} ))
+                echo "    Total CPU Path Length = ${TOTAL_CPU_PATH_LENGTH}"
+            }
+        fi
+    else
+        echo "    snapshots are disabled"
     fi
 }
 
@@ -818,179 +826,211 @@ ping_test() {
 }
 
 gather_pretest_snapshot() {
-    SYSTEM=$1
-    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+    if [[ ${OPTION_SNAPSHOT} != FALSE ]] ; then
+        SYSTEM=$1
+        [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
-    unset PIDS
-    {
-        echo
-        echo "    ===== Gather Pre-Test Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        unset PIDS
+        {
+            echo
+            echo "    ===== Gather Pre-Test Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-        time {
-             mariadb.snapshot.sh --cluster ${SYSTEM} --pretest &
-             PIDS="${PIDS} $!"
-             maxscale.snapshot.sh --cluster ${SYSTEM} --pretest &
-             PIDS="${PIDS} $!"
-             system.snapshot.sh --cluster ${SYSTEM} --pretest &
-             PIDS="${PIDS} $!"
-             wait ${PIDS}
-        }
+            time {
+                 mariadb.snapshot.sh --cluster ${SYSTEM} --pretest &
+                 PIDS="${PIDS} $!"
+                 maxscale.snapshot.sh --cluster ${SYSTEM} --pretest &
+                 PIDS="${PIDS} $!"
+                 system.snapshot.sh --cluster ${SYSTEM} --pretest &
+                 PIDS="${PIDS} $!"
+                 wait ${PIDS}
+            }
 
-    }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.pretest.snapshot.log 2>&1
+        }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.pretest.snapshot.log 2>&1
+    else
+        echo "    snapshots are disabled"
+    fi
 }
 
 gather_posttest_snapshot() {
-    SYSTEM=$1
-    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+    if [[ ${OPTION_SNAPSHOT} != FALSE ]] ; then
+        SYSTEM=$1
+        [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
-    unset PIDS
-    {
-        echo
-        echo "    ===== Gather Post-Test Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        unset PIDS
+        {
+            echo
+            echo "    ===== Gather Post-Test Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-        time {
-            mariadb.snapshot.sh --cluster ${SYSTEM} --posttest &
-            PIDS="${PIDS} $!"
-            maxscale.snapshot.sh --cluster ${SYSTEM} --posttest &
-            PIDS="${PIDS} $!"
-            system.snapshot.sh --cluster ${SYSTEM} --posttest &
-            PIDS="${PIDS} $!"
-            wait ${PIDS}
-        }
+            time {
+                mariadb.snapshot.sh --cluster ${SYSTEM} --posttest &
+                PIDS="${PIDS} $!"
+                maxscale.snapshot.sh --cluster ${SYSTEM} --posttest &
+                PIDS="${PIDS} $!"
+                system.snapshot.sh --cluster ${SYSTEM} --posttest &
+                PIDS="${PIDS} $!"
+                wait ${PIDS}
+            }
 
-    }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.posttest.snapshot.log 2>&1
+        }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.posttest.snapshot.log 2>&1
+    else
+        echo "    snapshots are disabled"
+    fi
 }
 
 gather_preload_snapshot() {
-    SYSTEM=$1
-    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+    if [[ ${OPTION_SNAPSHOT} != FALSE ]] ; then
+        SYSTEM=$1
+        [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
-    unset PIDS
-    {
-        echo
-        echo "    ===== Gather Pre-Load Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        unset PIDS
+        {
+            echo
+            echo "    ===== Gather Pre-Load Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-        time {
-            mariadb.snapshot.sh --cluster ${SYSTEM} --preload &
-            PIDS="${PIDS} $!"
-            maxscale.snapshot.sh --cluster ${SYSTEM} --preload &
-            PIDS="${PIDS} $!"
-            system.snapshot.sh --cluster ${SYSTEM} --preload &
-            PIDS="${PIDS} $!"
-            wait ${PIDS}
-        }
+            time {
+                mariadb.snapshot.sh --cluster ${SYSTEM} --preload &
+                PIDS="${PIDS} $!"
+                maxscale.snapshot.sh --cluster ${SYSTEM} --preload &
+                PIDS="${PIDS} $!"
+                system.snapshot.sh --cluster ${SYSTEM} --preload &
+                PIDS="${PIDS} $!"
+                wait ${PIDS}
+            }
 
-    }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.preload.snapshot.log 2>&1
+        }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.preload.snapshot.log 2>&1
+    else
+        echo "    snapshots are disabled"
+    fi
 }
 
 gather_postload_snapshot() {
-    SYSTEM=$1
-    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+    if [[ ${OPTION_SNAPSHOT} != FALSE ]] ; then
+        SYSTEM=$1
+        [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
-    unset PIDS
-    {
-        echo
-        echo "    ===== Gather Post-Load Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        unset PIDS
+        {
+            echo
+            echo "    ===== Gather Post-Load Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-        time {
-            mariadb.snapshot.sh --cluster ${SYSTEM} --postload &
-            PIDS="${PIDS} $!"
-            maxscale.snapshot.sh --cluster ${SYSTEM} --postload &
-            PIDS="${PIDS} $!"
-            system.snapshot.sh --cluster ${SYSTEM} --postload &
-            PIDS="${PIDS} $!"
-            wait ${PIDS}
-        }
+            time {
+                mariadb.snapshot.sh --cluster ${SYSTEM} --postload &
+                PIDS="${PIDS} $!"
+                maxscale.snapshot.sh --cluster ${SYSTEM} --postload &
+                PIDS="${PIDS} $!"
+                system.snapshot.sh --cluster ${SYSTEM} --postload &
+                PIDS="${PIDS} $!"
+                wait ${PIDS}
+            }
 
-    }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.postload.snapshot.log 2>&1
+        }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.postload.snapshot.log 2>&1
+    else
+        echo "    snapshots are disabled"
+    fi
 }
 
 gather_precurve_snapshot() {
-    SYSTEM=$1
-    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+    if [[ ${OPTION_SNAPSHOT} != FALSE ]] ; then
+        SYSTEM=$1
+        [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
-    unset PIDS
-    {
-        echo
-        echo "    ===== Gather Pre-Curve Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        unset PIDS
+        {
+            echo
+            echo "    ===== Gather Pre-Curve Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-        time {
-            mariadb.snapshot.sh --cluster ${SYSTEM} --precurve &
-            PIDS="${PIDS} $!"
-            maxscale.snapshot.sh --cluster ${SYSTEM} --precurve &
-            PIDS="${PIDS} $!"
-            system.snapshot.sh --cluster ${SYSTEM} --precurve &
-            PIDS="${PIDS} $!"
-            wait ${PIDS}
-        }
+            time {
+                mariadb.snapshot.sh --cluster ${SYSTEM} --precurve &
+                PIDS="${PIDS} $!"
+                maxscale.snapshot.sh --cluster ${SYSTEM} --precurve &
+                PIDS="${PIDS} $!"
+                system.snapshot.sh --cluster ${SYSTEM} --precurve &
+                PIDS="${PIDS} $!"
+                wait ${PIDS}
+            }
 
-    }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.precurve.snapshot.log 2>&1
+        }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.precurve.snapshot.log 2>&1
+    else
+        echo "    snapshots are disabled"
+    fi
 }
 
 gather_postcurve_snapshot() {
-    SYSTEM=$1
-    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+    if [[ ${OPTION_SNAPSHOT} != FALSE ]] ; then
+        SYSTEM=$1
+        [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
-    unset PIDS
-    {
-        echo
-        echo "    ===== Gather Post-Curve Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        unset PIDS
+        {
+            echo
+            echo "    ===== Gather Post-Curve Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-        time {
-            mariadb.snapshot.sh --cluster ${SYSTEM} --postcurve &
-            PIDS="${PIDS} $!"
-            maxscale.snapshot.sh --cluster ${SYSTEM} --postcurve &
-            PIDS="${PIDS} $!"
-            system.snapshot.sh --cluster ${SYSTEM} --postcurve &
-            PIDS="${PIDS} $!"
-            wait ${PIDS}
-        }
+            time {
+                mariadb.snapshot.sh --cluster ${SYSTEM} --postcurve &
+                PIDS="${PIDS} $!"
+                maxscale.snapshot.sh --cluster ${SYSTEM} --postcurve &
+                PIDS="${PIDS} $!"
+                system.snapshot.sh --cluster ${SYSTEM} --postcurve &
+                PIDS="${PIDS} $!"
+                wait ${PIDS}
+            }
 
-    }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.postcurve.snapshot.log 2>&1
+        }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.postcurve.snapshot.log 2>&1
+    else
+        echo "    snapshots are disabled"
+    fi
 }
 
 gather_prerun_snapshot() {
-    SYSTEM=$1
-    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+    if [[ ${OPTION_SNAPSHOT} != FALSE ]] ; then
+        SYSTEM=$1
+        [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
-    unset PIDS
-    {
-        echo
-        echo "    ===== Gather Pre-Run Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        unset PIDS
+        {
+            echo
+            echo "    ===== Gather Pre-Run Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-        time {
-            mariadb.snapshot.sh --cluster ${SYSTEM} --prerun &
-            PIDS="${PIDS} $!"
-            maxscale.snapshot.sh --cluster ${SYSTEM} --prerun &
-            PIDS="${PIDS} $!"
-            system.snapshot.sh --cluster ${SYSTEM} --prerun &
-            PIDS="${PIDS} $!"
-            wait ${PIDS}
-        }
+            time {
+                mariadb.snapshot.sh --cluster ${SYSTEM} --prerun &
+                PIDS="${PIDS} $!"
+                maxscale.snapshot.sh --cluster ${SYSTEM} --prerun &
+                PIDS="${PIDS} $!"
+                system.snapshot.sh --cluster ${SYSTEM} --prerun &
+                PIDS="${PIDS} $!"
+                wait ${PIDS}
+            }
 
-    }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.prerun.snapshot.log 2>&1
+        }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.prerun.snapshot.log 2>&1
+    else
+        echo "    snapshots are disabled"
+    fi
 }
 
 gather_postrun_snapshot() {
-    SYSTEM=$1
-    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+    if [[ ${OPTION_SNAPSHOT} != FALSE ]] ; then
+        SYSTEM=$1
+        [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
-    unset PIDS
-    {
-        echo
-        echo "    ===== Gather Post-Run Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        unset PIDS
+        {
+            echo
+            echo "    ===== Gather Post-Run Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
 
-        time {
-            mariadb.snapshot.sh --cluster ${SYSTEM} --postrun &
-            PIDS="${PIDS} $!"
-            maxscale.snapshot.sh --cluster ${SYSTEM} --postrun &
-            PIDS="${PIDS} $!"
-            system.snapshot.sh --cluster ${SYSTEM} --postrun &
-            PIDS="${PIDS} $!"
-            wait ${PIDS}
-        }
+            time {
+                mariadb.snapshot.sh --cluster ${SYSTEM} --postrun &
+                PIDS="${PIDS} $!"
+                maxscale.snapshot.sh --cluster ${SYSTEM} --postrun &
+                PIDS="${PIDS} $!"
+                system.snapshot.sh --cluster ${SYSTEM} --postrun &
+                PIDS="${PIDS} $!"
+                wait ${PIDS}
+            }
 
-    }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.postrun.snapshot.log 2>&1
+        }  > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).gather.postrun.snapshot.log 2>&1
+    else
+        echo "    snapshots are disabled"
+    fi
 }
 
 begin_pathlength() {
@@ -1582,8 +1622,7 @@ start_performance_monitor() {
         # Allow the monitors to get up and running
         sleep 10
     else
-        echo
-        echo "    WARNING:  Performance Monitoring Disabled"
+        echo "    Performance Monitoring Disabled"
     fi
 }
 
@@ -1606,22 +1645,26 @@ stop_monitors() {
 
 
 start_raft_monitors() {
-    local SYSTEM=$1
-    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+    if [[ ${OPTION_MONITORS} != FALSE ]] ; then
+        local SYSTEM=$1
+        [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
-    [[ ${MONITOR_INTERVAL} ]] || MONITOR_INTERVAL=10
-    [[ ${RAFT_MONITOR_PID_FILE} ]] || RAFT_MONITOR_PID_FILE=$(mktemp)
+        [[ ${MONITOR_INTERVAL} ]] || MONITOR_INTERVAL=10
+        [[ ${RAFT_MONITOR_PID_FILE} ]] || RAFT_MONITOR_PID_FILE=$(mktemp)
 
-    for NODE in $(get_property ${SYSTEM} raft.systems) ; do
-        local LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).raft_monitor.${NODE}.log
-        local COMMAND="mariadb_raft_monitor.pl --interval=${MONITOR_INTERVAL}"
-        COMMAND="${COMMAND} $(get_mariadb_collector_connection ${NODE})"
-        #print_subheader "Starting Raft Monitor for Node : ${NODE}"
-        ${COMMAND} > ${LOG} &
-        local MONITOR_PID=$!
-        #print_subheader "Raft Monitor Started - Pid : ${MONITOR_PID}"
-        echo ${MONITOR_PID} >> ${RAFT_MONITOR_PID_FILE}
-    done
+        for NODE in $(get_property ${SYSTEM} raft.systems) ; do
+            local LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).raft_monitor.${NODE}.log
+            local COMMAND="mariadb_raft_monitor.pl --interval=${MONITOR_INTERVAL}"
+            COMMAND="${COMMAND} $(get_mariadb_collector_connection ${NODE})"
+            #print_subheader "Starting Raft Monitor for Node : ${NODE}"
+            ${COMMAND} > ${LOG} &
+            local MONITOR_PID=$!
+            #print_subheader "Raft Monitor Started - Pid : ${MONITOR_PID}"
+            echo ${MONITOR_PID} >> ${RAFT_MONITOR_PID_FILE}
+        done
+    else
+        echo "    MariaDB RAFT MONITOR disabled via OPTION_MONITORS=FALSE"
+    fi
 }
 
 
@@ -1643,24 +1686,28 @@ stop_raft_monitors() {
 
 
 start_mariadb_status_monitors() {
-    local SYSTEM=$1
-    [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
+    if [[ ${OPTION_MONITORS} != FALSE ]] ; then
+        local SYSTEM=$1
+        [[ ${SYSTEM} ]] || SYSTEM=${CLUSTER}
 
-    [[ ${MONITOR_INTERVAL} ]] || MONITOR_INTERVAL=10
-    [[ ${STATUS_MONITOR_PID_FILE} ]] || STATUS_MONITOR_PID_FILE=$(mktemp)
+        [[ ${MONITOR_INTERVAL} ]] || MONITOR_INTERVAL=10
+        [[ ${STATUS_MONITOR_PID_FILE} ]] || STATUS_MONITOR_PID_FILE=$(mktemp)
 
-    for NODE in $(get_property ${SYSTEM} raft.systems) $(get_property ${SYSTEM} galera.systems \
-                $(get_property ${SYSTEM} master.systems) $(get_property ${SYSTEM} slave.systems) \
-                $(get_property ${SYSTEM} mariadb.systems) ) ; do
-        local LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).status_monitor.${NODE}.log
-        local COMMAND="mariadb_status_monitor.pl --interval=${MONITOR_INTERVAL}"
-        COMMAND="${COMMAND} $(get_mariadb_collector_connection ${NODE})"
-        #print_subheader "Starting MariaDB STATUS Monitor for Node : ${NODE}"
-        ${COMMAND} > ${LOG} &
-        local MONITOR_PID=$!
-        #print_subheader "MariaDB STATUS Monitor Started - Pid : ${MONITOR_PID}"
-        echo ${MONITOR_PID} >> ${STATUS_MONITOR_PID_FILE}
-    done
+        for NODE in $(get_property ${SYSTEM} raft.systems) $(get_property ${SYSTEM} galera.systems \
+                    $(get_property ${SYSTEM} master.systems) $(get_property ${SYSTEM} slave.systems) \
+                    $(get_property ${SYSTEM} mariadb.systems) ) ; do
+            local LOG=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).status_monitor.${NODE}.log
+            local COMMAND="mariadb_status_monitor.pl --interval=${MONITOR_INTERVAL}"
+            COMMAND="${COMMAND} $(get_mariadb_collector_connection ${NODE})"
+            #print_subheader "Starting MariaDB STATUS Monitor for Node : ${NODE}"
+            ${COMMAND} > ${LOG} &
+            local MONITOR_PID=$!
+            #print_subheader "MariaDB STATUS Monitor Started - Pid : ${MONITOR_PID}"
+            echo ${MONITOR_PID} >> ${STATUS_MONITOR_PID_FILE}
+        done
+    else
+        echo "    MariaDB STATUS monitor disabled via OPTION_MONITORS=FALSE"
+    fi
 }
 
 

@@ -46,6 +46,7 @@ while [[ $# > 0 ]] ; do
         # CBENCH Options
         --skipcheck)            OPTION_SKIPCHECK=TRUE;;
         --skipsnapshot)         OPTION_SNAPSHOT=FALSE;;
+        --skipmonitors)         OPTION_MONITORS=FALSE;;
         --monitor)              OPTION_PERFMONITOR=TRUE;;
         --grafana)              OPTION_GRAFANA=TRUE;;
 

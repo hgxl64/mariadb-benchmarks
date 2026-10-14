@@ -99,7 +99,7 @@ while [[ $# > 0 ]] ; do
         --testid)               TESTID="$1"; shift;;
         --skipcheck)            OPTION_SKIPCHECK=TRUE;;
         --skipsnapshot)         OPTION_SNAPSHOT=FALSE;;
-        --skipstats)            OPTION_SKIPSTATS=TRUE;;
+        --skipmonitors)         OPTION_MONITORS=FALSE;;
         --cloud)                OPTION_CLOUD="--cloud";;
         --cleanup)              OPTION_CLEANUP=TRUE;;
         --monitor)              OPTION_PERFMONITOR=TRUE;;
@@ -194,32 +194,27 @@ time {
     echo "    ===== Pre Test Processing  =====       [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
     time {
 
-        if [[ ! ${OPTION_SKIPCHECK} ]] ; then
-            echo
-            echo "    ===== Check Cluster =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-            time check_cluster
-        fi
-
         if [[ ! ${DIRECTEXEC} ]] ; then
             time set_max_prepared_stmt_count ${CLUSTER} $(( 10 * ${TABLES} * ${TOTAL_STREAMS} ))
         fi
         time set_max_connections ${CLUSTER} $(( ${TOTAL_STREAMS} + 10 ))
 
         echo
+        echo "    ===== Check Cluster =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        time check_cluster
+
+        echo
         echo "    ===== Gather Pretest Snapshot =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time gather_pretest_snapshot ${CLUSTER}
 
-        #echo
-        #echo "    ===== Ping Test =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-        #time ping_test ${CLUSTER}
+        echo
+        echo "    ===== Gather Before Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
+        time gather_before_data
 
         echo
         echo "    ===== Capture env settings =====    [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         time env
 
-        echo
-        echo "    ===== Gather Before Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
-        time gather_before_data
 
         if [[ ${PROFILE_TYPE} ]] ; then
             echo
@@ -230,8 +225,8 @@ time {
         start_performance_monitor ${CLUSTER}
         start_raft_monitors ${CLUSTER}
         start_mariadb_status_monitors ${CLUSTER}
-        [[ ${OPTION_GRAFANA} == TRUE ]] && start_grafana
 
+        [[ ${OPTION_GRAFANA} == TRUE ]] && start_grafana
 
     } > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).preprocessing.log 2>&1
 
@@ -509,6 +504,9 @@ time {
         echo
         echo "    ===== Gather After Data =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         gather_after_data
+
+        echo
+        echo "    ===== Gather Posttest Snapshot =====  [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ]"
         gather_posttest_snapshot ${CLUSTER}
 
         echo
