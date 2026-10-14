@@ -19,8 +19,7 @@ Options:
 
 COMMAND_LINE="$@"
 
-unset DEBUG
-unset SOFIA
+unset DEBUG SOFIA PRODUCTS
 
 while [[ $# > 0 ]] ; do
     key="$1"; shift;
@@ -30,6 +29,9 @@ while [[ $# > 0 ]] ; do
         --mariadb-tarball)    MARIADB_TARBALL="$1"; shift;;
         --galera-tarball)     GALERA_TARBALL="$1"; shift;;
         --raft-tarball)       RAFT_TARBALL="$1"; shift;;
+
+        --galera)             PRODUCTS+=( galera );;
+        --raft)               PRODUCTS+=( raft );;
 
         --debug)              DEBUG=1;;
         --sofia)              SOFIA=1;; # run in sofia pseudo-cloud
@@ -46,6 +48,7 @@ source ${CBENCH_HOME}/bin/cbench.sh
 [[ ${SOFIA} ]] || [[ ${DEBUG} ]] || source ${CBENCH_HOME}/config/gcp.conf
 
 [[ ${CLUSTER} ]] || CLUSTER='perf-453'
+[[ ${PRODUCTS[*]} ]] || PRODUCTS=( galera raft )
 
 SERVER_ARCH="n2-standard-16"
 [[ ${THREADS} ]] || THREADS=( 16 32 64 )
@@ -107,138 +110,6 @@ exec_no_output() {
     fi
 }
 
-run_product() {
-    local PRODUCT=$1
-
-    # test uses custom LOGDIRECTORY
-    local LOGDIRECTORY_BAK=${LOGDIRECTORY}
-    LOGDIRECTORY=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).$PRODUCT.benchmarks
-    mkdir ${LOGDIRECTORY}
-
-    echo
-    echo "=== Configure Cluster [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
-    echo
-    COMMAND="configure.cluster.sh --cluster ${CLUSTER} --cluster-type ${PRODUCT}_mastermaster"
-    for ((IDX=1; IDX<=NUM_NODES; IDX++ )) ; do
-        COMMAND="${COMMAND} --master-system ${CLUSTER}-server-${IDX}"
-    done
-    for ((IDX=1; IDX<=NUM_DRIVER; IDX++ )) ; do
-        COMMAND="${COMMAND} --driver-system ${CLUSTER}-driver-${IDX}"
-    done
-    for ((IDX=1; IDX<=(NUM_NODES+1)/2; IDX++ )) ; do
-        ((MASK = 2**IDX - 1))
-        COMMAND="${COMMAND} --extra-nodemask ${MASK}"
-    done
-    exec ${COMMAND}
-
-    echo
-    echo "=== Build Cluster [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
-    echo
-    start_timer
-    COMMAND="build.cluster.sh --cluster ${CLUSTER}"
-    [[ ${MARIADB_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${MARIADB_TARBALL}"
-    [[ ${GALERA_TARBALL} ]] && COMMAND="${COMMAND} --galera-tarball ${GALERA_TARBALL}"
-    [[ ${RAFT_TARBALL} ]] && COMMAND="${COMMAND} --raft-tarball ${RAFT_TARBALL}"
-    exec ${COMMAND}
-    BUILD_SEC[$PRODUCT]=$(stop_timer)
-
-    echo
-    echo "=== Load Data for Sysbench [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
-    echo
-    start_grafana
-    start_timer
-    COMMAND="load.data.sh --cluster ${CLUSTER} --benchmark sysbench --load --noautoinc --skipcheck"
-    exec ${COMMAND}
-    LOAD_SEC[$PRODUCT]=$(stop_timer)
-
-    # sysbench runs go to sparate logdir
-    local LOGDIRECTORY2=${LOGDIRECTORY}
-
-    start_timer
-    for (( IDX=1; IDX<=NUM_NODES; IDX++ )) ; do
-
-        if (( IDX <= (NUM_NODES+1)/2 )) ; then
-            RUN_CLUSTER="${CLUSTER}."
-            for (( IDX2=1; IDX2<=NUM_NODES; IDX2++ )) ; do
-                (( IDX2 <= IDX )) && RUN_CLUSTER="${RUN_CLUSTER}1" || RUN_CLUSTER="${RUN_CLUSTER}0"
-            done
-        elif (( IDX == NUM_NODES )) ; then
-            RUN_CLUSTER=${CLUSTER}
-        else
-            continue
-        fi
-
-        # summary dir to collect data
-        local T=${LOGDIRECTORY2}/summary.${RUN_CLUSTER}
-        mkdir ${T}
-
-        for WORKLOAD in ${WORKLOADS[*]} ; do
-
-            echo
-            echo "=== Run Sysbench Workload=${WORKLOAD} on Cluster=${RUN_CLUSTER} ==="
-            echo
-
-            LOGDIRECTORY=${LOGDIRECTORY2}/$(date +%y%m%d.%H%M%S%3N).${RUN_CLUSTER}.${WORKLOAD}
-            mkdir ${LOGDIRECTORY}
-
-            for BASETHD in ${THREADS[*]} ; do
-                (( THD = IDX * BASETHD ))
-
-                echo
-                echo "  === With ${THD} threads ==="
-                echo
-
-                # reset latency
-                COMMAND="cluster.latency.sh --cluster ${CLUSTER} --reset"
-                exec_no_output ${COMMAND}
-
-                COMMAND="sysbench.run.sh --cluster ${RUN_CLUSTER} --workload ${WORKLOAD}"
-                COMMAND="${COMMAND} --duration ${DURATION} --reportinterval 5 --streams ${THD}"
-                COMMAND="${COMMAND} --skipcheck --skipmonitors --skipsnapshot"
-                exec_no_output ${COMMAND} &
-                BGPID=$!
-
-                echo
-                echo "  === Background Process PID=${BGPID} started ==="
-                echo
-
-                for LAT in ${LATENCIES[*]} ; do
-                    sleep $((SLEEPTIME - 2))
-                    COMMAND="configure.latency.sh --cluster ${CLUSTER} --latency ${LAT}"
-                    for N in ${SLOW_NODES} ; do
-                        COMMAND="${COMMAND} --slow-node ${N}"
-                    done
-                    exec_no_output ${COMMAND}
-                    COMMAND="cluster.latency.sh --cluster ${CLUSTER} --show --set --check"
-                    exec_no_output ${COMMAND} &
-                    sleep $((SLEEPTIME - 2))
-                    COMMAND="cluster.latency.sh --cluster ${CLUSTER} --reset"
-                    exec_no_output ${COMMAND}
-                done
-
-                wait ${BGPID}
-
-                # find logdir for last test and copy results
-                local D=$(ls -1d ${LOGDIRECTORY}/*.sysbench.${WORKLOAD}.run | tail -1)
-                cp ${D}/test.interval.data      ${T}/${WORKLOAD}.${THD}.interval.data
-                cp ${D}/throughput.interval.png ${T}/${WORKLOAD}.${THD}.interval.png
-
-            done # THREADS
-        done # WORKLOADS
-    done # CLUSTER
-
-    LOGDIRECTORY=${LOGDIRECTORY2}
-
-    SYSBENCH_SEC[$PRODUCT]=$(stop_timer)
-
-    exec "stop.grafana.sh --cluster ${CLUSTER}" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.sysbench.log 2>&1
-
-    #restore LOGDIRECTORY
-    LOGDIRECTORY=${LOGDIRECTORY_BAK}
-
-}
-
-
 
 #===== end functions ===================================================
 
@@ -282,8 +153,135 @@ mkdir -p ${LOGDIRECTORY}
         ALLOCATE_SEC=0
     fi
 
-    run_product "galera"
-    run_product "raft"
+    for PRODUCT in ${PRODUCTS[*]}; do
+
+        # test uses custom LOGDIRECTORY
+        local LOGDIRECTORY_BAK=${LOGDIRECTORY}
+        LOGDIRECTORY=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).$PRODUCT.benchmarks
+        mkdir ${LOGDIRECTORY}
+
+        echo
+        echo "=== Configure Cluster [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
+        echo
+        COMMAND="configure.cluster.sh --cluster ${CLUSTER} --cluster-type ${PRODUCT}_mastermaster"
+        for ((IDX=1; IDX<=NUM_NODES; IDX++ )) ; do
+            COMMAND="${COMMAND} --master-system ${CLUSTER}-server-${IDX}"
+        done
+        for ((IDX=1; IDX<=NUM_DRIVER; IDX++ )) ; do
+            COMMAND="${COMMAND} --driver-system ${CLUSTER}-driver-${IDX}"
+        done
+        for ((IDX=1; IDX<=(NUM_NODES+1)/2; IDX++ )) ; do
+            ((MASK = 2**IDX - 1))
+            COMMAND="${COMMAND} --extra-nodemask ${MASK}"
+        done
+        exec ${COMMAND}
+
+        echo
+        echo "=== Build Cluster [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
+        echo
+        start_timer
+        COMMAND="build.cluster.sh --cluster ${CLUSTER}"
+        [[ ${MARIADB_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${MARIADB_TARBALL}"
+        [[ ${GALERA_TARBALL} ]] && COMMAND="${COMMAND} --galera-tarball ${GALERA_TARBALL}"
+        [[ ${RAFT_TARBALL} ]] && COMMAND="${COMMAND} --raft-tarball ${RAFT_TARBALL}"
+        exec ${COMMAND}
+        BUILD_SEC[$PRODUCT]=$(stop_timer)
+
+        echo
+        echo "=== Load Data for Sysbench [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
+        echo
+        start_grafana
+        start_timer
+        COMMAND="load.data.sh --cluster ${CLUSTER} --benchmark sysbench --load --noautoinc --skipcheck"
+        exec ${COMMAND}
+        LOAD_SEC[$PRODUCT]=$(stop_timer)
+
+        # sysbench runs go to sparate logdir
+        local LOGDIRECTORY2=${LOGDIRECTORY}
+
+        start_timer
+        for (( IDX=1; IDX<=NUM_NODES; IDX++ )) ; do
+
+            if (( IDX <= (NUM_NODES+1)/2 )) ; then
+                RUN_CLUSTER="${CLUSTER}."
+                for (( IDX2=1; IDX2<=NUM_NODES; IDX2++ )) ; do
+                    (( IDX2 <= IDX )) && RUN_CLUSTER="${RUN_CLUSTER}1" || RUN_CLUSTER="${RUN_CLUSTER}0"
+                done
+            elif (( IDX == NUM_NODES )) ; then
+                RUN_CLUSTER=${CLUSTER}
+            else
+                continue
+            fi
+
+            # summary dir to collect data
+            local T=${LOGDIRECTORY2}/summary.${RUN_CLUSTER}
+            mkdir ${T}
+
+            for WORKLOAD in ${WORKLOADS[*]} ; do
+
+                echo
+                echo "=== Run Sysbench Workload=${WORKLOAD} on Cluster=${RUN_CLUSTER} ==="
+                echo
+
+                LOGDIRECTORY=${LOGDIRECTORY2}/$(date +%y%m%d.%H%M%S%3N).${RUN_CLUSTER}.${WORKLOAD}
+                mkdir ${LOGDIRECTORY}
+
+                for BASETHD in ${THREADS[*]} ; do
+                    (( THD = IDX * BASETHD ))
+
+                    echo
+                    echo "  === With ${THD} threads ==="
+                    echo
+
+                    # reset latency
+                    COMMAND="cluster.latency.sh --cluster ${CLUSTER} --reset"
+                    exec_no_output ${COMMAND}
+
+                    COMMAND="sysbench.run.sh --cluster ${RUN_CLUSTER} --workload ${WORKLOAD}"
+                    COMMAND="${COMMAND} --duration ${DURATION} --reportinterval 5 --streams ${THD}"
+                    COMMAND="${COMMAND} --skipcheck --skipmonitors --skipsnapshot"
+                    exec_no_output ${COMMAND} &
+                    BGPID=$!
+
+                    echo
+                    echo "  === Background Process PID=${BGPID} started ==="
+                    echo
+
+                    for LAT in ${LATENCIES[*]} ; do
+                        sleep $((SLEEPTIME - 2))
+                        COMMAND="configure.latency.sh --cluster ${CLUSTER} --latency ${LAT}"
+                        for N in ${SLOW_NODES} ; do
+                            COMMAND="${COMMAND} --slow-node ${N}"
+                        done
+                        exec_no_output ${COMMAND}
+                        COMMAND="cluster.latency.sh --cluster ${CLUSTER} --show --set --check"
+                        exec_no_output ${COMMAND} &
+                        sleep $((SLEEPTIME - 2))
+                        COMMAND="cluster.latency.sh --cluster ${CLUSTER} --reset"
+                        exec_no_output ${COMMAND}
+                    done
+
+                    wait ${BGPID}
+
+                    # find logdir for last test and copy results
+                    local D=$(ls -1d ${LOGDIRECTORY}/*.sysbench.${WORKLOAD}.run | tail -1)
+                    cp ${D}/test.interval.data      ${T}/${WORKLOAD}.${THD}.interval.data
+                    cp ${D}/throughput.interval.png ${T}/${WORKLOAD}.${THD}.interval.png
+
+                done # THREADS
+            done # WORKLOADS
+        done # CLUSTER
+
+        LOGDIRECTORY=${LOGDIRECTORY2}
+
+        SYSBENCH_SEC[$PRODUCT]=$(stop_timer)
+
+        exec "stop.grafana.sh --cluster ${CLUSTER}" > ${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).grafana.snapshot.sysbench.log 2>&1
+
+        #restore LOGDIRECTORY
+        LOGDIRECTORY=${LOGDIRECTORY_BAK}
+
+    done
 
     echo
     echo "=== Release Nodes [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
