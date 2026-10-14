@@ -175,9 +175,9 @@ mkdir -p ${LOGDIRECTORY}
                     echo "raft-event-store-max-size = ${RAFT_EVENT_STORE_MAX_SIZE}"
                     echo "raft-node-id = ${NODENAME}"
                     if [[ ${OPTION_RAFT_SSL} == TRUE ]] ; then
-                        echo "raft-have-ssl = on
+                        echo "raft-have-ssl = on"
                     else
-                        echo "raft-have-ssl = off
+                        echo "raft-have-ssl = off"
                     fi
                     echo
                     echo "wsrep_on = ON"
