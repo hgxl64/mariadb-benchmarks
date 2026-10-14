@@ -34,6 +34,8 @@ while [[ $# > 0 ]] ; do
         --debug)              DEBUG=1;;
         --sofia)              SOFIA=1;; # run in sofia pseudo-cloud
 
+        --skipallocate)       SKIPALLOCATE=TRUE;;
+
         -h|--help)            error -e "$USAGE";;
         *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
     esac
@@ -50,20 +52,17 @@ SERVER_ARCH="n2-standard-16"
 
 [[ ${SOFIA} ]] && THREADS=( 24 48 )
 
-[[ ${DEBUG} ]] && {
-    THREADS=( 16 )
-}
-
 [[ ${WORKLOADS} ]] || WORKLOADS=( 5050_splittable 2080_splittable readwrite )
 [[ ${SOFIA} ]] && WORKLOADS=( 5050_splittable readwrite )
 
-[[ ${LATENCIES} ]] || LATENCIES=( 5ms 10ms 20ms 40ms )
-[[ ${SOFIA} ]] && LATENCIES=( 5ms 10ms )
+[[ ${LATENCIES} ]] || LATENCIES=( 1ms 2ms 5ms 10ms )
+[[ ${SOFIA} ]] && LATENCIES=( 2ms 5ms )
 
 SLEEPTIME=60
 [[ ${SOFIA} ]] && SLEEPTIME=30
 
 [[ ${DEBUG} ]] && {
+    THREADS=( 16 )
     WORKLOADS=( readwrite )
     LATENCIES=( 5ms )
     SLEEPTIME=10
@@ -189,8 +188,13 @@ run_product() {
                 echo "  === With ${THD} threads ==="
                 echo
 
+                # reset latency
+                COMMAND="cluster.latency.sh --cluster ${CLUSTER} --reset"
+                exec_no_output ${COMMAND}
+
                 COMMAND="sysbench.run.sh --cluster ${RUN_CLUSTER} --workload ${WORKLOAD}"
                 COMMAND="${COMMAND} --duration ${DURATION} --reportinterval 5 --streams ${THD}"
+                COMMAND="${COMMAND} --skipcheck --skipmonitors --skipsnapshot"
                 exec_no_output ${COMMAND} &
                 BGPID=$!
 
@@ -257,22 +261,26 @@ mkdir -p ${LOGDIRECTORY}
     echo "RAFT_TARBALL           = ${RAFT_TARBALL}"
     echo
 
-    echo
-    echo "=== Allocate Nodes [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
-    echo
-    start_timer
-    COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER} --collocate"
-    COMMAND="${COMMAND} --server-type ${SERVER_ARCH} --server-nodes ${NUM_NODES}"
-    COMMAND="${COMMAND} --driver-type ${DRIVER_ARCH} --driver-nodes ${NUM_DRIVER}"
-    [[ ${SOFIA} ]] || exec ${COMMAND}
-    ALLOCATE_SEC=$(stop_timer)
-
-    [[ ${DEBUG} ]] || [[ ${SOFIA} ]] || {
-        SYSTEMS=( $(get_property ${CLUSTER} systems) )
+    if [[ ${SKIPALLOCATE} != TRUE ]] ; then
         echo
-        echo "allocated: ${SYSTEMS[*]}"
-        (( ${#SYSTEMS[*]} != NUM_NODES + NUM_DRIVER )) && error "ERROR Unable to allocate nodes"
-    }
+        echo "=== Allocate Nodes [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
+        echo
+        start_timer
+        COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER} --collocate"
+        COMMAND="${COMMAND} --server-type ${SERVER_ARCH} --server-nodes ${NUM_NODES}"
+        COMMAND="${COMMAND} --driver-type ${DRIVER_ARCH} --driver-nodes ${NUM_DRIVER}"
+        [[ ${SOFIA} ]] || exec ${COMMAND}
+        ALLOCATE_SEC=$(stop_timer)
+
+        [[ ${DEBUG} ]] || [[ ${SOFIA} ]] || {
+            SYSTEMS=( $(get_property ${CLUSTER} systems) )
+            echo
+            echo "allocated: ${SYSTEMS[*]}"
+            (( ${#SYSTEMS[*]} != NUM_NODES + NUM_DRIVER )) && error "ERROR Unable to allocate nodes"
+        }
+    else
+        ALLOCATE_SEC=0
+    fi
 
     run_product "galera"
     run_product "raft"
