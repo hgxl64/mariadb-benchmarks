@@ -174,10 +174,10 @@ mkdir -p ${LOGDIRECTORY}
                     echo "raft-flow-control-max-throttle-rate = ${RAFT_FLOW_CONTROL_MAX_THROTTLE_RATE}"
                     echo "raft-event-store-max-size = ${RAFT_EVENT_STORE_MAX_SIZE}"
                     echo "raft-node-id = ${NODENAME}"
-                    if [[ ${OPTION_RAFT_SSL} == TRUE ]] ; then
-                        echo "raft-have-ssl = yes"
+                    if [[ ${OPTION_RAFT_SSL} != TRUE ]] ; then
+                        echo "raft-tls-mode = DISABLED"
                     else
-                        echo "raft-have-ssl = no"
+                        echo "#raft-tls-mode = ENCRYPT"
                     fi
                     echo
                     echo "wsrep_on = ON"
@@ -243,7 +243,7 @@ mkdir -p ${LOGDIRECTORY}
                   ((timeout = ${timeout} - 1))
                   sleep 1
                 done
-                (( ${timeout} == 0 )) && echo "Error: Galera did not start for 180 sec"
+                (( ${timeout} == 0 )) && echo "Error: Raft did not start for 180 sec"
             ' &
             PIDS+=( $! )
             # delay subsequent node starts to avoid SST storm
