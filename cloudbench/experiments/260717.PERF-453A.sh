@@ -37,6 +37,7 @@ while [[ $# > 0 ]] ; do
         --sofia)              SOFIA=1;; # run in sofia pseudo-cloud
 
         --skipallocate)       SKIPALLOCATE=TRUE;;
+        --collocate)          OPTION_COLLOCATE=TRUE;;
 
         -h|--help)            error -e "$USAGE";;
         *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
@@ -137,9 +138,12 @@ mkdir -p ${LOGDIRECTORY}
         echo "=== Allocate Nodes [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
         echo
         start_timer
-        COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER} --collocate"
+        COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER}"
         COMMAND="${COMMAND} --server-type ${SERVER_ARCH} --server-nodes ${NUM_NODES}"
         COMMAND="${COMMAND} --driver-type ${DRIVER_ARCH} --driver-nodes ${NUM_DRIVER}"
+        if [[ ${OPTION_COLLOCATE} == TRUE ]] ; then
+            COMMAND="${COMMAND} --collocate --parallel"
+        fi
         [[ ${SOFIA} ]] || exec ${COMMAND}
         ALLOCATE_SEC=$(stop_timer)
 
@@ -159,6 +163,10 @@ mkdir -p ${LOGDIRECTORY}
         local LOGDIRECTORY_BAK=${LOGDIRECTORY}
         LOGDIRECTORY=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).$PRODUCT.benchmarks
         mkdir ${LOGDIRECTORY}
+
+        # create dir for the plots
+        [[ -d ${LOGDIRECTORY_BAK}/plots ]] || mkdir ${LOGDIRECTORY_BAK}/plots
+        ln -s ../*.${PRODUCT}.benchmarks ${LOGDIRECTORY_BAK}/plots/${PRODUCT}
 
         echo
         echo "=== Configure Cluster [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
