@@ -138,11 +138,11 @@ mkdir -p ${LOGDIRECTORY}
         echo "=== Allocate Nodes [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
         echo
         start_timer
-        COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER}"
+        COMMAND="gcp.allocate.nodes.sh --cluster ${CLUSTER} --parallel"
         COMMAND="${COMMAND} --server-type ${SERVER_ARCH} --server-nodes ${NUM_NODES}"
         COMMAND="${COMMAND} --driver-type ${DRIVER_ARCH} --driver-nodes ${NUM_DRIVER}"
         if [[ ${OPTION_COLLOCATE} == TRUE ]] ; then
-            COMMAND="${COMMAND} --collocate --parallel"
+            COMMAND="${COMMAND} --collocate"
         fi
         [[ ${SOFIA} ]] || exec ${COMMAND}
         ALLOCATE_SEC=$(stop_timer)
