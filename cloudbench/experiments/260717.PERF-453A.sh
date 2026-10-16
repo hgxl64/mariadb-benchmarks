@@ -160,7 +160,7 @@ mkdir -p ${LOGDIRECTORY}
     for PRODUCT in ${PRODUCTS[*]}; do
 
         # test uses custom LOGDIRECTORY
-        local LOGDIRECTORY_BAK=${LOGDIRECTORY}
+        LOGDIRECTORY_BAK=${LOGDIRECTORY}
         LOGDIRECTORY=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).$PRODUCT.benchmarks
         mkdir ${LOGDIRECTORY}
 
@@ -205,7 +205,7 @@ mkdir -p ${LOGDIRECTORY}
         LOAD_SEC[$PRODUCT]=$(stop_timer)
 
         # sysbench runs go to sparate logdir
-        local LOGDIRECTORY2=${LOGDIRECTORY}
+        LOGDIRECTORY2=${LOGDIRECTORY}
 
         start_timer
         for (( IDX=1; IDX<=NUM_NODES; IDX++ )) ; do
@@ -222,7 +222,7 @@ mkdir -p ${LOGDIRECTORY}
             fi
 
             # summary dir to collect data
-            local T=${LOGDIRECTORY2}/summary.${RUN_CLUSTER}
+            T=${LOGDIRECTORY2}/summary.${RUN_CLUSTER}
             mkdir ${T}
 
             for WORKLOAD in ${WORKLOADS[*]} ; do
@@ -272,7 +272,7 @@ mkdir -p ${LOGDIRECTORY}
                     wait ${BGPID}
 
                     # find logdir for last test and copy results
-                    local D=$(ls -1d ${LOGDIRECTORY}/*.sysbench.${WORKLOAD}.run | tail -1)
+                    D=$(ls -1d ${LOGDIRECTORY}/*.sysbench.${WORKLOAD}.run | tail -1)
                     cp ${D}/test.interval.data      ${T}/${WORKLOAD}.${THD}.interval.data
                     cp ${D}/throughput.interval.png ${T}/${WORKLOAD}.${THD}.interval.png
 
