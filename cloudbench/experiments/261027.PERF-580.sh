@@ -17,7 +17,7 @@ while [[ $# > 0 ]] ; do
 
         --sofia)              SOFIA=1;;
         --repeats)            REPEATS="$1"; shift;;
-        --blackbox-size)      BBSIZES+= ( "$1" ); shift;;
+        --blackbox-size)      BBSIZES+=( "$1" ); shift;;
         --workload)           WORKLOAD="$1"; shift;;
 
         -h|--help)            error -e "$USAGE";;
