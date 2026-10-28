@@ -33,7 +33,7 @@ done
 source ${CBENCH_HOME}/bin/cbench.sh
 
 if [[ ${SOFIA} ]] ; then
-    REPEATS=1
+    [[ ${REPEATS} ]] || REPEATS=1
     if [[ -d properties ]] ; then
         cp properties/g1.properties properties/${CLUSTER}-server-1.properties
         cp properties/g2.properties properties/${CLUSTER}-server-2.properties
@@ -42,6 +42,7 @@ if [[ ${SOFIA} ]] ; then
     fi
 else
     source ${CBENCH_HOME}/config/gcp.conf
+    [[ ${REPEATS} ]] || REPEATS=3
     [[ ${SERVER_ARCH} ]] || SERVER_ARCH="n2-standard-16"
     [[ ${DRIVER_ARCH} ]] || DRIVER_ARCH="n2-highcpu-8"
 fi
@@ -144,7 +145,7 @@ mkdir -p ${LOGDIRECTORY}
 
         # run curve(s)
         COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats ${REPEATS} --"
-        COMMAND="${COMMAND} --skipcheck --benchmark sysbench --workload ${WORKLOAD}"
+        COMMAND="${COMMAND} --skipcheck --skipmonitors --benchmark sysbench --workload ${WORKLOAD}"
         exec ${COMMAND}
 
         # find logdir for this run and copy results

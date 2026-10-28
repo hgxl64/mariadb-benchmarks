@@ -78,6 +78,7 @@ while [[ $# > 0 ]] ; do
         --skipmonitor)          OPTION_PERFMONITOR=FALSE;;
         --skipsnapshot)         export OPTION_SNAPSHOT=FALSE;;
         --skipcheck)            export OPTION_SKIPCHECK=TRUE;;
+        --skipmonitors)         export OPTION_MONITORS=FALSE;;
         --grafana)              OPTION_GRAFANA=TRUE;;
 
         -h|--help)              echo -e "$USAGE"; exit 1;;
@@ -283,7 +284,8 @@ time {
                 echo "        Running ${BENCHMARK_DRIVER} driver, ${STREAMS} total streams."
 
                 if [[ ${BENCHMARK_DRIVER} == sysbench* ]] ; then
-                    COMMAND="sysbench.run.sh --cluster ${CLUSTER} --skipcheck --benchmark ${BENCHMARK}"
+                    COMMAND="sysbench.run.sh --cluster ${CLUSTER} --skipcheck"
+                    COMMAND="${COMMAND} --skipsnapshot --benchmark ${BENCHMARK}"
                     [[ ${WORKLOAD} ]] && COMMAND="${COMMAND} --workload ${WORKLOAD}"
                     [[ ${BENCHMARK_DRIVER} ]] && COMMAND="${COMMAND} --driver ${BENCHMARK_DRIVER}"
                     [[ ${SCHEMA} ]] && COMMAND="${COMMAND} --schema ${SCHEMA}"
@@ -293,7 +295,8 @@ time {
                     [[ ${SYSBENCH_TABLE_ARGS} ]] && COMMAND="${COMMAND} ${SYSBENCH_TABLE_ARGS}"
                     [[ ${SYSBENCH_ARGS} ]] && COMMAND="${COMMAND} ${SYSBENCH_ARGS}"
                 elif [[ ${BENCHMARK_DRIVER} == "hammerdb" ]] ; then
-                    COMMAND="hammerdb.run.sh --cluster ${CLUSTER} --skipcheck --benchmark ${BENCHMARK}"
+                    COMMAND="hammerdb.run.sh --cluster ${CLUSTER} --skipcheck"
+                    COMMAND="${COMMAND} --skipsnapshot --benchmark ${BENCHMARK}"
                     [[ ${SCHEMA} ]] && COMMAND="${COMMAND} --schema ${SCHEMA}"
                     [[ ${DBSCALE} ]] && COMMAND="${COMMAND} --dbscale ${DBSCALE}"
                     [[ ${STREAMS} ]] && COMMAND="${COMMAND} --totalstreams ${STREAMS}"
