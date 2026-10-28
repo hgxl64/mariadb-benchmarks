@@ -28,7 +28,7 @@ done
 [[ ${CLUSTER} ]] || CLUSTER="perf-580"
 [[ ${WORKLOAD} ]] || WORKLOAD="oltp_read_write"
 [[ ${REPEATS} ]] || REPEATS=3
-[[ ${BBSIZES} ]] || BBSIZES=( "0" "10M" "100M" )
+[[ ${BBSIZES} ]] || BBSIZES=( "0" "10*1024*1024" "100*1024*1024" )
 
 source ${CBENCH_HOME}/bin/cbench.sh
 
