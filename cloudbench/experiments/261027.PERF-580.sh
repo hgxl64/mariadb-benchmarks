@@ -43,7 +43,7 @@ else
     source ${CBENCH_HOME}/config/gcp.conf
     [[ ${REPEATS} ]] || REPEATS=3
     [[ ${SERVER_ARCH} ]] || SERVER_ARCH="n2-standard-16"
-    [[ ${DRIVER_ARCH} ]] || DRIVER_ARCH="n2-highcpu-8"
+    [[ ${DRIVER_ARCH} ]] || DRIVER_ARCH="n2-highcpu-16"
 fi
 
 
