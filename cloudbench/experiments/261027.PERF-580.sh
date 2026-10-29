@@ -25,10 +25,9 @@ while [[ $# > 0 ]] ; do
     esac
 done
 
-[[ ${CLUSTER} ]] || CLUSTER="perf-580"
+[[ ${CLUSTER} ]]  || CLUSTER="perf-580"
 [[ ${WORKLOAD} ]] || WORKLOAD="oltp_read_write"
-[[ ${REPEATS} ]] || REPEATS=3
-[[ ${BBSIZES} ]] || BBSIZES=( "0" "10*1024*1024" "100*1024*1024" )
+[[ ${BBSIZES} ]]  || BBSIZES=( "0" "10M" "100M" )
 
 source ${CBENCH_HOME}/bin/cbench.sh
 
@@ -102,11 +101,12 @@ mkdir -p ${LOGDIRECTORY}
     echo
     echo "=== Configure Cluster [ $(date -u '+%Y-%m-%d %H:%M:%S.%3N') ] ==="
     echo
-    COMMAND="configure.cluster.sh --cluster ${CLUSTER} --cluster-type galera_masterslave"
+    COMMAND="configure.cluster.sh --cluster ${CLUSTER} --cluster-type galera_mastermaster"
     COMMAND="${COMMAND} --master-system ${CLUSTER}-server-1"
     COMMAND="${COMMAND} --slave-system ${CLUSTER}-server-2"
     COMMAND="${COMMAND} --slave-system ${CLUSTER}-server-3"
     COMMAND="${COMMAND} --driver-system ${CLUSTER}-driver-1"
+    COMMAND="${COMMAND} --extra-nodemask 1"
     exec ${COMMAND}
 
     echo
@@ -132,30 +132,26 @@ mkdir -p ${LOGDIRECTORY}
     [[ -d ${T} ]] || mkdir ${T}
 
     start_timer
-    for BBSIZE in ${BBSIZES[*]}; do
-        # each blackbox size goes to own logdir
-        LOGDIRECTORY_BAK=${LOGDIRECTORY}
-        LOGDIRECTORY=${LOGDIRECTORY}/$(date +%y%m%d.%H%M%S%3N).curves.blackbox=${BBSIZE}
-        mkdir ${LOGDIRECTORY}
+    for RUN_CLUSTER in ${CLUSTER} ${CLUSTER}.100; do
+        for BBSIZE in ${BBSIZES[*]}; do
+            BLACK_BOX_SIZE=$(echo ${BBSIZE} | sed 's/K/*1024/')
+            BLACK_BOX_SIZE=$(echo ${BLACK_BOX_SIZE} | sed 's/M/*1024*1024/')
+            BLACK_BOX_SIZE=$(echo ${BLACK_BOX_SIZE} | sed 's/G/*1024*1024*1024/')
+            echo "    ==== Set BlackBox Size to ${BBSIZE} = ${BLACK_BOX_SIZE}"
+            for SYSTEM in $(get_property ${CLUSTER} galera.systems) ; do
+                echo "SET GLOBAL wsrep_black_box_size=${BLACK_BOX_SIZE}" | mariadbci ${SYSTEM}
+            done
 
-        # set blackbox size
-        for SYSTEM in $(get_property ${CLUSTER} galera.systems) ; do
-            echo "SET GLOBAL wsrep_black_box_size=${BBSIZE}" | mariadbci ${SYSTEM}
+            COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats ${REPEATS} --"
+            COMMAND="${COMMAND} --skipcheck --skipmonitors --benchmark sysbench --workload ${WORKLOAD}"
+            exec ${COMMAND}
+
+            # copy results
+            D=$(ls -1d ${LOGDIRECTORY}/*.performance.curves | tail -1)
+            cp ${D}/test.data ${T}/${WORKLOAD}.${RUN_CLUSTER}.bb=${BBSIZE}.test.data
+            F=$(ls ${D}/*.performance.curves.png | tail -1)
+            cp ${F} ${T}/${WORKLOAD}.${RUN_CLUSTER}.bb=${BBSIZE}.curves.png
         done
-
-        # run curve(s)
-        COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats ${REPEATS} --"
-        COMMAND="${COMMAND} --skipcheck --skipmonitors --benchmark sysbench --workload ${WORKLOAD}"
-        exec ${COMMAND}
-
-        # find logdir for this run and copy results
-        D=$(ls -1d ${LOGDIRECTORY}/*.performance.curves | tail -1)
-        cp ${D}/test.data ${T}/${WORKLOAD}.blackbox=${BBSIZE}.test.data
-        F=$(ls ${D}/*.performance.curves.png | tail -1)
-        cp ${F} ${T}/${WORKLOAD}.blackbox=${BBSIZE}.curves.png
-
-        #restore LOGDIRECTORY
-        LOGDIRECTORY=${LOGDIRECTORY_BAK}
     done
     SYSBENCH_SEC=$(stop_timer)
 
