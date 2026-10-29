@@ -142,7 +142,7 @@ mkdir -p ${LOGDIRECTORY}
                 echo "SET GLOBAL wsrep_black_box_size=${BLACK_BOX_SIZE}" | mariadbci ${SYSTEM}
             done
 
-            COMMAND="performance.curves.sh --cluster ${CLUSTER} --repeats ${REPEATS} --"
+            COMMAND="performance.curves.sh --cluster ${RUN_CLUSTER} --repeats ${REPEATS} --"
             COMMAND="${COMMAND} --skipcheck --skipmonitors --benchmark sysbench --workload ${WORKLOAD}"
             exec ${COMMAND}
 
