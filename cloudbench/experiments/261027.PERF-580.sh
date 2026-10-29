@@ -103,8 +103,8 @@ mkdir -p ${LOGDIRECTORY}
     echo
     COMMAND="configure.cluster.sh --cluster ${CLUSTER} --cluster-type galera_mastermaster"
     COMMAND="${COMMAND} --master-system ${CLUSTER}-server-1"
-    COMMAND="${COMMAND} --slave-system ${CLUSTER}-server-2"
-    COMMAND="${COMMAND} --slave-system ${CLUSTER}-server-3"
+    COMMAND="${COMMAND} --master-system ${CLUSTER}-server-2"
+    COMMAND="${COMMAND} --master-system ${CLUSTER}-server-3"
     COMMAND="${COMMAND} --driver-system ${CLUSTER}-driver-1"
     COMMAND="${COMMAND} --extra-nodemask 1"
     exec ${COMMAND}
