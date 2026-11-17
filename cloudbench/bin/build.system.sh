@@ -133,7 +133,7 @@ while [[ $# > 0 ]] ; do
         --sync-relaylog)                OPTION_SYNC_RELAYLOG="$1"; shift;;
         --slave-threads)                OPTION_SLAVE_THREADS="$1"; shift;;
         --log-slave-updates)            OPTION_LOG_SLAVE_UPDATES=TRUE;;
-	--binlog-in-innodb		OPTION_BINLOG_IN_INNODB=TRUE;;
+	--binlog-in-innodb)		OPTION_BINLOG_IN_INNODB=TRUE;;
 
         -h|--help)                      echo -e "$USAGE"; exit 1;;
         *)  echo "Invalid input switch: $key"; echo -e "COMMAND_LINE = ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
