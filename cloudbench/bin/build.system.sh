@@ -133,6 +133,7 @@ while [[ $# > 0 ]] ; do
         --sync-relaylog)                OPTION_SYNC_RELAYLOG="$1"; shift;;
         --slave-threads)                OPTION_SLAVE_THREADS="$1"; shift;;
         --log-slave-updates)            OPTION_LOG_SLAVE_UPDATES=TRUE;;
+	--binlog-in-innodb		OPTION_BINLOG_IN_INNODB=TRUE;;
 
         -h|--help)                      echo -e "$USAGE"; exit 1;;
         *)  echo "Invalid input switch: $key"; echo -e "COMMAND_LINE = ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
@@ -552,6 +553,7 @@ mkdir -p ${LOGDIRECTORY}
                     CONFIG_FILE="'${CONFIG_FILE}'"
                     OPTION_BINLOG_COMMIT_WAIT_USEC="'${OPTION_BINLOG_COMMIT_WAIT_USEC}'"
                     OPTION_BINLOG_COMMIT_WAIT_COUNT="'${OPTION_BINLOG_COMMIT_WAIT_COUNT}'"
+                    OPTION_BINLOG_IN_INNODB="'${OPTION_BINLOG_IN_INNODB}'"
                     OPTION_CHARSET="'${OPTION_CHARSET}'"
                     OPTION_DBPORT="'${OPTION_DBPORT}'"
                     OPTION_DEFERRED_FLUSH="'${OPTION_DEFERRED_FLUSH}'"
@@ -722,6 +724,9 @@ mkdir -p ${LOGDIRECTORY}
                             fi
                             if [[ ${OPTION_SYNC_BINLOG} ]] ; then
                                 echo "sync_binlog = ${OPTION_SYNC_BINLOG}"
+                            fi
+                            if [[ ${OPTION_BINLOG_IN_INNODB} == TRUE ]] ; then
+                                echo "binlog_storage_engine = InnoDB"
                             fi
                             if [[ ${OPTION_SYNC_MASTER} == TRUE ]] ; then
                                 echo "sync_master_info = 1"
