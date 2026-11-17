@@ -104,4 +104,4 @@ mkdir -p ${LOGDIRECTORY}
 
     done
 
-} | tee ${LOGDIRECTORY}/${TESTNAME}.log
+} | tee ${LOGDIRECTORY}/${TEST_NAME}.log
