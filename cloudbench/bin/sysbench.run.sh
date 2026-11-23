@@ -84,7 +84,6 @@ while [[ $# > 0 ]] ; do
         --reconnect)            SYSBENCH_OPTIONS="${SYSBENCH_OPTIONS} --reconnect=$1"; shift;;
         --threadinittimeout)    SYSBENCH_OPTIONS="${SYSBENCH_OPTIONS} --thread-init-timeout=$1"; shift;;
         --seeded)               OPTION_SEEDED=TRUE;;
-        --histogram)            ;; #SYSBENCH_OPTIONS="${SYSBENCH_OPTIONS} --histogram";;
         --directexec)           DIRECTEXEC=TRUE;SYSBENCH_OPTIONS="${SYSBENCH_OPTIONS} --db-ps-mode=disable";;
         --target-tps)           TARGET_TPS="$1"; shift;;
         --ssl)                  OPTION_SSL=TRUE;;
@@ -299,21 +298,6 @@ time {
                             writeonly)          COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_write_only.lua";;
                             readwrite)          COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write.lua";;
 
-                            # workloads are LUA script names
-                            bulk_insert)            COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
-                            oltp_delete)            COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
-                            oltp_insert)            COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
-                            oltp_point_select)      COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
-                            oltp_read_only)         COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
-                            oltp_read_write)        COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
-                            oltp_update_index)      COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
-                            oltp_update_index2)     COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
-                            oltp_update_non_index)  COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
-                            oltp_update_non_index2) COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
-                            oltp_write_only)        COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
-                            select_random_points)   COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
-                            select_random_ranges)   COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
-
                             # splittable workloads for replication/galera
                             ro_splittable)      COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua";;
                             9010_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=10";;
@@ -324,8 +308,11 @@ time {
                             5050_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=50";;
                             4060_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=60";;
                             3070_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=70";;
+                            2575_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=75";;
                             2080_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=80";;
                             1090_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=90";;
+                            0100_splittable)    COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=100";;
+                            wo_splittable)      COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=100";;
                             # versions without range scans
                             9010_split_nr)      COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=10 --range-selects=false";;
                             8020_split_nr)      COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=20 --range-selects=false";;
@@ -350,19 +337,34 @@ time {
                             wl2_7030)           COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=30 --range-selects=false";;
                             wl2_6040)           COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=40 --range-selects=false";;
                             wl2_5050)           COMMAND="${COMMAND} /data/cbench/driver/lua/oltp_read_write_split.lua --write-percentage=50 --range-selects=false";;
+
+                            # default: workload is LUA script name
+                            #bulk_insert)            COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            #oltp_delete)            COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            #oltp_insert)            COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            #oltp_point_select)      COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            #oltp_read_only)         COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            #oltp_read_write)        COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            #oltp_read_write_split)  COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            #oltp_update_index)      COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            #oltp_update_index2)     COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            #oltp_update_non_index)  COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            #oltp_update_non_index2) COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            #oltp_write_only)        COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            #select_random_points)   COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
+                            #select_random_ranges)   COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
                             *)                  COMMAND="${COMMAND} /data/cbench/driver/lua/${WORKLOAD}.lua";;
                         esac
 
+                        COMMAND="${COMMAND} --mysql-db=${SCHEMA} --time=${DURATION} ${SYSBENCH_OPTIONS}"
+                        [[ ${TABLES} ]] && COMMAND="${COMMAND} --tables=${TABLES}"
+                        [[ ${TABLESIZE} ]] && COMMAND="${COMMAND} --table-size=${TABLESIZE}"
                         [[ ${SKIP_TRANSACTION} ]] && COMMAND="${COMMAND} --skip-trx=on"
                         [[ ${DISTRIBUTION} ]] && COMMAND="${COMMAND} --rand-type=${DISTRIBUTION}"
                         [[ ${REPORT_INTERVAL} ]] && COMMAND="${COMMAND} --report-interval=${REPORT_INTERVAL}"
                         [[ ${OPTION_SSL} ]] && COMMAND="${COMMAND} --mysql-ssl=on"
                         [[ ${SKIP_BINLOG} ]] && COMMAND="${COMMAND} --skip-binlog=on"
                         [[ ${WARMUP_TIME} ]] && COMMAND="${COMMAND} --warmup-time=${WARMUP_TIME}"
-                        [[ ${TABLES} ]] && COMMAND="${COMMAND} --tables=${TABLES}"
-                        [[ ${TABLESIZE} ]] && COMMAND="${COMMAND} --table-size=${TABLESIZE}"
-                        COMMAND="${COMMAND} --mysql-db=${SCHEMA}"
-                        COMMAND="${COMMAND} --time=${DURATION} ${SYSBENCH_OPTIONS}"
                         # 190920  Added Errno 8005 - a tiDB write conflict
                         # 1020 ... Galera/Raft (Record has changed since last read)
                         # 1047 ... Raft (WSREP has not yet prepared node for application use)
