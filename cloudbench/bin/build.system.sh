@@ -712,7 +712,18 @@ mkdir -p ${LOGDIRECTORY}
                         echo "# Replication"
                         echo "server_id = ${SERVER_ID}"
                         if [[ ${OPTION_MASTER} == TRUE || ${OPTION_SLAVE} ]] ; then
-                            echo "log_bin = /data/cbench/datadir/binlog"
+                            if [[ ${OPTION_BINLOG_IN_INNODB} == TRUE ]] ; then
+                                echo "log_bin"
+                                echo "binlog_storage_engine = InnoDB"
+                            else
+                                echo "log_bin = /data/cbench/datadir/binlog"
+                                if [[ ${OPTION_SYNC_BINLOG} ]] ; then
+                                    echo "sync_binlog = ${OPTION_SYNC_BINLOG}"
+                                fi
+                                if [[ ${OPTION_SYNC_MASTER} == TRUE ]] ; then
+                                    echo "sync_master_info = 1"
+                                fi
+                            fi
                             echo "binlog_format = ROW"
                             echo "binlog_row_image = MINIMAL"
                             echo "binlog_cache_size = 256K"
@@ -721,15 +732,6 @@ mkdir -p ${LOGDIRECTORY}
                                 echo "max_binlog_size = ${OPTION_MAX_BINLOG_SIZE}"
                             else
                                 echo "max_binlog_size = 1G"
-                            fi
-                            if [[ ${OPTION_SYNC_BINLOG} ]] ; then
-                                echo "sync_binlog = ${OPTION_SYNC_BINLOG}"
-                            fi
-                            if [[ ${OPTION_BINLOG_IN_INNODB} == TRUE ]] ; then
-                                echo "binlog_storage_engine = InnoDB"
-                            fi
-                            if [[ ${OPTION_SYNC_MASTER} == TRUE ]] ; then
-                                echo "sync_master_info = 1"
                             fi
                             echo "relay_log = /data/cbench/datadir/relaylog"
                             if [[ ${OPTION_SYNC_RELAYLOG} ]] ; then
