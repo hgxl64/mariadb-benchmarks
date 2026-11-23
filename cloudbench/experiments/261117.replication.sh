@@ -4,19 +4,7 @@
 #
 # $Id$
 
-USAGE="
-$0 - PERF-542, test semisync replication performance
-
-Usage: $0 [options]
-
-Options:
-    --mariadb-tarball   tarball to be used for MariaDB installation
-    --repeats
-"
-
 COMMAND_LINE="$@"
-
-unset DEBUG
 
 while [[ $# > 0 ]] ; do
     key="$1"; shift;
@@ -24,7 +12,7 @@ while [[ $# > 0 ]] ; do
         --mariadb-tarball)    MARIADB_TARBALL="$1"; shift;;
         --repeats)            REPEATS="$1"; shift;;
         -h|--help)            error -e "$USAGE";;
-        *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; echo -e "$USAGE"; exit 1;;
+        *) echo "Invalid input switch: $key"; echo -e "$0 ${COMMAND_LINE}"; exit 1;;
     esac
 done
 
@@ -34,7 +22,7 @@ source ${CBENCH_HOME}/bin/cbench.sh
 # defaults
 [[ ${CLUSTER} ]] || CLUSTER='replication'
 [[ ${REPEATS} ]] || REPEATS=1
-[[ ${WORKLOADS} ]] || WORKLOADS=( 9010_splittable 7525_splittable 5050_splittable )
+[[ ${WORKLOADS} ]] || WORKLOADS=( 9010_splittable 7525_splittable 5050_splittable 2575_splittable 0100_splittable )
 
 TEST_NAME="replication"
 cp properties/g1.properties properties/${CLUSTER}-server-1.properties
@@ -60,6 +48,7 @@ fi
 mkdir -p ${LOGDIRECTORY}
 
 {
+    # single server only, we add binlog settings later
     COMMAND="configure.cluster.sh --cluster ${CLUSTER} --cluster-type mariadb"
     COMMAND="${COMMAND} --mariadb-system ${CLUSTER}-server-1 --driver-system ${CLUSTER}-driver-1"
     exec ${COMMAND}
@@ -76,10 +65,11 @@ mkdir -p ${LOGDIRECTORY}
 
         COMMAND="build.cluster.sh --cluster ${CLUSTER}" 
         [[ ${MARIADB_TARBALL} ]] && COMMAND="${COMMAND} --mariadb-tarball ${MARIADB_TARBALL}"
+        # enable binlog case by case
         case ${WHAT} in
             BINLOG) export OPTION_MASTER=TRUE;; 
             SYNC)   export OPTION_MASTER=TRUE; export OPTION_SYNC_BINLOG=1;;
-            INNODB) export OPTION_MASTER=TRUE; export OPTION_BINLOG_IN_INNODB=1;;
+            INNODB) export OPTION_MASTER=TRUE; export OPTION_BINLOG_IN_INNODB=TRUE;;
         esac
         exec ${COMMAND}
         unset OPTION_MASTER OPTION_SYNC_BINLOG OPTION_BINLOG_IN_INNODB
